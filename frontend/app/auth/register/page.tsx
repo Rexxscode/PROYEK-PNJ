@@ -6,18 +6,18 @@ import Link from "next/link";
 import { Zap, Mail, Lock, User, BookOpen } from "lucide-react";
 
 export default function RegisterPage() {
-    const router = useRouter();
-    const [name, setName] = useState("");
-    const [email, setEmail] = useState("");
-    const [major, setMajor] = useState("");
-    const [grade, setGrade] = useState("");
-    const [password, setPassword] = useState("");
+  const router = useRouter();
+  const [name, setName] = useState("");
+  const [email, setEmail] = useState("");
+  const [major, setMajor] = useState("");
+  const [grade, setGrade] = useState("");
+  const [password, setPassword] = useState("");
 
-  const handleSubmit = (e: React.FormEvent) => 
-    {
-        e.preventDefault();
-        router.push("/student/assessment");
-    };
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    router.push("/student/assessment");
+  };
+
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-primary/5 via-background to-secondary/5 px-4 py-8">
       <div className="w-full max-w-md">
@@ -134,7 +134,7 @@ export default function RegisterPage() {
           <div className="mt-6 text-center">
             <p className="text-sm text-muted">
               Sudah punya akun?{" "}
-               <Link href="/auth/login" className="font-medium text-primary hover:text-primary-dark transition-colors">
+              <Link href="/auth/login" className="font-medium text-primary hover:text-primary-dark transition-colors">
                 Masuk
               </Link>
             </p>

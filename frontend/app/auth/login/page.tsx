@@ -6,21 +6,21 @@ import Link from "next/link";
 import { Zap, Mail, Lock } from "lucide-react";
 
 export default function LoginPage() {
-    const router = useRouter();
-    const [email, setEmail] = useState("");
-    const [password, setPassword] = useState("");
+  const router = useRouter();
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
 
-    const handleSubmit = (e: React.FormEvent) => 
-        {
-            e.preventDefault();
-            if (email.includes("admin") || email.includes("guru")) {
-              router.push("/admin");
-            } else if (email.includes("industry") || email.includes("hrd")) {
-              router.push("/industry");
-            } else {
-              router.push("/student");
-        }
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (email.includes("admin") || email.includes("guru")) {
+      router.push("/admin");
+    } else if (email.includes("industry") || email.includes("hrd")) {
+      router.push("/industry");
+    } else {
+      router.push("/student");
+    }
   };
+
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-primary/5 via-background to-secondary/5 px-4">
       <div className="w-full max-w-md">
@@ -82,7 +82,7 @@ export default function LoginPage() {
           <div className="mt-6 text-center">
             <p className="text-sm text-muted">
               Belum punya akun?{" "}
-               <Link href="/auth/register" className="font-medium text-primary hover:text-primary-dark transition-colors">
+              <Link href="/auth/register" className="font-medium text-primary hover:text-primary-dark transition-colors">
                 Daftar sekarang
               </Link>
             </p>

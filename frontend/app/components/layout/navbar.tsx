@@ -35,7 +35,7 @@ export default function Navbar() {
 
           <div className="hidden md:flex items-center gap-3">
             <Link
-               href="/auth/login"
+              href="/auth/login"
               className="px-4 py-2 text-sm font-medium text-foreground border border-border rounded-lg hover:bg-gray-50 transition-colors"
             >
               Masuk
