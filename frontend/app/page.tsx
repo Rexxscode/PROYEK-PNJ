@@ -1,333 +1,321 @@
-"use client";
+import Navbar from "./components/layout/navbar";
+import {
+  Brain,
+  Target,
+  Map,
+  Briefcase,
+  ArrowRight,
+  CheckCircle2,
+  Users,
+  TrendingUp,
+  Building2,
+  Star,
+  Zap,
+  ChevronRight,
+} from "lucide-react";
 
-import { useState } from "react";
-import { ClipboardCheck, ChevronRight, ChevronLeft, CheckCircle2, Sparkles } from "lucide-react";
-import Card from "@/components/ui/Card";
-import Badge from "@/components/ui/Badge";
-import SkillRadar from "@/components/charts/SkillRadar";
-import DashboardHeader from "@/components/layout/DashboardHeader";
-import { hardSkills, softSkills, currentUser } from "@/lib/mock-data";
-import type { Skill, AssessmentAnswer } from "@/lib/types";
+const features = [
+  {
+    icon: Brain,
+    title: "Know Yourself",
+    description: "Asesmen skill interaktif untuk memetakan kemampuan teknis dan soft skill kamu secara akurat.",
+    color: "from-blue-500 to-cyan-500",
+  },
+  {
+    icon: Target,
+    title: "Know Your Path",
+    description: "Career matching berbasis skill dengan analisis gap untuk menunjukkan jalan karier terbaikmu.",
+    color: "from-purple-500 to-pink-500",
+  },
+  {
+    icon: Map,
+    title: "Build Your Future",
+    description: "Roadmap belajar personal dan pembuatan portfolio otomatis untuk meningkatkan kesiapan kerja.",
+    color: "from-amber-500 to-orange-500",
+  },
+  {
+    icon: Briefcase,
+    title: "Get Hired",
+    description: "Smart job board yang mencocokkan skill kamu dengan peluang magang dan kerja yang relevan.",
+    color: "from-emerald-500 to-teal-500",
+  },
+];
 
-const totalSteps = 4;
+const stats = [
+  { value: "248+", label: "Siswa Terdaftar", icon: Users },
+  { value: "85%", label: "Match Rate", icon: Target },
+  { value: "50+", label: "Lowongan Tersedia", icon: Building2 },
+  { value: "95%", label: "User Satisfaction", icon: Star },
+];
 
-export default function AssessmentPage() {
-  const [currentStep, setCurrentStep] = useState(1);
-  const [answers, setAnswers] = useState<AssessmentAnswer[]>([]);
-  const [resultSkills, setResultSkills] = useState<Skill[]>([]);
+const steps = [
+  { step: 1, title: "Isi Asesmen", description: "Jawab pertanyaan tentang skill yang kamu kuasai" },
+  { step: 2, title: "Dapatkan Rekomendasi", description: "Sistem menganalisis dan memberikan rekomendasi karier" },
+  { step: 3, title: "Ikuti Roadmap", description: "Belajar mengikuti jalur yang sudah disiapkan" },
+  { step: 4, title: "Lamar Pekerjaan", description: "Gunakan portfolio untuk melamar posisi impian" },
+];
 
-  const hardSkillAnswers = answers.filter((a) =>
-    hardSkills.some((s) => s.id === a.skillId)
-  );
-  const softSkillAnswers = answers.filter((a) =>
-    softSkills.some((s) => s.id === a.skillId)
-  );
-
-  const hardProgress = hardSkills.length > 0 ? (hardSkillAnswers.length / hardSkills.length) * 100 : 0;
-  const softProgress = softSkills.length > 0 ? (softSkillAnswers.length / softSkills.length) * 100 : 0;
-
-  const handleAnswer = (skillId: string, level: number) => {
-    setAnswers((prev) => {
-      const existing = prev.findIndex((a) => a.skillId === skillId);
-      if (existing >= 0) {
-        const updated = [...prev];
-        updated[existing] = { skillId, level };
-        return updated;
-      }
-      return [...prev, { skillId, level }];
-    });
-  };
-
-  const goToStep = (step: number) => {
-    if (step === 4) {
-      const skills: Skill[] = [
-        ...hardSkills.map((s) => {
-          const answer = answers.find((a) => a.skillId === s.id);
-          return { ...s, level: answer?.level || 0 };
-        }),
-        ...softSkills.map((s) => {
-          const answer = answers.find((a) => a.skillId === s.id);
-          return { ...s, level: answer?.level || 0 };
-        }),
-      ].filter((s) => s.level > 0);
-      setResultSkills(skills);
-    }
-    setCurrentStep(step);
-  };
-
-  const getLevelLabel = (level: number): string => {
-    const labels = ["", "Belum", "Dasar", "Menengah", "Mahir", "Ahli"];
-    return labels[level] || "";
-  };
-
-  const getLevelColor = (level: number): "danger" | "warning" | "default" | "primary" | "success" => {
-    if (level <= 1) return "danger";
-    if (level <= 2) return "warning";
-    if (level <= 3) return "default";
-    if (level <= 4) return "primary";
-    return "success";
-  };
-
+export default function Home() {
   return (
-    <div>
-      <DashboardHeader
-        title="Know Yourself"
-        subtitle="Asesmen kemampuan skill kamu"
-      />
+    <div className="min-h-screen bg-background">
+      <Navbar />
 
-      {/* Progress Bar */}
-      <div className="mb-8">
-        <div className="flex items-center justify-between mb-2">
-          {["Selamat Datang", "Hard Skill", "Soft Skill", "Hasil"].map((label, i) => (
-            <div key={label} className="flex items-center gap-2">
-              <div
-                className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium ${
-                  currentStep > i + 1
-                    ? "bg-emerald-500 text-white"
-                    : currentStep === i + 1
-                    ? "bg-primary text-white"
-                    : "bg-gray-200 text-gray-500"
-                }`}
-              >
-                {currentStep > i + 1 ? <CheckCircle2 className="w-4 h-4" /> : i + 1}
+      {/* Hero Section */}
+      <section className="relative overflow-hidden">
+        <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-transparent to-secondary/5" />
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20 lg:py-32">
+          <div className="grid lg:grid-cols-2 gap-12 items-center">
+            <div className="space-y-8">
+              <div className="inline-flex items-center gap-2 px-3 py-1.5 bg-primary/10 rounded-full">
+                <Zap className="w-4 h-4 text-primary" />
+                <span className="text-sm font-medium text-primary">Career Readiness Platform</span>
               </div>
-              <span className={`text-sm hidden sm:block ${currentStep === i + 1 ? "font-medium text-foreground" : "text-muted"}`}>
-                {label}
-              </span>
-            </div>
-          ))}
-        </div>
-        <div className="w-full bg-gray-200 rounded-full h-2">
-          <div
-            className="bg-primary rounded-full h-2 transition-all duration-500"
-            style={{ width: `${((currentStep - 1) / (totalSteps - 1)) * 100}%` }}
-          />
-        </div>
-      </div>
-
-      {/* Step 1: Welcome */}
-      {currentStep === 1 && (
-        <Card className="text-center py-12 animate-fade-in">
-          <div className="w-20 h-20 rounded-full bg-primary/10 flex items-center justify-center mx-auto mb-6">
-            <ClipboardCheck className="w-10 h-10 text-primary" />
-          </div>
-          <h2 className="text-2xl font-bold text-foreground mb-3">Selamat datang, {currentUser.name}!</h2>
-          <p className="text-muted max-w-md mx-auto mb-8">
-            Asesmen ini akan membantu memetakan kemampuan skill kamu saat ini.
-            Jawab dengan jujur untuk hasil yang akurat.
-          </p>
-          <div className="flex flex-col sm:flex-row gap-4 justify-center mb-6">
-            <div className="bg-blue-50 rounded-lg px-4 py-2">
-              <p className="text-sm font-medium text-blue-700">{hardSkills.length} Hard Skills</p>
-            </div>
-            <div className="bg-purple-50 rounded-lg px-4 py-2">
-              <p className="text-sm font-medium text-purple-700">{softSkills.length} Soft Skills</p>
-            </div>
-          </div>
-          <button
-            onClick={() => goToStep(2)}
-            className="inline-flex items-center gap-2 px-6 py-3 bg-primary text-white font-medium rounded-xl hover:bg-primary-dark transition-colors"
-          >
-            Mulai Asesmen <ChevronRight className="w-4 h-4" />
-          </button>
-        </Card>
-      )}
-
-      {/* Step 2: Hard Skills */}
-      {currentStep === 2 && (
-        <div className="animate-fade-in">
-          <div className="flex items-center justify-between mb-6">
-            <div>
-              <h2 className="text-lg font-semibold text-foreground">Hard Skills Assessment</h2>
-              <p className="text-sm text-muted">Beri penilaian pada skill teknis yang kamu kuasai</p>
-            </div>
-            <Badge variant="primary">{Math.round(hardProgress)}% selesai</Badge>
-          </div>
-          <div className="space-y-3">
-            {hardSkills.map((skill) => {
-              const answer = answers.find((a) => a.skillId === skill.id);
-              return (
-                <Card key={skill.id} className="!p-4">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="font-medium text-foreground">{skill.name}</p>
-                      {answer && (
-                        <Badge variant={getLevelColor(answer.level)} className="mt-1">
-                          {getLevelLabel(answer.level)}
-                        </Badge>
-                      )}
-                    </div>
-                    <div className="flex gap-1.5">
-                      {[1, 2, 3, 4, 5].map((level) => (
-                        <button
-                          key={level}
-                          onClick={() => handleAnswer(skill.id, level)}
-                          className={`w-10 h-10 rounded-lg text-sm font-medium transition-all ${
-                            answer?.level === level
-                              ? "bg-primary text-white scale-110 shadow-md"
-                              : "bg-gray-100 text-gray-600 hover:bg-gray-200"
-                          }`}
-                        >
-                          {level}
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-                </Card>
-              );
-            })}
-          </div>
-          <div className="flex justify-between mt-6">
-            <button
-              onClick={() => goToStep(1)}
-              className="flex items-center gap-2 px-4 py-2 text-muted hover:text-foreground transition-colors"
-            >
-              <ChevronLeft className="w-4 h-4" /> Kembali
-            </button>
-            <button
-              onClick={() => goToStep(3)}
-              disabled={hardProgress < 100}
-              className="flex items-center gap-2 px-6 py-2.5 bg-primary text-white font-medium rounded-xl hover:bg-primary-dark transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              Lanjut <ChevronRight className="w-4 h-4" />
-            </button>
-          </div>
-        </div>
-      )}
-
-      {/* Step 3: Soft Skills */}
-      {currentStep === 3 && (
-        <div className="animate-fade-in">
-          <div className="flex items-center justify-between mb-6">
-            <div>
-              <h2 className="text-lg font-semibold text-foreground">Soft Skills Assessment</h2>
-              <p className="text-sm text-muted">Beri penilaian pada kemampuan non-teknis kamu</p>
-            </div>
-            <Badge variant="secondary">{Math.round(softProgress)}% selesai</Badge>
-          </div>
-          <div className="space-y-3">
-            {softSkills.map((skill) => {
-              const answer = answers.find((a) => a.skillId === skill.id);
-              return (
-                <Card key={skill.id} className="!p-4">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="font-medium text-foreground">{skill.name}</p>
-                      {answer && (
-                        <Badge variant={getLevelColor(answer.level)} className="mt-1">
-                          {getLevelLabel(answer.level)}
-                        </Badge>
-                      )}
-                    </div>
-                    <div className="flex gap-1.5">
-                      {[1, 2, 3, 4, 5].map((level) => (
-                        <button
-                          key={level}
-                          onClick={() => handleAnswer(skill.id, level)}
-                          className={`w-10 h-10 rounded-lg text-sm font-medium transition-all ${
-                            answer?.level === level
-                              ? "bg-secondary text-white scale-110 shadow-md"
-                              : "bg-gray-100 text-gray-600 hover:bg-gray-200"
-                          }`}
-                        >
-                          {level}
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-                </Card>
-              );
-            })}
-          </div>
-          <div className="flex justify-between mt-6">
-            <button
-              onClick={() => goToStep(2)}
-              className="flex items-center gap-2 px-4 py-2 text-muted hover:text-foreground transition-colors"
-            >
-              <ChevronLeft className="w-4 h-4" /> Kembali
-            </button>
-            <button
-              onClick={() => goToStep(4)}
-              disabled={softProgress < 100}
-              className="flex items-center gap-2 px-6 py-2.5 bg-primary text-white font-medium rounded-xl hover:bg-primary-dark transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              Lihat Hasil <Sparkles className="w-4 h-4" />
-            </button>
-          </div>
-        </div>
-      )}
-
-      {/* Step 4: Results */}
-      {currentStep === 4 && resultSkills.length > 0 && (
-        <div className="animate-fade-in">
-          <Card className="mb-6 bg-gradient-to-r from-emerald-50 to-teal-50 border-emerald-200">
-            <div className="flex items-center gap-3">
-              <CheckCircle2 className="w-8 h-8 text-emerald-600" />
-              <div>
-                <h3 className="font-semibold text-emerald-800">Asesmen Selesai!</h3>
-                <p className="text-sm text-emerald-600">
-                  Skill profile kamu sudah berhasil dibuat. Lihat hasilnya di bawah.
-                </p>
+              <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold leading-tight">
+                Temukan{" "}
+                <span className="bg-gradient-to-r from-primary via-secondary to-accent bg-clip-text text-transparent">
+                  Jalur Kariermu
+                </span>
+              </h1>
+              <p className="text-lg text-muted max-w-lg">
+                SkillMatch menjembatani kesenjangan kompetensi antara siswa SMK dan kebutuhan industri.
+                Mulai dari asesmen skill hingga rekomendasi pekerjaan yang terpersonalisasi.
+              </p>
+              <div className="flex flex-col sm:flex-row gap-4">
+                <a
+                  href="/register"
+                  className="inline-flex items-center justify-center gap-2 px-6 py-3 bg-primary text-white font-medium rounded-xl hover:bg-primary-dark transition-colors shadow-lg shadow-primary/25"
+                >
+                  Mulai Asesmen Gratis
+                  <ArrowRight className="w-4 h-4" />
+                </a>
+                <a
+                  href="#features"
+                  className="inline-flex items-center justify-center gap-2 px-6 py-3 border border-border text-foreground font-medium rounded-xl hover:bg-gray-50 transition-colors"
+                >
+                  Pelajari Lebih Lanjut
+                </a>
               </div>
             </div>
-          </Card>
-
-          <div className="grid lg:grid-cols-2 gap-6">
-            <Card>
-              <SkillRadar skills={resultSkills} title="Skill Profile Kamu" />
-            </Card>
-            <Card>
-              <h3 className="text-sm font-semibold text-foreground mb-4">Ringkasan Skill</h3>
-              <div className="space-y-3">
-                {resultSkills
-                  .sort((a, b) => b.level - a.level)
-                  .map((skill) => (
-                    <div key={skill.id} className="flex items-center justify-between">
-                      <div className="flex items-center gap-2">
-                        <div className={`w-2 h-2 rounded-full ${skill.level >= 4 ? "bg-emerald-500" : skill.level >= 3 ? "bg-amber-400" : "bg-red-400"}`} />
-                        <span className="text-sm text-foreground">{skill.name}</span>
+            <div className="hidden lg:block">
+              <div className="relative">
+                <div className="absolute inset-0 bg-gradient-to-br from-primary/20 to-secondary/20 rounded-3xl blur-3xl" />
+                <div className="relative bg-white rounded-3xl border border-border p-8 shadow-2xl">
+                  <div className="space-y-4">
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 rounded-full bg-gradient-to-br from-primary to-secondary flex items-center justify-center">
+                        <span className="text-sm font-bold text-white">BS</span>
                       </div>
-                      <div className="flex items-center gap-2">
-                        <div className="flex gap-0.5">
-                          {[1, 2, 3, 4, 5].map((i) => (
-                            <div
-                              key={i}
-                              className={`w-3 h-3 rounded-sm ${
-                                i <= skill.level ? "bg-primary" : "bg-gray-200"
-                              }`}
-                            />
-                          ))}
+                      <div>
+                        <p className="font-semibold text-foreground">Budi Santoso</p>
+                        <p className="text-xs text-muted">Teknik Informatika XII</p>
+                      </div>
+                    </div>
+                    <div className="bg-gradient-to-r from-emerald-50 to-emerald-100/50 rounded-xl p-4">
+                      <div className="flex items-center gap-2 mb-1">
+                        <Target className="w-4 h-4 text-emerald-600" />
+                        <span className="text-sm font-semibold text-emerald-700">Career Match Found!</span>
+                      </div>
+                      <p className="text-sm text-emerald-600">
+                        Budi, kamu <strong>82% cocok</strong> jadi Backend Developer
+                      </p>
+                    </div>
+                    <div className="grid grid-cols-3 gap-3">
+                      {[
+                        { label: "HTML/CSS", level: 4 },
+                        { label: "Node.js", level: 3 },
+                        { label: "Git", level: 2 },
+                      ].map((skill) => (
+                        <div key={skill.label} className="bg-gray-50 rounded-lg p-3 text-center">
+                          <div className="text-xs text-muted mb-1">{skill.label}</div>
+                          <div className="flex gap-0.5 justify-center">
+                            {[1, 2, 3, 4, 5].map((i) => (
+                              <div
+                                key={i}
+                                className={`w-2 h-2 rounded-full ${
+                                  i <= skill.level ? "bg-primary" : "bg-gray-200"
+                                }`}
+                              />
+                            ))}
+                          </div>
                         </div>
-                        <Badge variant={getLevelColor(skill.level)} className="text-[10px]">
-                          {getLevelLabel(skill.level)}
-                        </Badge>
-                      </div>
+                      ))}
                     </div>
-                  ))}
+                  </div>
+                </div>
               </div>
-            </Card>
-          </div>
-
-          <div className="flex justify-between mt-6">
-            <button
-              onClick={() => {
-                setCurrentStep(1);
-                setAnswers([]);
-                setResultSkills([]);
-              }}
-              className="flex items-center gap-2 px-4 py-2 text-muted hover:text-foreground transition-colors"
-            >
-              <ChevronLeft className="w-4 h-4" /> Ulangi Asesmen
-            </button>
-            <a
-              href="/student/career-match"
-              className="flex items-center gap-2 px-6 py-2.5 bg-primary text-white font-medium rounded-xl hover:bg-primary-dark transition-colors"
-            >
-              Lanjut ke Career Match <ChevronRight className="w-4 h-4" />
-            </a>
+            </div>
           </div>
         </div>
-      )}
+      </section>
+
+      {/* Features Section */}
+      <section id="features" className="py-20 bg-white">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-16">
+            <h2 className="text-3xl sm:text-4xl font-bold text-foreground mb-4">
+              Fitur Unggulan
+            </h2>
+            <p className="text-muted max-w-2xl mx-auto">
+              Empat modul utama yang dirancang untuk membantu kamu memahami diri sendiri,
+              menemukan karier yang tepat, dan mempersiapkan diri untuk dunia kerja.
+            </p>
+          </div>
+          <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6">
+            {features.map((feature) => (
+              <div
+                key={feature.title}
+                className="group bg-white border border-border rounded-2xl p-6 hover:shadow-xl hover:border-primary/20 transition-all duration-300 hover:-translate-y-1"
+              >
+                <div
+                  className={`w-12 h-12 rounded-xl bg-gradient-to-br ${feature.color} flex items-center justify-center mb-4 group-hover:scale-110 transition-transform`}
+                >
+                  <feature.icon className="w-6 h-6 text-white" />
+                </div>
+                <h3 className="text-lg font-semibold text-foreground mb-2">{feature.title}</h3>
+                <p className="text-sm text-muted leading-relaxed">{feature.description}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Stats Section */}
+      <section className="py-20 bg-gradient-to-br from-primary to-secondary">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-8">
+            {stats.map((stat) => (
+              <div key={stat.label} className="text-center">
+                <stat.icon className="w-8 h-8 text-white/80 mx-auto mb-3" />
+                <div className="text-3xl sm:text-4xl font-bold text-white mb-1">{stat.value}</div>
+                <div className="text-sm text-white/80">{stat.label}</div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* How It Works Section */}
+      <section id="about" className="py-20">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-16">
+            <h2 className="text-3xl sm:text-4xl font-bold text-foreground mb-4">
+              Cara Kerja
+            </h2>
+            <p className="text-muted max-w-2xl mx-auto">
+              Empat langkah sederhana untuk memulai perjalanan karier kamu bersama SkillMatch.
+            </p>
+          </div>
+          <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-8">
+            {steps.map((step, index) => (
+              <div key={step.step} className="relative text-center">
+                {index < steps.length - 1 && (
+                  <div className="hidden lg:block absolute top-10 left-[60%] w-[80%] border-t-2 border-dashed border-primary/30" />
+                )}
+                <div className="relative z-10 w-20 h-20 rounded-full bg-primary/10 flex items-center justify-center mx-auto mb-4">
+                  <span className="text-2xl font-bold text-primary">{step.step}</span>
+                </div>
+                <h3 className="text-lg font-semibold text-foreground mb-2">{step.title}</h3>
+                <p className="text-sm text-muted">{step.description}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Impact Section */}
+      <section id="impact" className="py-20 bg-white">
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+          <div className="inline-flex items-center gap-2 px-4 py-2 bg-emerald-50 rounded-full mb-8">
+            <TrendingUp className="w-4 h-4 text-emerald-600" />
+            <span className="text-sm font-medium text-emerald-700">SDG 8 - Decent Work and Economic Growth</span>
+          </div>
+          <blockquote className="text-2xl sm:text-3xl font-semibold text-foreground leading-relaxed mb-8">
+            &ldquo;SkillMatch berkomitmen untuk menciptakan masa depan di mana setiap siswa vokasi memiliki kesempatan
+            yang setara dalam mengakses peluang kerja yang layak dan berkualitas.&rdquo;
+          </blockquote>
+          <p className="text-muted max-w-2xl mx-auto">
+            Platform ini dirancang untuk menjembatani kesenjangan antara pendidikan vokasi dan kebutuhan industri,
+            sehingga mengurangi pengangguran terdidik dan meningkatkan daya saing tenaga kerja Indonesia.
+          </p>
+        </div>
+      </section>
+
+      {/* CTA Section */}
+      <section className="py-20">
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="relative bg-gradient-to-br from-primary via-primary-dark to-secondary rounded-3xl p-12 text-center overflow-hidden">
+            <div className="absolute inset-0 opacity-10">
+              <div className="absolute top-0 left-0 w-40 h-40 bg-white rounded-full -translate-x-1/2 -translate-y-1/2" />
+              <div className="absolute bottom-0 right-0 w-60 h-60 bg-white rounded-full translate-x-1/3 translate-y-1/3" />
+            </div>
+            <div className="relative z-10">
+              <h2 className="text-3xl sm:text-4xl font-bold text-white mb-4">
+                Siap Memulai Perjalanan Kariermu?
+              </h2>
+              <p className="text-white/80 mb-8 max-w-lg mx-auto">
+                Daftar sekarang dan temukan potensi terbaikmu. Gratis untuk semua siswa SMK!
+              </p>
+              <a
+                href="/register"
+                className="inline-flex items-center gap-2 px-8 py-4 bg-white text-primary font-semibold rounded-xl hover:bg-gray-50 transition-colors shadow-lg"
+              >
+                Daftar Sekarang - Gratis
+                <ChevronRight className="w-5 h-5" />
+              </a>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Footer */}
+      <footer className="py-12 border-t border-border bg-white">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="grid md:grid-cols-4 gap-8">
+            <div>
+              <div className="flex items-center gap-2 mb-4">
+                <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-primary to-secondary flex items-center justify-center">
+                  <Zap className="w-5 h-5 text-white" />
+                </div>
+                <span className="text-lg font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
+                  SkillMatch
+                </span>
+              </div>
+              <p className="text-sm text-muted">
+                Career Readiness Platform untuk siswa vokasi Indonesia.
+              </p>
+            </div>
+            <div>
+              <h4 className="font-semibold text-foreground mb-3">Fitur</h4>
+              <ul className="space-y-2 text-sm text-muted">
+                <li><a href="#features" className="hover:text-primary transition-colors">Know Yourself</a></li>
+                <li><a href="#features" className="hover:text-primary transition-colors">Know Your Path</a></li>
+                <li><a href="#features" className="hover:text-primary transition-colors">Build Your Future</a></li>
+                <li><a href="#features" className="hover:text-primary transition-colors">Get Hired</a></li>
+              </ul>
+            </div>
+            <div>
+              <h4 className="font-semibold text-foreground mb-3">Tentang</h4>
+              <ul className="space-y-2 text-sm text-muted">
+                <li><a href="#about" className="hover:text-primary transition-colors">Cara Kerja</a></li>
+                <li><a href="#impact" className="hover:text-primary transition-colors">Dampak</a></li>
+                <li><a href="#" className="hover:text-primary transition-colors">Tim Kami</a></li>
+              </ul>
+            </div>
+            <div>
+              <h4 className="font-semibold text-foreground mb-3">Kontak</h4>
+              <ul className="space-y-2 text-sm text-muted">
+                <li>info@skillmatch.id</li>
+                <li>Jakarta, Indonesia</li>
+              </ul>
+            </div>
+          </div>
+          <div className="mt-12 pt-8 border-t border-border text-center">
+            <p className="text-sm text-muted">
+              &copy; 2026 SkillMatch. Dibuat untuk ITechno Cup 2026.
+            </p>
+          </div>
+        </div>
+      </footer>
     </div>
   );
 }

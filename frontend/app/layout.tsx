@@ -28,25 +28,3 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
     </html>
   );
 }
-
-import Sidebar from "@/components/layout/Sidebar";
-
-export default function StudentLayout({ children }: LayoutProps<"/student">) {
-  return (
-    <div className="flex min-h-screen bg-background">
-      <Sidebar role="student" currentPath="/student" />
-      <main className="flex-1 ml-64 p-8">{children}</main>
-    </div>
-  );
-}
-
-import Sidebar from "@/components/layout/Sidebar";
-
-export default function StudentLayout({ children }: LayoutProps<"/student">) {
-  return (
-    <div className="flex min-h-screen bg-background">
-      <Sidebar role="student" currentPath="/student" />
-      <main className="flex-1 ml-64 p-8">{children}</main>
-    </div>
-  );
-}
