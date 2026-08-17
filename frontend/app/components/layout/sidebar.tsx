@@ -95,7 +95,7 @@ export default function Sidebar({ role, currentPath, isCollapsed = false, onTogg
 
       <nav className="flex-1 py-4 px-3 space-y-1 overflow-y-auto">
         {items.map((item) => {
-          const isActive = currentPath === item.href || (item.href !== `/` && currentPath.startsWith(item.href));
+          const isActive = currentPath === item.href;
           return (
             <Link
               key={item.href}
