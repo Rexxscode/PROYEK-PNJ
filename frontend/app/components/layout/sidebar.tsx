@@ -31,7 +31,7 @@ const navItems = {
     { label: "Know Yourself", href: "/student/assessment", icon: ClipboardCheck },
     { label: "Know Your Path", href: "/student/career-match", icon: Target },
     { label: "Roadmap Belajar", href: "/student/roadmap", icon: Map },
-    { label: "Portfolio", href: "/student/portfolio", icon: GraduationCap },
+    { label: "Portfolio", href: "/student/portofolio", icon: GraduationCap },
     { label: "Lowongan", href: "/student/jobs", icon: Briefcase },
   ],
   admin: [

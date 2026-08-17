@@ -1,7 +1,23 @@
+"use client";
+
+import { useState } from "react";
+import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { Zap, Mail, Lock, User, BookOpen } from "lucide-react";
 
 export default function RegisterPage() {
+    const router = useRouter();
+    const [name, setName] = useState("");
+    const [email, setEmail] = useState("");
+    const [major, setMajor] = useState("");
+    const [grade, setGrade] = useState("");
+    const [password, setPassword] = useState("");
+
+  const handleSubmit = (e: React.FormEvent) => 
+    {
+        e.preventDefault();
+        router.push("/student/assessment");
+    };
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-primary/5 via-background to-secondary/5 px-4 py-8">
       <div className="w-full max-w-md">
@@ -19,7 +35,7 @@ export default function RegisterPage() {
         </div>
 
         <div className="bg-white rounded-2xl border border-border p-8 shadow-sm">
-          <form className="space-y-5">
+          <form onSubmit={handleSubmit} className="space-y-5">
             <div>
               <label htmlFor="name" className="block text-sm font-medium text-foreground mb-1.5">
                 Nama Lengkap
@@ -30,6 +46,8 @@ export default function RegisterPage() {
                   id="name"
                   type="text"
                   placeholder="Budi Santoso"
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
                   className="w-full pl-10 pr-4 py-2.5 border border-border rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-colors"
                 />
               </div>
@@ -44,6 +62,8 @@ export default function RegisterPage() {
                   id="email"
                   type="email"
                   placeholder="budi@student.smk.id"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
                   className="w-full pl-10 pr-4 py-2.5 border border-border rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-colors"
                 />
               </div>
@@ -57,6 +77,8 @@ export default function RegisterPage() {
                   <BookOpen className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted" />
                   <select
                     id="major"
+                    value={major}
+                    onChange={(e) => setMajor(e.target.value)}
                     className="w-full pl-10 pr-4 py-2.5 border border-border rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-colors appearance-none bg-white"
                   >
                     <option value="">Pilih</option>
@@ -73,6 +95,8 @@ export default function RegisterPage() {
                 </label>
                 <select
                   id="grade"
+                  value={grade}
+                  onChange={(e) => setGrade(e.target.value)}
                   className="w-full px-4 py-2.5 border border-border rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-colors appearance-none bg-white"
                 >
                   <option value="">Pilih</option>
@@ -93,6 +117,8 @@ export default function RegisterPage() {
                   id="password"
                   type="password"
                   placeholder="Minimal 8 karakter"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
                   className="w-full pl-10 pr-4 py-2.5 border border-border rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-colors"
                 />
               </div>
@@ -108,7 +134,7 @@ export default function RegisterPage() {
           <div className="mt-6 text-center">
             <p className="text-sm text-muted">
               Sudah punya akun?{" "}
-              <Link href="/login" className="font-medium text-primary hover:text-primary-dark transition-colors">
+               <Link href="/auth/login" className="font-medium text-primary hover:text-primary-dark transition-colors">
                 Masuk
               </Link>
             </p>

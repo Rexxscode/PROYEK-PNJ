@@ -35,13 +35,13 @@ export default function Navbar() {
 
           <div className="hidden md:flex items-center gap-3">
             <Link
-              href="/login"
+               href="/auth/login"
               className="px-4 py-2 text-sm font-medium text-foreground border border-border rounded-lg hover:bg-gray-50 transition-colors"
             >
               Masuk
             </Link>
             <Link
-              href="/register"
+              href="/auth/register"
               className="px-4 py-2 text-sm font-medium text-white bg-primary rounded-lg hover:bg-primary-dark transition-colors"
             >
               Daftar Sekarang
@@ -69,10 +69,10 @@ export default function Navbar() {
                 Dampak
               </Link>
               <hr className="my-2 border-border" />
-              <Link href="/login" className="px-3 py-2 text-sm font-medium text-muted hover:bg-gray-50 rounded-lg transition-colors">
+              <Link href="/auth/login" className="px-3 py-2 text-sm font-medium text-muted hover:bg-gray-50 rounded-lg transition-colors">
                 Masuk
               </Link>
-              <Link href="/register" className="px-3 py-2 text-sm font-medium text-white bg-primary rounded-lg hover:bg-primary-dark transition-colors text-center">
+              <Link href="/auth/register" className="px-3 py-2 text-sm font-medium text-white bg-primary rounded-lg hover:bg-primary-dark transition-colors text-center">
                 Daftar Sekarang
               </Link>
             </div>

@@ -1,7 +1,26 @@
+"use client";
+
+import { useState } from "react";
+import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { Zap, Mail, Lock } from "lucide-react";
 
 export default function LoginPage() {
+    const router = useRouter();
+    const [email, setEmail] = useState("");
+    const [password, setPassword] = useState("");
+
+    const handleSubmit = (e: React.FormEvent) => 
+        {
+            e.preventDefault();
+            if (email.includes("admin") || email.includes("guru")) {
+              router.push("/admin");
+            } else if (email.includes("industry") || email.includes("hrd")) {
+              router.push("/industry");
+            } else {
+              router.push("/student");
+        }
+  };
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-primary/5 via-background to-secondary/5 px-4">
       <div className="w-full max-w-md">
@@ -19,7 +38,7 @@ export default function LoginPage() {
         </div>
 
         <div className="bg-white rounded-2xl border border-border p-8 shadow-sm">
-          <form className="space-y-5">
+          <form onSubmit={handleSubmit} className="space-y-5">
             <div>
               <label htmlFor="email" className="block text-sm font-medium text-foreground mb-1.5">
                 Email
@@ -30,6 +49,8 @@ export default function LoginPage() {
                   id="email"
                   type="email"
                   placeholder="budi@student.smk.id"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
                   className="w-full pl-10 pr-4 py-2.5 border border-border rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-colors"
                 />
               </div>
@@ -44,6 +65,8 @@ export default function LoginPage() {
                   id="password"
                   type="password"
                   placeholder="Masukkan password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
                   className="w-full pl-10 pr-4 py-2.5 border border-border rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-colors"
                 />
               </div>
@@ -59,7 +82,7 @@ export default function LoginPage() {
           <div className="mt-6 text-center">
             <p className="text-sm text-muted">
               Belum punya akun?{" "}
-              <Link href="/register" className="font-medium text-primary hover:text-primary-dark transition-colors">
+               <Link href="/auth/register" className="font-medium text-primary hover:text-primary-dark transition-colors">
                 Daftar sekarang
               </Link>
             </p>
