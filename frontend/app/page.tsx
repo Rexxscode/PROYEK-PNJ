@@ -90,7 +90,7 @@ export default function Home() {
                 </a>
                 <a
                   href="#features"
-                  className="inline-flex items-center justify-center gap-2 px-6 py-3 border border-border text-foreground font-medium rounded-xl hover:bg-gray-50 transition-colors"
+                  className="inline-flex items-center justify-center gap-2 px-6 py-3 border border-border text-foreground font-medium rounded-xl hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
                 >
                   Pelajari Lebih Lanjut
                 </a>
@@ -99,7 +99,7 @@ export default function Home() {
             <div className="hidden lg:block">
               <div className="relative">
                 <div className="absolute inset-0 bg-gradient-to-br from-primary/20 to-secondary/20 rounded-3xl blur-3xl" />
-                <div className="relative bg-white rounded-3xl border border-border p-8 shadow-2xl">
+                <div className="relative bg-card rounded-3xl border border-border p-8 shadow-2xl">
                   <div className="space-y-4">
                     <div className="flex items-center gap-3">
                       <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-primary to-secondary flex items-center justify-center">
@@ -125,7 +125,7 @@ export default function Home() {
                         { label: "Career Match", icon: "🎯", color: "from-purple-500 to-pink-500" },
                         { label: "Roadmap", icon: "🗺️", color: "from-emerald-500 to-teal-500" },
                       ].map((item) => (
-                        <div key={item.label} className="rounded-xl p-3 text-center bg-gradient-to-br from-gray-50 to-gray-100 border border-gray-200">
+                        <div key={item.label} className="rounded-xl p-3 text-center bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-700 dark:to-gray-800 border border-gray-200 dark:border-gray-600">
                           <div className="text-2xl mb-1">{item.icon}</div>
                           <div className="text-xs text-foreground font-semibold">{item.label}</div>
                         </div>
@@ -148,7 +148,7 @@ export default function Home() {
       </section>
 
       {/* Features Section */}
-      <section id="features" className="py-20 bg-white">
+      <section id="features" className="py-20 bg-white dark:bg-background">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
             <h2 className="text-3xl sm:text-4xl font-bold text-foreground mb-4">
@@ -163,7 +163,7 @@ export default function Home() {
             {features.map((feature) => (
               <div
                 key={feature.title}
-                className="group bg-white border border-border rounded-2xl p-6 hover:shadow-xl hover:border-primary/20 transition-all duration-300 hover:-translate-y-1"
+                className="group bg-card border border-border rounded-2xl p-6 hover:shadow-xl hover:border-primary/20 transition-all duration-300 hover:-translate-y-1"
               >
                 <div
                   className={`w-12 h-12 rounded-xl bg-gradient-to-br ${feature.color} flex items-center justify-center mb-4 group-hover:scale-110 transition-transform`}
@@ -222,11 +222,11 @@ export default function Home() {
       </section>
 
       {/* Impact Section */}
-      <section id="impact" className="py-20 bg-white">
+      <section id="impact" className="py-20 bg-white dark:bg-background">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <div className="inline-flex items-center gap-2 px-4 py-2 bg-emerald-50 rounded-full mb-8">
-            <TrendingUp className="w-4 h-4 text-emerald-600" />
-            <span className="text-sm font-medium text-emerald-700">SDG 8 - Decent Work and Economic Growth</span>
+          <div className="inline-flex items-center gap-2 px-4 py-2 bg-emerald-50 dark:bg-emerald-900/30 rounded-full mb-8">
+            <TrendingUp className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
+            <span className="text-sm font-medium text-emerald-700 dark:text-emerald-300">SDG 8 - Decent Work and Economic Growth</span>
           </div>
           <blockquote className="text-2xl sm:text-3xl font-semibold text-foreground leading-relaxed mb-8">
             &ldquo;SkillMatch berkomitmen untuk menciptakan masa depan di mana setiap siswa vokasi memiliki kesempatan
@@ -256,7 +256,7 @@ export default function Home() {
               </p>
               <a
                 href="/auth/register"
-                className="inline-flex items-center gap-2 px-8 py-4 bg-white text-primary font-semibold rounded-xl hover:bg-gray-50 transition-colors shadow-lg"
+                className="inline-flex items-center gap-2 px-8 py-4 bg-white text-primary font-semibold rounded-xl hover:bg-gray-50 dark:hover:bg-gray-100 transition-colors shadow-lg"
               >
                 Daftar Sekarang - Gratis
                 <ChevronRight className="w-5 h-5" />
@@ -267,7 +267,7 @@ export default function Home() {
       </section>
 
       {/* Footer */}
-      <footer className="py-12 border-t border-border bg-white">
+      <footer className="py-12 border-t border-border bg-card">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid md:grid-cols-4 gap-8">
             <div>

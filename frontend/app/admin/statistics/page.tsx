@@ -3,6 +3,9 @@
 import { BarChart3, TrendingUp, Users, Download } from "lucide-react";
 import Card from "../../components/ui/card";
 import SkillBarChart from "../../components/charts/barchart";
+import DoughnutChart from "../../components/charts/doughnutchart";
+import LineChart from "../../components/charts/linechart";
+import PolarAreaChart from "../../components/charts/polarareachart";
 import DashboardHeader from "../../components/layout/dashboardheader";
 import { studentStats } from "../../lib/mock-data";
 
@@ -73,11 +76,10 @@ export default function StatisticsPage() {
 
       <div className="grid lg:grid-cols-2 gap-6 mb-8">
         <Card>
-          <SkillBarChart
+          <LineChart
             labels={monthlyData.map((d) => d.month)}
-            data={monthlyData.map((d) => d.students)}
+            datasets={[{ label: "Pendaftar", data: monthlyData.map((d) => d.students), fill: true }]}
             title="Pendaftar per Bulan"
-            color="rgba(37, 99, 235, 0.8)"
           />
         </Card>
         <Card>
@@ -90,7 +92,7 @@ export default function StatisticsPage() {
         </Card>
       </div>
 
-      <div className="grid lg:grid-cols-2 gap-6">
+      <div className="grid lg:grid-cols-3 gap-6">
         <Card>
           <SkillBarChart
             labels={studentStats.readinessByMajor.map((m) => m.major)}
@@ -100,27 +102,20 @@ export default function StatisticsPage() {
           />
         </Card>
         <Card>
-          <div className="flex items-center justify-between mb-4">
-            <h3 className="font-semibold text-foreground">Distribusi Readiness</h3>
-          </div>
-          <div className="space-y-4">
-            {[
-              { label: "Sangat Siap (85-100%)", value: 15, color: "bg-emerald-500", max: studentStats.totalStudents },
-              { label: "Siap (70-84%)", value: 35, color: "bg-blue-500", max: studentStats.totalStudents },
-              { label: "Perlu Persiapan (50-69%)", value: 30, color: "bg-amber-500", max: studentStats.totalStudents },
-              { label: "Mulai Belajar (<50%)", value: 20, color: "bg-red-500", max: studentStats.totalStudents },
-            ].map((item) => (
-              <div key={item.label}>
-                <div className="flex justify-between text-sm mb-1">
-                  <span className="text-foreground">{item.label}</span>
-                  <span className="text-muted">{item.value}%</span>
-                </div>
-                <div className="w-full bg-gray-100 rounded-full h-2.5">
-                  <div className={`${item.color} h-2.5 rounded-full`} style={{ width: `${item.value}%` }} />
-                </div>
-              </div>
-            ))}
-          </div>
+          <DoughnutChart
+            labels={["Sangat Siap", "Siap", "Perlu Persiapan", "Mulai Belajar"]}
+            data={[15, 35, 30, 20]}
+            title="Distribusi Readiness"
+            colors={["#10b981", "#3b82f6", "#f59e0b", "#ef4444"]}
+            centerLabel="100%"
+          />
+        </Card>
+        <Card>
+          <PolarAreaChart
+            labels={studentStats.readinessByMajor.map((m) => m.major.split(" ").slice(0, 2).join(" "))}
+            data={studentStats.readinessByMajor.map((m) => m.score)}
+            title="Readiness per Jurusan"
+          />
         </Card>
       </div>
     </div>

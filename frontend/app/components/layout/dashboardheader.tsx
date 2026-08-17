@@ -112,12 +112,12 @@ export default function DashboardHeader({ title, subtitle, actions, role = "stud
         <div className="relative" ref={searchRef}>
           <button
             onClick={() => { setShowSearch(!showSearch); setShowNotif(false); }}
-            className="p-2 rounded-lg hover:bg-gray-100 transition-colors"
+            className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
           >
             <Search className="w-5 h-5 text-muted" />
           </button>
           {showSearch && (
-            <div className="absolute right-0 top-12 w-72 bg-white border border-border rounded-xl shadow-lg p-3 z-50">
+            <div className="absolute right-0 top-12 w-72 bg-card border border-border rounded-xl shadow-lg p-3 z-50">
               <div className="flex items-center gap-2">
                 <Search className="w-4 h-4 text-muted" />
                 <input
@@ -145,13 +145,13 @@ export default function DashboardHeader({ title, subtitle, actions, role = "stud
         <div className="relative" ref={notifRef}>
           <button
             onClick={() => { setShowNotif(!showNotif); setShowSearch(false); }}
-            className="p-2 rounded-lg hover:bg-gray-100 transition-colors relative"
+            className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors relative"
           >
             <Bell className="w-5 h-5 text-muted" />
             {hasUnread && <span className="absolute top-1 right-1 w-2 h-2 bg-danger rounded-full" />}
           </button>
           {showNotif && (
-            <div className="absolute right-0 top-12 w-80 bg-white border border-border rounded-xl shadow-lg z-50">
+            <div className="absolute right-0 top-12 w-80 bg-card border border-border rounded-xl shadow-lg z-50">
               <div className="p-3 border-b border-border flex items-center justify-between">
                 <p className="font-semibold text-sm text-foreground">Notifikasi</p>
                 <span onClick={() => { setHasUnread(false); setActiveNotifications([]); }} className="text-xs text-primary cursor-pointer hover:underline">Tandai semua dibaca</span>
@@ -161,7 +161,7 @@ export default function DashboardHeader({ title, subtitle, actions, role = "stud
                   <div className="px-3 py-6 text-center text-sm text-muted">Tidak ada notifikasi baru</div>
                 ) : (
                   activeNotifications.map((n) => (
-                    <div key={n.id} className="px-3 py-3 hover:bg-gray-50 cursor-pointer border-b border-border/50 last:border-0">
+                    <div key={n.id} className="px-3 py-3 hover:bg-gray-50 dark:hover:bg-gray-700 cursor-pointer border-b border-border/50 last:border-0">
                       <p className="text-sm text-foreground">{n.text}</p>
                       <p className="text-xs text-muted mt-1">{n.time}</p>
                     </div>

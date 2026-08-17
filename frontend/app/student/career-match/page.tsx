@@ -15,6 +15,7 @@ import Card from "../../components/ui/card";
 import Badge from "../../components/ui/badge";
 import ProgressBar from "../../components/ui/progressbar";
 import SkillBarChart from "../../components/charts/barchart";
+import PolarAreaChart from "../../components/charts/polarareachart";
 import DashboardHeader from "../../components/layout/dashboardheader";
 import { getCurrentStudent } from "../../lib/mock-data";
 import { getMatchBg, getGapStatusColor, getGapStatusLabel, getReadinessLabel } from "../../lib/utils";
@@ -56,7 +57,7 @@ export default function CareerMatchPage() {
               className={`w-full text-left p-4 rounded-xl border transition-all ${
                 selectedCareer.id === career.id
                   ? "border-primary bg-primary/5 shadow-sm"
-                  : "border-border hover:border-primary/30 hover:bg-gray-50"
+                  : "border-border hover:border-primary/30 hover:bg-gray-50 dark:hover:bg-gray-700"
               }`}
             >
               <div className="flex items-center justify-between mb-1">
@@ -92,8 +93,8 @@ export default function CareerMatchPage() {
           {/* Readiness Score */}
           <Card>
             <div className="flex items-center gap-3 mb-4">
-              <div className="w-10 h-10 rounded-lg bg-emerald-100 flex items-center justify-center">
-                <TrendingUp className="w-5 h-5 text-emerald-600" />
+              <div className="w-10 h-10 rounded-lg bg-emerald-100 dark:bg-emerald-900/50 flex items-center justify-center">
+                <TrendingUp className="w-5 h-5 text-emerald-600 dark:text-emerald-400" />
               </div>
               <div>
                 <h3 className="font-semibold text-foreground">Readiness Score</h3>
@@ -116,8 +117,8 @@ export default function CareerMatchPage() {
           {/* Skill Gap Analysis */}
           <Card>
             <div className="flex items-center gap-3 mb-6">
-              <div className="w-10 h-10 rounded-lg bg-amber-100 flex items-center justify-center">
-                <Target className="w-5 h-5 text-amber-600" />
+              <div className="w-10 h-10 rounded-lg bg-amber-100 dark:bg-amber-900/50 flex items-center justify-center">
+                <Target className="w-5 h-5 text-amber-600 dark:text-amber-400" />
               </div>
               <div>
                 <h3 className="font-semibold text-foreground">Skill Gap Analysis</h3>
@@ -152,13 +153,13 @@ export default function CareerMatchPage() {
                     </div>
                   </div>
                   <div className="flex gap-1">
-                    <div className="flex-1 bg-gray-100 rounded-full h-2.5 overflow-hidden">
+                    <div className="flex-1 bg-gray-100 dark:bg-gray-700 rounded-full h-2.5 overflow-hidden">
                       <div
                         className="h-full rounded-full bg-primary/40 transition-all"
                         style={{ width: `${(gap.currentLevel / 5) * 100}%` }}
                       />
                     </div>
-                    <div className="flex-1 bg-gray-100 rounded-full h-2.5 overflow-hidden">
+                    <div className="flex-1 bg-gray-100 dark:bg-gray-700 rounded-full h-2.5 overflow-hidden">
                       <div
                         className="h-full rounded-full bg-primary transition-all"
                         style={{ width: `${(gap.requiredLevel / 5) * 100}%` }}
@@ -179,6 +180,15 @@ export default function CareerMatchPage() {
             </div>
           </Card>
 
+          {/* Skill Profile Polar Chart */}
+          <Card>
+            <PolarAreaChart
+              labels={student.hardSkills.slice(0, 8).map((s) => s.name)}
+              data={student.hardSkills.slice(0, 8).map((s) => s.level)}
+              title="Profil Skill Kamu"
+            />
+          </Card>
+
           {/* Action */}
           <div className="flex gap-4">
             <a
@@ -190,7 +200,7 @@ export default function CareerMatchPage() {
             </a>
             <a
               href="/student/jobs"
-              className="flex items-center gap-2 px-6 py-3 border border-border text-foreground font-medium rounded-xl hover:bg-gray-50 transition-colors"
+              className="flex items-center gap-2 px-6 py-3 border border-border text-foreground font-medium rounded-xl hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
             >
               Lihat Lowongan
               <ArrowRight className="w-4 h-4" />

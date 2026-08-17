@@ -90,7 +90,7 @@ export default function JobsPage() {
               className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
                 filter === type
                   ? "bg-primary text-white"
-                  : "bg-white border border-border text-muted hover:bg-gray-50"
+                  : "bg-card border border-border text-muted hover:bg-gray-50 dark:hover:bg-gray-700"
               }`}
             >
               {type === "all" ? "Semua" : typeLabels[type]}
@@ -101,7 +101,7 @@ export default function JobsPage() {
           <button
             onClick={() => setSortBy("match")}
             className={`flex items-center gap-1.5 px-3 py-1.5 text-sm rounded-lg transition-colors ${
-              sortBy === "match" ? "bg-primary/10 text-primary" : "text-muted hover:bg-gray-50"
+              sortBy === "match" ? "bg-primary/10 text-primary" : "text-muted hover:bg-gray-50 dark:hover:bg-gray-700"
             }`}
           >
             <SortAsc className="w-4 h-4" /> Kecocokan
@@ -109,7 +109,7 @@ export default function JobsPage() {
           <button
             onClick={() => setSortBy("date")}
             className={`flex items-center gap-1.5 px-3 py-1.5 text-sm rounded-lg transition-colors ${
-              sortBy === "date" ? "bg-primary/10 text-primary" : "text-muted hover:bg-gray-50"
+              sortBy === "date" ? "bg-primary/10 text-primary" : "text-muted hover:bg-gray-50 dark:hover:bg-gray-700"
             }`}
           >
             <Calendar className="w-4 h-4" /> Terbaru
@@ -185,17 +185,17 @@ export default function JobsPage() {
       {/* Apply Modal */}
       {selectedJob && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
-          <div className="bg-white rounded-2xl w-full max-w-md shadow-2xl animate-fade-in">
+          <div className="bg-card rounded-2xl w-full max-w-md shadow-2xl animate-fade-in border border-border">
             {!applied ? (
               <>
                 <div className="flex items-center justify-between p-6 border-b border-border">
                   <h3 className="font-semibold text-foreground">Konfirmasi Lamaran</h3>
-                  <button onClick={() => setSelectedJob(null)} className="p-1 hover:bg-gray-100 rounded-lg">
+                  <button onClick={() => setSelectedJob(null)} className="p-1 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg">
                     <X className="w-5 h-5" />
                   </button>
                 </div>
                 <div className="p-6 space-y-4">
-                  <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-xl">
+                  <div className="flex items-center gap-3 p-3 bg-gray-50 dark:bg-gray-700/50 rounded-xl">
                     <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center">
                       <Building2 className="w-6 h-6 text-primary" />
                     </div>
@@ -224,7 +224,7 @@ export default function JobsPage() {
                 <div className="flex gap-3 p-6 pt-0">
                   <button
                     onClick={() => setSelectedJob(null)}
-                    className="flex-1 py-2.5 border border-border text-foreground font-medium rounded-xl hover:bg-gray-50 transition-colors text-sm"
+                    className="flex-1 py-2.5 border border-border text-foreground font-medium rounded-xl hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors text-sm"
                   >
                     Batal
                   </button>
@@ -238,8 +238,8 @@ export default function JobsPage() {
               </>
             ) : (
               <div className="p-12 text-center">
-                <div className="w-16 h-16 rounded-full bg-emerald-100 flex items-center justify-center mx-auto mb-4">
-                  <CheckCircle2 className="w-8 h-8 text-emerald-600" />
+                <div className="w-16 h-16 rounded-full bg-emerald-100 dark:bg-emerald-900/50 flex items-center justify-center mx-auto mb-4">
+                  <CheckCircle2 className="w-8 h-8 text-emerald-600 dark:text-emerald-400" />
                 </div>
                 <h3 className="text-lg font-semibold text-foreground mb-2">Lamaran Terkirim!</h3>
                 <p className="text-sm text-muted">

@@ -18,6 +18,8 @@ import {
 } from "lucide-react";
 import { cn, getInitials } from "../../lib/utils";
 import { getCurrentStudent, adminUser, industryUser } from "../../lib/mock-data";
+import { useTheme } from "../../lib/theme-context";
+import { Sun, Moon } from "lucide-react";
 
 interface SidebarProps {
   role: "student" | "admin" | "industry";
@@ -61,6 +63,7 @@ const roleColors = {
 
 export default function Sidebar({ role, currentPath, isCollapsed = false, onToggle }: SidebarProps) {
   const [mounted, setMounted] = useState(false);
+  const { theme, toggleTheme } = useTheme();
   useEffect(() => { setMounted(true); }, []);
 
   const items = navItems[role];
@@ -70,7 +73,7 @@ export default function Sidebar({ role, currentPath, isCollapsed = false, onTogg
   return (
     <aside
       className={cn(
-        "h-screen bg-white border-r border-border flex flex-col transition-all duration-300 fixed left-0 top-0 z-40",
+        "h-screen bg-sidebar-bg border-r border-border flex flex-col transition-all duration-300 fixed left-0 top-0 z-40",
         isCollapsed ? "w-[72px]" : "w-64"
       )}
     >
@@ -87,7 +90,7 @@ export default function Sidebar({ role, currentPath, isCollapsed = false, onTogg
         </Link>
         <button
           onClick={onToggle}
-          className="p-1.5 rounded-lg hover:bg-gray-100 transition-colors flex-shrink-0"
+          className="p-1.5 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors flex-shrink-0"
         >
           <ChevronLeft className={cn("w-4 h-4 transition-transform", isCollapsed && "rotate-180")} />
         </button>
@@ -104,7 +107,7 @@ export default function Sidebar({ role, currentPath, isCollapsed = false, onTogg
                 "flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all",
                 isActive
                   ? "bg-primary/10 text-primary"
-                  : "text-muted hover:bg-gray-50 hover:text-foreground"
+                  : "text-muted hover:bg-gray-50 dark:hover:bg-gray-700 hover:text-foreground"
               )}
             >
               <item.icon className={cn("w-5 h-5 flex-shrink-0", isActive && "text-primary")} />
@@ -115,7 +118,17 @@ export default function Sidebar({ role, currentPath, isCollapsed = false, onTogg
       </nav>
 
       <div className="p-3 border-t border-border">
-        <div className={cn("flex items-center gap-3 p-2 rounded-lg bg-gray-50", isCollapsed && "justify-center")}>
+        <button
+          onClick={toggleTheme}
+          className={cn(
+            "flex items-center gap-3 w-full px-3 py-2 rounded-lg text-sm font-medium text-muted hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors mb-1",
+            isCollapsed && "justify-center"
+          )}
+        >
+          {theme === "light" ? <Moon className="w-5 h-5 flex-shrink-0" /> : <Sun className="w-5 h-5 flex-shrink-0" />}
+          {!isCollapsed && <span>{theme === "light" ? "Mode Gelap" : "Mode Terang"}</span>}
+        </button>
+        <div className={cn("flex items-center gap-3 p-2 rounded-lg bg-gray-50 dark:bg-gray-800", isCollapsed && "justify-center")}>
           <div className="w-9 h-9 rounded-full bg-gradient-to-br from-primary to-secondary flex items-center justify-center flex-shrink-0">
             <span className="text-xs font-bold text-white">{getInitials(user.name)}</span>
           </div>

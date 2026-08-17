@@ -26,8 +26,8 @@ import type { RoadmapMilestone, RoadmapResource } from "../../lib/type";
 const statusConfig = {
   completed: { color: "bg-emerald-500", icon: CheckCircle2, label: "Selesai", badge: "success" as const },
   in_progress: { color: "bg-primary", icon: Zap, label: "Sedang Dikerjakan", badge: "primary" as const },
-  available: { color: "bg-gray-300", icon: Play, label: "Tersedia", badge: "default" as const },
-  locked: { color: "bg-gray-200", icon: Lock, label: "TerKunci", badge: "default" as const },
+  available: { color: "bg-gray-300 dark:bg-gray-600", icon: Play, label: "Tersedia", badge: "default" as const },
+  locked: { color: "bg-gray-200 dark:bg-gray-700", icon: Lock, label: "TerKunci", badge: "default" as const },
 };
 
 const resourceIcons = {
@@ -80,8 +80,8 @@ export default function RoadmapPage() {
         </Card>
         <Card>
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-lg bg-amber-100 flex items-center justify-center">
-              <Clock className="w-5 h-5 text-amber-600" />
+            <div className="w-10 h-10 rounded-lg bg-amber-100 dark:bg-amber-900/50 flex items-center justify-center">
+              <Clock className="w-5 h-5 text-amber-600 dark:text-amber-400" />
             </div>
             <div>
               <p className="text-sm text-muted">Total Estimasi</p>
@@ -91,8 +91,8 @@ export default function RoadmapPage() {
         </Card>
         <Card>
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-lg bg-emerald-100 flex items-center justify-center">
-              <CheckCircle2 className="w-5 h-5 text-emerald-600" />
+            <div className="w-10 h-10 rounded-lg bg-emerald-100 dark:bg-emerald-900/50 flex items-center justify-center">
+              <CheckCircle2 className="w-5 h-5 text-emerald-600 dark:text-emerald-400" />
             </div>
             <div>
               <p className="text-sm text-muted">Selesai</p>
@@ -110,7 +110,7 @@ export default function RoadmapPage() {
 
       {/* Timeline */}
       <div className="relative">
-        <div className="absolute left-6 top-0 bottom-0 w-0.5 bg-gray-200" />
+        <div className="absolute left-6 top-0 bottom-0 w-0.5 bg-gray-200 dark:bg-gray-700" />
 
         <div className="space-y-6">
           {roadmapMilestones.map((milestone, index) => {
@@ -169,7 +169,7 @@ export default function RoadmapPage() {
                                 href={resource.url}
                                 target="_blank"
                                 rel="noopener noreferrer"
-                                className="flex items-center gap-3 p-2 rounded-lg hover:bg-gray-50 transition-colors"
+                                className="flex items-center gap-3 p-2 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
                               >
                                 <Icon className="w-4 h-4 text-primary flex-shrink-0" />
                                 <span className="text-sm text-foreground flex-1">{resource.title}</span>
