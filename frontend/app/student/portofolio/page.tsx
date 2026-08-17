@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   GraduationCap,
   Link2,
@@ -21,18 +21,22 @@ import { getCurrentStudent } from "../../lib/mock-data";
 import { getMatchBg, getInitials } from "../../lib/utils";
 
 export default function PortfolioPage() {
-  const student = getCurrentStudent();
-  if (!student) return null;
-  const { profile, hardSkills, softSkills, projects, careerMatches } = student;
-  const allSkills = [...hardSkills, ...softSkills];
+  const [mounted, setMounted] = useState(false);
   const [copied, setCopied] = useState(false);
-  const readinessScore = Math.round(careerMatches.reduce((sum, c) => sum + c.matchPercentage, 0) / careerMatches.length);
-  const portfolioUrl = `skillmatch.id/portfolio/${profile.name.toLowerCase().replace(" ", "-")}`;
+  useEffect(() => { setMounted(true); }, []);
+
+  const student = mounted ? getCurrentStudent() : null;
 
   const handleCopy = () => {
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
   };
+
+  if (!mounted || !student) return null;
+  const { profile, hardSkills, softSkills, projects, careerMatches } = student;
+  const allSkills = [...hardSkills, ...softSkills];
+  const readinessScore = Math.round(careerMatches.reduce((sum, c) => sum + c.matchPercentage, 0) / careerMatches.length);
+  const portfolioUrl = `skillmatch.id/portfolio/${profile.name.toLowerCase().replace(" ", "-")}`;
 
   return (
     <div>

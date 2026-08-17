@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   Briefcase,
   MapPin,
@@ -44,13 +44,18 @@ const companyColors = [
 ];
 
 export default function JobsPage() {
-  const student = getCurrentStudent();
-  if (!student) return null;
-  const { jobOpportunities, profile } = student;
+  const [mounted, setMounted] = useState(false);
   const [filter, setFilter] = useState<FilterType>("all");
   const [sortBy, setSortBy] = useState<"match" | "date">("match");
   const [selectedJob, setSelectedJob] = useState<JobOpportunity | null>(null);
   const [applied, setApplied] = useState(false);
+  useEffect(() => { setMounted(true); }, []);
+
+  const student = mounted ? getCurrentStudent() : null;
+  const jobOpportunities = student?.jobOpportunities || [];
+  const profile = student?.profile;
+
+  if (!mounted || !student) return null;
 
   const filteredJobs = jobOpportunities
     .filter((job) => filter === "all" || job.type === filter)
@@ -202,7 +207,7 @@ export default function JobsPage() {
 
                   <div className="p-3 bg-primary/5 rounded-xl border border-primary/20">
                     <p className="text-sm font-medium text-foreground mb-1">Portfolio yang dikirim:</p>
-                    <p className="text-sm text-muted">{profile.name} - {profile.major}</p>
+                    <p className="text-sm text-muted">{profile!.name} - {profile!.major}</p>
                     <div className="flex gap-1 mt-1">
                       <Badge variant="primary" className="text-[10px]">18 Skills</Badge>
                       <Badge variant="success" className="text-[10px]">3 Projects</Badge>

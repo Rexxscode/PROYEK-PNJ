@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   Map,
   CheckCircle2,
@@ -38,10 +38,22 @@ const resourceIcons = {
 };
 
 export default function RoadmapPage() {
-  const student = getCurrentStudent();
-  if (!student) return null;
-  const { roadmapMilestones } = student;
-  const [expandedId, setExpandedId] = useState<string | null>(roadmapMilestones.find((m) => m.status === "in_progress")?.id || null);
+  const [mounted, setMounted] = useState(false);
+  const [expandedId, setExpandedId] = useState<string | null>(null);
+  useEffect(() => { setMounted(true); }, []);
+
+  const student = mounted ? getCurrentStudent() : null;
+  const roadmapMilestones = student?.roadmapMilestones || [];
+
+  useEffect(() => {
+    if (roadmapMilestones.length > 0 && !expandedId) {
+      const inProgress = roadmapMilestones.find((m) => m.status === "in_progress");
+      if (inProgress) setExpandedId(inProgress.id);
+    }
+  }, [roadmapMilestones, expandedId]);
+
+  if (!mounted || !student) return null;
+
   const completedCount = roadmapMilestones.filter((m) => m.status === "completed").length;
   const totalHours = roadmapMilestones.reduce((sum, m) => sum + m.estimatedHours, 0);
   const completedHours = roadmapMilestones.filter((m) => m.status === "completed").reduce((sum, m) => sum + m.estimatedHours, 0);

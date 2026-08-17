@@ -1,20 +1,28 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { ClipboardCheck, ChevronRight, ChevronLeft, CheckCircle2, Sparkles } from "lucide-react";
 import Card from "../../components/ui/card";
 import Badge from "../../components/ui/badge";
 import SkillRadar from "../../components/charts/skillradar";
 import DashboardHeader from "../../components/layout/dashboardheader";
-import { hardSkills, softSkills, currentUser } from "../../lib/mock-data";
+import { getCurrentStudent } from "../../lib/mock-data";
 import type { Skill, AssessmentAnswer } from "../../lib/type";
 
 const totalSteps = 4;
 
 export default function AssessmentPage() {
+  const [mounted, setMounted] = useState(false);
   const [currentStep, setCurrentStep] = useState(1);
   const [answers, setAnswers] = useState<AssessmentAnswer[]>([]);
   const [resultSkills, setResultSkills] = useState<Skill[]>([]);
+
+  useEffect(() => { setMounted(true); }, []);
+
+  if (!mounted) return null;
+  const student = getCurrentStudent();
+  if (!student) return null;
+  const { hardSkills, softSkills, profile: currentUser } = student;
 
   const hardSkillAnswers = answers.filter((a) =>
     hardSkills.some((s) => s.id === a.skillId)
@@ -162,9 +170,9 @@ export default function AssessmentPage() {
                         <button
                           key={level}
                           onClick={() => handleAnswer(skill.id, level)}
-                          className={`w-10 h-10 rounded-lg text-sm font-medium transition-all ${
+                          className={`w-10 h-10 rounded-lg text-sm font-medium transition-colors ${
                             answer?.level === level
-                              ? "bg-primary text-white scale-110 shadow-md"
+                              ? "bg-primary text-white"
                               : "bg-gray-100 text-gray-600 hover:bg-gray-200"
                           }`}
                         >
@@ -224,9 +232,9 @@ export default function AssessmentPage() {
                         <button
                           key={level}
                           onClick={() => handleAnswer(skill.id, level)}
-                          className={`w-10 h-10 rounded-lg text-sm font-medium transition-all ${
+                          className={`w-10 h-10 rounded-lg text-sm font-medium transition-colors ${
                             answer?.level === level
-                              ? "bg-secondary text-white scale-110 shadow-md"
+                              ? "bg-secondary text-white"
                               : "bg-gray-100 text-gray-600 hover:bg-gray-200"
                           }`}
                         >

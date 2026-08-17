@@ -2,6 +2,7 @@
 
 import { useState, useRef, useEffect } from "react";
 import { Bell, Search, X } from "lucide-react";
+import { getCurrentStudent } from "../../lib/mock-data";
 
 interface Notification {
   id: number;
@@ -16,12 +17,36 @@ interface DashboardHeaderProps {
   role?: "student" | "admin" | "industry";
 }
 
-const notificationsByRole: Record<string, Notification[]> = {
-  student: [
-    { id: 1, text: "Lowongan baru: Frontend Developer di PT TechSol", time: "5 menit lalu" },
-    { id: 2, text: "Roadmap belajar React sudah siap diikuti", time: "1 jam lalu" },
-    { id: 3, text: "Portfolio kamu sudah dilihat 12 perusahaan", time: "3 jam lalu" },
+const notificationsByMajor: Record<string, Notification[]> = {
+  "Rekayasa Perangkat Lunak": [
+    { id: 1, text: "Lowongan baru: Backend Developer di PT TechCorp", time: "5 menit lalu" },
+    { id: 2, text: "Roadmap belajar Node.js sudah bisa dilanjutkan", time: "1 jam lalu" },
+    { id: 3, text: "Portfolio kamu sudah dilihat 8 perusahaan tech", time: "3 jam lalu" },
   ],
+  "Desain Komunikasi Visual": [
+    { id: 1, text: "Lowongan baru: UI/UX Designer di PT Kreatif Digital", time: "5 menit lalu" },
+    { id: 2, text: "Challenge desain bulanan sudah dibuka", time: "1 jam lalu" },
+    { id: 3, text: "Rina, karya kamu masuk Top 10 showcase bulan ini!", time: "3 jam lalu" },
+  ],
+  "Teknik Transmisi": [
+    { id: 1, text: "Lowongan baru: Network Technician di PT Telkom", time: "5 menit lalu" },
+    { id: 2, text: "Lab Cisco Packet Tracer sudah tersedia", time: "1 jam lalu" },
+    { id: 3, text: "Sertifikasi CCNA Discovery sudah bisa diambil", time: "3 jam lalu" },
+  ],
+  "Teknik Komputer dan Jaringan": [
+    { id: 1, text: "Lowongan baru: IT Support di PT SecureNet", time: "5 menit lalu" },
+    { id: 2, text: "Modul Linux Administration sudah update", time: "1 jam lalu" },
+    { id: 3, text: "Sertifikasi CompTIA A+ ditawarkan untuk siswa TKJ", time: "3 jam lalu" },
+  ],
+};
+
+const defaultNotifications: Notification[] = [
+  { id: 1, text: "Lowongan baru tersedia", time: "5 menit lalu" },
+  { id: 2, text: "Roadmap belajar sudah bisa dilanjutkan", time: "1 jam lalu" },
+  { id: 3, text: "Portfolio kamu sudah dilihat perusahaan", time: "3 jam lalu" },
+];
+
+const notificationsByRole: Record<string, Notification[]> = {
   admin: [
     { id: 1, text: "Budi Santoso menyelesaikan asesmen", time: "5 menit lalu" },
     { id: 2, text: "10 siswa baru mendaftar minggu ini", time: "1 jam lalu" },
@@ -29,7 +54,7 @@ const notificationsByRole: Record<string, Notification[]> = {
   ],
   industry: [
     { id: 1, text: "3 kandidat baru sesuai kriteria kamu", time: "5 menit lalu" },
-    { id: 2, text: "Lowongan Backend Developer sudah ditinjau 45 kandidat", time: "1 jam lalu" },
+    { id: 2, text: "Lowongan Backend Developer ditinjau 45 kandidat", time: "1 jam lalu" },
     { id: 3, text: "Andi Pratama tersedia untuk magang", time: "3 jam lalu" },
   ],
 };
@@ -40,14 +65,30 @@ const searchPlaceholders: Record<string, string> = {
   industry: "Cari kandidat, skill, lowongan...",
 };
 
+function getStudentNotifications(): Notification[] {
+  const student = getCurrentStudent();
+  if (!student) return defaultNotifications;
+  return notificationsByMajor[student.profile.major] || defaultNotifications;
+}
+
 export default function DashboardHeader({ title, subtitle, actions, role = "student" }: DashboardHeaderProps) {
   const [showSearch, setShowSearch] = useState(false);
   const [showNotif, setShowNotif] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [hasUnread, setHasUnread] = useState(true);
-  const [activeNotifications, setActiveNotifications] = useState(notificationsByRole[role]);
+  const [activeNotifications, setActiveNotifications] = useState<Notification[]>([]);
+  const [mounted, setMounted] = useState(false);
   const searchRef = useRef<HTMLDivElement>(null);
   const notifRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    setMounted(true);
+    if (role === "student") {
+      setActiveNotifications(getStudentNotifications());
+    } else {
+      setActiveNotifications(notificationsByRole[role] || defaultNotifications);
+    }
+  }, [role]);
 
   useEffect(() => {
     function handleClickOutside(e: MouseEvent) {

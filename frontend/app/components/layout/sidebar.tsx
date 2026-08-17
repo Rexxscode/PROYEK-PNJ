@@ -1,5 +1,6 @@
 "use client";
 
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import {
   Zap,
@@ -59,8 +60,11 @@ const roleColors = {
 };
 
 export default function Sidebar({ role, currentPath, isCollapsed = false, onToggle }: SidebarProps) {
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => { setMounted(true); }, []);
+
   const items = navItems[role];
-  const studentData = getCurrentStudent();
+  const studentData = mounted ? getCurrentStudent() : null;
   const user = role === "student" && studentData ? studentData.profile : role === "admin" ? adminUser : industryUser;
 
   return (

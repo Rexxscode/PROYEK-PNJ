@@ -1,5 +1,6 @@
 "use client";
 
+import { useState, useEffect } from "react";
 import {
   ClipboardCheck,
   Target,
@@ -17,6 +18,9 @@ import { getCurrentStudent } from "../lib/mock-data";
 import { getMatchColor } from "../lib/utils";
 
 export default function StudentDashboard() {
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => { setMounted(true); }, []);
+  if (!mounted) return null;
   const student = getCurrentStudent();
   if (!student) return null;
 

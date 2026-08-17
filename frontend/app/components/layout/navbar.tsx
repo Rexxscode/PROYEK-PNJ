@@ -22,15 +22,15 @@ export default function Navbar() {
           </Link>
 
           <div className="hidden md:flex items-center gap-8">
-            <Link href="/#features" className="text-sm font-medium text-muted hover:text-foreground transition-colors">
+            <a href="#features" className="text-sm font-medium text-muted hover:text-foreground transition-colors">
               Fitur
-            </Link>
-            <Link href="/#about" className="text-sm font-medium text-muted hover:text-foreground transition-colors">
+            </a>
+            <a href="#about" className="text-sm font-medium text-muted hover:text-foreground transition-colors">
               Tentang
-            </Link>
-            <Link href="/#impact" className="text-sm font-medium text-muted hover:text-foreground transition-colors">
+            </a>
+            <a href="#impact" className="text-sm font-medium text-muted hover:text-foreground transition-colors">
               Dampak
-            </Link>
+            </a>
           </div>
 
           <div className="hidden md:flex items-center gap-3">
@@ -59,15 +59,15 @@ export default function Navbar() {
         {isOpen && (
           <div className="md:hidden pb-4 animate-fade-in">
             <div className="flex flex-col gap-2">
-              <Link href="/#features" className="px-3 py-2 text-sm font-medium text-muted hover:bg-gray-50 rounded-lg transition-colors">
+              <a href="#features" className="px-3 py-2 text-sm font-medium text-muted hover:bg-gray-50 rounded-lg transition-colors">
                 Fitur
-              </Link>
-              <Link href="/#about" className="px-3 py-2 text-sm font-medium text-muted hover:bg-gray-50 rounded-lg transition-colors">
+              </a>
+              <a href="#about" className="px-3 py-2 text-sm font-medium text-muted hover:bg-gray-50 rounded-lg transition-colors">
                 Tentang
-              </Link>
-              <Link href="/#impact" className="px-3 py-2 text-sm font-medium text-muted hover:bg-gray-50 rounded-lg transition-colors">
+              </a>
+              <a href="#impact" className="px-3 py-2 text-sm font-medium text-muted hover:bg-gray-50 rounded-lg transition-colors">
                 Dampak
-              </Link>
+              </a>
               <hr className="my-2 border-border" />
               <Link href="/auth/login" className="px-3 py-2 text-sm font-medium text-muted hover:bg-gray-50 rounded-lg transition-colors">
                 Masuk

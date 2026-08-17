@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   Target,
   TrendingUp,
@@ -21,10 +21,21 @@ import { getMatchBg, getGapStatusColor, getGapStatusLabel, getReadinessLabel } f
 import type { CareerMatch, SkillGap } from "../../lib/type";
 
 export default function CareerMatchPage() {
-  const student = getCurrentStudent();
-  if (!student) return null;
-  const { careerMatches, skillGaps } = student;
-  const [selectedCareer, setSelectedCareer] = useState<CareerMatch>(careerMatches[0]);
+  const [mounted, setMounted] = useState(false);
+  const [selectedCareer, setSelectedCareer] = useState<CareerMatch | null>(null);
+  useEffect(() => { setMounted(true); }, []);
+
+  const student = mounted ? getCurrentStudent() : null;
+  const careerMatches = student?.careerMatches || [];
+  const skillGaps = student?.skillGaps || [];
+
+  useEffect(() => {
+    if (careerMatches.length > 0 && !selectedCareer) {
+      setSelectedCareer(careerMatches[0]);
+    }
+  }, [careerMatches, selectedCareer]);
+
+  if (!mounted || !student || !selectedCareer) return null;
   const readinessScore = selectedCareer.matchPercentage;
 
   return (
