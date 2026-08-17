@@ -1,5 +1,6 @@
 {
-  "compilerOptions": {
+  "compilerOptions": 
+  {
     "target": "ES2017",
     "lib": ["dom", "dom.iterable", "esnext"],
     "allowJs": true,
@@ -13,12 +14,14 @@
     "isolatedModules": true,
     "jsx": "react-jsx",
     "incremental": true,
-    "plugins": [
+    "plugins": 
+    [
       {
         "name": "next"
       }
     ],
-    "paths": {
+    "paths": 
+    {
       "@/*": ["./*"]
     }
   },
