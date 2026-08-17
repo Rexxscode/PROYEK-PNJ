@@ -16,7 +16,7 @@ import {
   LogOut,
 } from "lucide-react";
 import { cn, getInitials } from "../../lib/utils";
-import { currentUser, adminUser, industryUser } from "../../lib/mock-data";
+import { getCurrentStudent, adminUser, industryUser } from "../../lib/mock-data";
 
 interface SidebarProps {
   role: "student" | "admin" | "industry";
@@ -37,11 +37,12 @@ const navItems = {
   admin: [
     { label: "Dashboard", href: "/admin", icon: LayoutDashboard },
     { label: "Data Siswa", href: "/admin/students", icon: Users },
-    { label: "Statistik", href: "/admin", icon: BarChart3 },
+    { label: "Statistik", href: "/admin/statistics", icon: BarChart3 },
   ],
   industry: [
     { label: "Dashboard", href: "/industry", icon: LayoutDashboard },
     { label: "Cari Kandidat", href: "/industry/candidates", icon: Users },
+    { label: "Post Lowongan", href: "/industry/post-job", icon: Briefcase },
   ],
 };
 
@@ -57,15 +58,10 @@ const roleColors = {
   industry: "bg-emerald-100 text-emerald-700",
 };
 
-const userData = {
-  student: currentUser,
-  admin: adminUser,
-  industry: industryUser,
-};
-
 export default function Sidebar({ role, currentPath, isCollapsed = false, onToggle }: SidebarProps) {
   const items = navItems[role];
-  const user = userData[role];
+  const studentData = getCurrentStudent();
+  const user = role === "student" && studentData ? studentData.profile : role === "admin" ? adminUser : industryUser;
 
   return (
     <aside

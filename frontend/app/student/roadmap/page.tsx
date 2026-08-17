@@ -19,7 +19,7 @@ import Card from "../../components/ui/card";
 import Badge from "../../components/ui/badge";
 import ProgressBar from "../../components/ui/progressbar";
 import DashboardHeader from "../../components/layout/dashboardheader";
-import { roadmapMilestones } from "../../lib/mock-data";
+import { getCurrentStudent } from "../../lib/mock-data";
 import { cn } from "../../lib/utils";
 import type { RoadmapMilestone, RoadmapResource } from "../../lib/type";
 
@@ -38,6 +38,9 @@ const resourceIcons = {
 };
 
 export default function RoadmapPage() {
+  const student = getCurrentStudent();
+  if (!student) return null;
+  const { roadmapMilestones } = student;
   const [expandedId, setExpandedId] = useState<string | null>(roadmapMilestones.find((m) => m.status === "in_progress")?.id || null);
   const completedCount = roadmapMilestones.filter((m) => m.status === "completed").length;
   const totalHours = roadmapMilestones.reduce((sum, m) => sum + m.estimatedHours, 0);

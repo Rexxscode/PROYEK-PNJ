@@ -10,17 +10,18 @@ import {
   Star,
   Building2,
 } from "lucide-react";
+import Link from "next/link";
 import Card from "../components/ui/card";
 import Badge from "../components/ui/badge";
 import DashboardHeader from "../components/layout/dashboardheader";
 import { getMatchBg, getInitials } from "../lib/utils";
 
 const recentCandidates = [
-  { name: "Budi Santoso", major: "Teknik Informatika", score: 85, topSkill: "Node.js", matchFor: "Backend Developer Intern" },
-  { name: "Rina Wulandari", major: "Rekayasa Perangkat Lunak", score: 92, topSkill: "React/Next.js", matchFor: "Frontend Developer" },
-  { name: "Andi Pratama", major: "Teknik Informatika", score: 78, topSkill: "HTML/CSS", matchFor: "Fullstack Developer" },
-  { name: "Rizky Aditya", major: "Teknik Informatika", score: 71, topSkill: "JavaScript", matchFor: "Backend Developer Intern" },
-  { name: "Fajar Nugroho", major: "Sistem Informasi", score: 68, topSkill: "Python", matchFor: "Data Analyst Intern" },
+  { name: "Budi Santoso", major: "Rekayasa Perangkat Lunak", score: 85, topSkill: "Node.js", matchFor: "Backend Developer Intern" },
+  { name: "Rina Wulandari", major: "Desain Komunikasi Visual", score: 92, topSkill: "React/Next.js", matchFor: "Frontend Developer" },
+  { name: "Andi Pratama", major: "Rekayasa Perangkat Lunak", score: 78, topSkill: "HTML/CSS", matchFor: "Fullstack Developer" },
+  { name: "Rizky Aditya", major: "Rekayasa Perangkat Lunak", score: 71, topSkill: "JavaScript", matchFor: "Backend Developer Intern" },
+  { name: "Fajar Nugroho", major: "Teknik Komputer dan Jaringan", score: 68, topSkill: "Python", matchFor: "Data Analyst Intern" },
 ];
 
 const candidateColors = [
@@ -37,6 +38,7 @@ export default function IndustryDashboard() {
       <DashboardHeader
         title="Dashboard Industri"
         subtitle="Temukan kandidat terbaik berdasarkan kebutuhan skill"
+        role="industry"
       />
 
       {/* Stats */}
@@ -125,28 +127,32 @@ export default function IndustryDashboard() {
 
       {/* Quick Actions */}
       <div className="grid sm:grid-cols-2 gap-4">
-        <Card hover>
-          <div className="flex items-center gap-4">
-            <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center">
-              <Search className="w-6 h-6 text-primary" />
+        <Link href="/industry/candidates">
+          <Card hover>
+            <div className="flex items-center gap-4">
+              <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center">
+                <Search className="w-6 h-6 text-primary" />
+              </div>
+              <div>
+                <h4 className="font-semibold text-foreground">Cari Kandidat</h4>
+                <p className="text-sm text-muted">Temukan kandidat berdasarkan skill spesifik</p>
+              </div>
             </div>
-            <div>
-              <h4 className="font-semibold text-foreground">Cari Kandidat</h4>
-              <p className="text-sm text-muted">Temukan kandidat berdasarkan skill spesifik</p>
+          </Card>
+        </Link>
+        <Link href="/industry/post-job">
+          <Card hover>
+            <div className="flex items-center gap-4">
+              <div className="w-12 h-12 rounded-xl bg-emerald-100 flex items-center justify-center">
+                <Briefcase className="w-6 h-6 text-emerald-600" />
+              </div>
+              <div>
+                <h4 className="font-semibold text-foreground">Post Lowongan</h4>
+                <p className="text-sm text-muted">Buat lowongan baru untuk menarik kandidat</p>
+              </div>
             </div>
-          </div>
-        </Card>
-        <Card hover>
-          <div className="flex items-center gap-4">
-            <div className="w-12 h-12 rounded-xl bg-emerald-100 flex items-center justify-center">
-              <Briefcase className="w-6 h-6 text-emerald-600" />
-            </div>
-            <div>
-              <h4 className="font-semibold text-foreground">Post Lowongan</h4>
-              <p className="text-sm text-muted">Buat lowongan baru untuk menarik kandidat</p>
-            </div>
-          </div>
-        </Card>
+          </Card>
+        </Link>
       </div>
     </div>
   );

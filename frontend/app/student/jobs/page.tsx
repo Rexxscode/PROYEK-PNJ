@@ -17,7 +17,7 @@ import {
 import Card from "../../components/ui/card";
 import Badge from "../../components/ui/badge";
 import DashboardHeader from "../../components/layout/dashboardheader";
-import { jobOpportunities, currentUser } from "../../lib/mock-data";
+import { getCurrentStudent } from "../../lib/mock-data";
 import { getMatchBg, formatDate, getInitials } from "../../lib/utils";
 import type { JobOpportunity } from "../../lib/type";
 
@@ -44,6 +44,9 @@ const companyColors = [
 ];
 
 export default function JobsPage() {
+  const student = getCurrentStudent();
+  if (!student) return null;
+  const { jobOpportunities, profile } = student;
   const [filter, setFilter] = useState<FilterType>("all");
   const [sortBy, setSortBy] = useState<"match" | "date">("match");
   const [selectedJob, setSelectedJob] = useState<JobOpportunity | null>(null);
@@ -199,7 +202,7 @@ export default function JobsPage() {
 
                   <div className="p-3 bg-primary/5 rounded-xl border border-primary/20">
                     <p className="text-sm font-medium text-foreground mb-1">Portfolio yang dikirim:</p>
-                    <p className="text-sm text-muted">{currentUser.name} - {currentUser.major}</p>
+                    <p className="text-sm text-muted">{profile.name} - {profile.major}</p>
                     <div className="flex gap-1 mt-1">
                       <Badge variant="primary" className="text-[10px]">18 Skills</Badge>
                       <Badge variant="success" className="text-[10px]">3 Projects</Badge>

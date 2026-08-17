@@ -12,6 +12,7 @@ export default function LoginPage() {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    localStorage.setItem("studentEmail", email);
     if (email.includes("admin") || email.includes("guru")) {
       router.push("/admin");
     } else if (email.includes("industry") || email.includes("hrd")) {

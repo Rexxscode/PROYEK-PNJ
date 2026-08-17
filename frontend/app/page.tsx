@@ -102,43 +102,42 @@ export default function Home() {
                 <div className="relative bg-white rounded-3xl border border-border p-8 shadow-2xl">
                   <div className="space-y-4">
                     <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 rounded-full bg-gradient-to-br from-primary to-secondary flex items-center justify-center">
-                        <span className="text-sm font-bold text-white">BS</span>
+                      <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-primary to-secondary flex items-center justify-center">
+                        <Target className="w-6 h-6 text-white" />
                       </div>
                       <div>
-                        <p className="font-semibold text-foreground">Budi Santoso</p>
-                        <p className="text-xs text-muted">Teknik Informatika XII</p>
+                        <p className="font-bold text-foreground">Career Readiness Score</p>
+                        <p className="text-xs text-muted">Mulai asesmen untuk melihat hasilmu</p>
                       </div>
                     </div>
-                    <div className="bg-gradient-to-r from-emerald-50 to-emerald-100/50 rounded-xl p-4">
+                    <div className="bg-gradient-to-r from-primary/5 to-secondary/5 rounded-xl p-4">
                       <div className="flex items-center gap-2 mb-1">
-                        <Target className="w-4 h-4 text-emerald-600" />
-                        <span className="text-sm font-semibold text-emerald-700">Career Match Found!</span>
+                        <Star className="w-4 h-4 text-amber-500" />
+                        <span className="text-sm font-semibold text-primary">Fitur Utama</span>
                       </div>
-                      <p className="text-sm text-emerald-600">
-                        Budi, kamu <strong>82% cocok</strong> jadi Backend Developer
+                      <p className="text-sm text-muted">
+                        Kenali <strong>skill-mu</strong>, temukan <strong>karier yang tepat</strong>, dan raih impianmu!
                       </p>
                     </div>
                     <div className="grid grid-cols-3 gap-3">
                       {[
-                        { label: "HTML/CSS", level: 4 },
-                        { label: "Node.js", level: 3 },
-                        { label: "Git", level: 2 },
-                      ].map((skill) => (
-                        <div key={skill.label} className="bg-gray-50 rounded-lg p-3 text-center">
-                          <div className="text-xs text-muted mb-1">{skill.label}</div>
-                          <div className="flex gap-0.5 justify-center">
-                            {[1, 2, 3, 4, 5].map((i) => (
-                              <div
-                                key={i}
-                                className={`w-2 h-2 rounded-full ${
-                                  i <= skill.level ? "bg-primary" : "bg-gray-200"
-                                }`}
-                              />
-                            ))}
-                          </div>
+                        { label: "Asesmen", icon: "📋", color: "from-blue-500 to-cyan-500" },
+                        { label: "Career Match", icon: "🎯", color: "from-purple-500 to-pink-500" },
+                        { label: "Roadmap", icon: "🗺️", color: "from-emerald-500 to-teal-500" },
+                      ].map((item) => (
+                        <div key={item.label} className="rounded-xl p-3 text-center bg-gradient-to-br from-gray-50 to-gray-100 border border-gray-200">
+                          <div className="text-2xl mb-1">{item.icon}</div>
+                          <div className="text-xs text-foreground font-semibold">{item.label}</div>
                         </div>
                       ))}
+                    </div>
+                    <div className="flex items-center gap-2 pt-1">
+                      <div className="flex -space-x-2">
+                        <div className="w-7 h-7 rounded-full bg-gradient-to-br from-blue-400 to-blue-600 border-2 border-white" />
+                        <div className="w-7 h-7 rounded-full bg-gradient-to-br from-purple-400 to-purple-600 border-2 border-white" />
+                        <div className="w-7 h-7 rounded-full bg-gradient-to-br from-emerald-400 to-emerald-600 border-2 border-white" />
+                      </div>
+                      <span className="text-xs text-muted"><strong>248+ siswa</strong> sudah bergabung</span>
                     </div>
                   </div>
                 </div>
@@ -209,7 +208,7 @@ export default function Home() {
             {steps.map((step, index) => (
               <div key={step.step} className="relative text-center">
                 {index < steps.length - 1 && (
-                  <div className="hidden lg:block absolute top-10 left-[60%] w-[80%] border-t-2 border-dashed border-primary/30" />
+                  <div className="hidden lg:block absolute top-10 left-[calc(50%+2.5rem)] w-[calc(100%-3rem)] border-t-2 border-dashed border-primary/30" />
                 )}
                 <div className="relative z-10 w-20 h-20 rounded-full bg-primary/10 flex items-center justify-center mx-auto mb-4">
                   <span className="text-2xl font-bold text-primary">{step.step}</span>

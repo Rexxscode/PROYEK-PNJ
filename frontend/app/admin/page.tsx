@@ -17,14 +17,14 @@ import { studentStats } from "../lib/mock-data";
 import { getReadinessLabel } from "../lib/utils";
 
 const recentStudents = [
-  { name: "Budi Santoso", major: "Teknik Informatika", score: 72, status: "assessed" },
-  { name: "Rina Wulandari", major: "Rekayasa Perangkat Lunak", score: 85, status: "assessed" },
-  { name: "Dedi Kurniawan", major: "Sistem Informasi", score: 58, status: "assessed" },
-  { name: "Siti Nurhaliza", major: "Multimedia", score: 65, status: "pending" },
-  { name: "Andi Pratama", major: "Teknik Informatika", score: 91, status: "assessed" },
-  { name: "Maya Putri", major: "Rekayasa Perangkat Lunak", score: 0, status: "pending" },
-  { name: "Rizky Aditya", major: "Teknik Informatika", score: 78, status: "assessed" },
-  { name: "Diana Sari", major: "Multimedia", score: 0, status: "pending" },
+  { name: "Budi Santoso", major: "Rekayasa Perangkat Lunak", score: 72, status: "assessed" },
+  { name: "Rina Wulandari", major: "Desain Komunikasi Visual", score: 85, status: "assessed" },
+  { name: "Dedi Kurniawan", major: "Teknik Komputer dan Jaringan", score: 58, status: "assessed" },
+  { name: "Siti Nurhaliza", major: "Teknik Transmisi", score: 65, status: "pending" },
+  { name: "Andi Pratama", major: "Rekayasa Perangkat Lunak", score: 91, status: "assessed" },
+  { name: "Maya Putri", major: "Desain Komunikasi Visual", score: 0, status: "pending" },
+  { name: "Rizky Aditya", major: "Rekayasa Perangkat Lunak", score: 78, status: "assessed" },
+  { name: "Diana Sari", major: "Teknik Transmisi", score: 0, status: "pending" },
 ];
 
 export default function AdminDashboard() {
@@ -35,6 +35,7 @@ export default function AdminDashboard() {
       <DashboardHeader
         title="Dashboard Admin"
         subtitle="Pantau kesiapan kerja siswa secara keseluruhan"
+        role="admin"
       />
 
       {/* Stats Grid */}

@@ -1,3 +1,5 @@
+"use client";
+
 import {
   ClipboardCheck,
   Target,
@@ -10,21 +12,24 @@ import {
 } from "lucide-react";
 import Card from "../components/ui/card";
 import Badge from "../components/ui/badge";
-import ProgressBar from "../components/ui/progressbar";
 import DashboardHeader from "../components/layout/dashboardheader";
-import { currentUser, careerMatches, roadmapMilestones, projects, jobOpportunities } from "../lib/mock-data";
+import { getCurrentStudent } from "../lib/mock-data";
 import { getMatchColor } from "../lib/utils";
 
-const readinessScore = 72;
-const completedMilestones = roadmapMilestones.filter((m) => m.status === "completed").length;
-const totalMilestones = roadmapMilestones.length;
-
 export default function StudentDashboard() {
+  const student = getCurrentStudent();
+  if (!student) return null;
+
+  const { profile, careerMatches, roadmapMilestones, projects, jobOpportunities } = student;
+  const readinessScore = Math.round(careerMatches.reduce((sum, c) => sum + c.matchPercentage, 0) / careerMatches.length);
+  const completedMilestones = roadmapMilestones.filter((m) => m.status === "completed").length;
+  const totalMilestones = roadmapMilestones.length;
+
   return (
     <div>
       <DashboardHeader
-        title={`Selamat datang, ${currentUser.name}!`}
-        subtitle={`${currentUser.major} - Kelas ${currentUser.grade}`}
+        title={`Selamat datang, ${profile.name}!`}
+        subtitle={`${profile.major} - Kelas ${profile.grade}`}
       />
 
       {/* Readiness Score Card */}
@@ -57,14 +62,16 @@ export default function StudentDashboard() {
               <p className="text-lg font-bold text-foreground">{completedMilestones}/{totalMilestones}</p>
             </div>
           </div>
-          <ProgressBar value={(completedMilestones / totalMilestones) * 100} size="sm" />
+          <div className="w-full bg-gray-100 rounded-full h-2">
+            <div className="bg-blue-500 rounded-full h-2" style={{ width: `${(completedMilestones / totalMilestones) * 100}%` }} />
+          </div>
         </Card>
       </div>
 
       {/* Quick Stats */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
         {[
-          { label: "Skills Dinilai", value: "18", icon: ClipboardCheck, color: "bg-blue-100 text-blue-600" },
+          { label: "Skills Dinilai", value: student.hardSkills.length.toString(), icon: ClipboardCheck, color: "bg-blue-100 text-blue-600" },
           { label: "Career Matches", value: careerMatches.length.toString(), icon: Target, color: "bg-purple-100 text-purple-600" },
           { label: "Proyek Selesai", value: projects.length.toString(), icon: Star, color: "bg-amber-100 text-amber-600" },
           { label: "Lowongan Cocok", value: jobOpportunities.filter((j) => j.matchPercentage >= 70).length.toString(), icon: Briefcase, color: "bg-emerald-100 text-emerald-600" },

@@ -17,13 +17,17 @@ import Badge from "../../components/ui/badge";
 import ProgressBar from "../../components/ui/progressbar";
 import SkillRadar from "../../components/charts/skillradar";
 import DashboardHeader from "../../components/layout/dashboardheader";
-import { currentUser, allSkills, projects, careerMatches } from "../../lib/mock-data";
+import { getCurrentStudent } from "../../lib/mock-data";
 import { getMatchBg, getInitials } from "../../lib/utils";
 
 export default function PortfolioPage() {
+  const student = getCurrentStudent();
+  if (!student) return null;
+  const { profile, hardSkills, softSkills, projects, careerMatches } = student;
+  const allSkills = [...hardSkills, ...softSkills];
   const [copied, setCopied] = useState(false);
-  const readinessScore = 72;
-  const portfolioUrl = "skillmatch.id/portfolio/budi-santoso";
+  const readinessScore = Math.round(careerMatches.reduce((sum, c) => sum + c.matchPercentage, 0) / careerMatches.length);
+  const portfolioUrl = `skillmatch.id/portfolio/${profile.name.toLowerCase().replace(" ", "-")}`;
 
   const handleCopy = () => {
     setCopied(true);
@@ -65,10 +69,10 @@ export default function PortfolioPage() {
         {/* Profile Card */}
         <Card className="text-center">
           <div className="w-20 h-20 rounded-full bg-gradient-to-br from-primary to-secondary flex items-center justify-center mx-auto mb-4">
-            <span className="text-2xl font-bold text-white">{getInitials(currentUser.name)}</span>
+            <span className="text-2xl font-bold text-white">{getInitials(profile.name)}</span>
           </div>
-          <h2 className="text-xl font-bold text-foreground">{currentUser.name}</h2>
-          <p className="text-sm text-muted">{currentUser.major} - Kelas {currentUser.grade}</p>
+          <h2 className="text-xl font-bold text-foreground">{profile.name}</h2>
+          <p className="text-sm text-muted">{profile.major} - Kelas {profile.grade}</p>
           <div className="mt-4">
             <div className="text-3xl font-bold text-primary">{readinessScore}%</div>
             <p className="text-xs text-muted">Career Readiness Score</p>

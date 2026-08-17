@@ -16,11 +16,14 @@ import Badge from "../../components/ui/badge";
 import ProgressBar from "../../components/ui/progressbar";
 import SkillBarChart from "../../components/charts/barchart";
 import DashboardHeader from "../../components/layout/dashboardheader";
-import { careerMatches, skillGapsForBackend, allSkills } from "../../lib/mock-data";
+import { getCurrentStudent } from "../../lib/mock-data";
 import { getMatchBg, getGapStatusColor, getGapStatusLabel, getReadinessLabel } from "../../lib/utils";
 import type { CareerMatch, SkillGap } from "../../lib/type";
 
 export default function CareerMatchPage() {
+  const student = getCurrentStudent();
+  if (!student) return null;
+  const { careerMatches, skillGaps } = student;
   const [selectedCareer, setSelectedCareer] = useState<CareerMatch>(careerMatches[0]);
   const readinessScore = selectedCareer.matchPercentage;
 
@@ -112,7 +115,7 @@ export default function CareerMatchPage() {
             </div>
 
             <div className="space-y-4">
-              {skillGapsForBackend.map((gap) => (
+              {skillGaps.map((gap) => (
                 <div key={gap.skillName} className="space-y-2">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2">

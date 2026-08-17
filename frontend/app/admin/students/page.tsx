@@ -7,18 +7,16 @@ import Badge from "../../components/ui/badge";
 import DashboardHeader from "../../components/layout/dashboardheader";
 
 const allStudents = [
-  { name: "Budi Santoso", major: "Teknik Informatika", grade: "XII", score: 72, status: "assessed", topCareer: "Backend Developer" },
-  { name: "Rina Wulandari", major: "Rekayasa Perangkat Lunak", grade: "XII", score: 85, status: "assessed", topCareer: "Fullstack Developer" },
-  { name: "Dedi Kurniawan", major: "Sistem Informasi", grade: "XI", score: 58, status: "assessed", topCareer: "Data Analyst" },
-  { name: "Siti Nurhaliza", major: "Multimedia", grade: "XII", score: 0, status: "pending", topCareer: "-" },
-  { name: "Andi Pratama", major: "Teknik Informatika", grade: "XI", score: 91, status: "assessed", topCareer: "Frontend Developer" },
-  { name: "Maya Putri", major: "Rekayasa Perangkat Lunak", grade: "XII", score: 0, status: "pending", topCareer: "-" },
-  { name: "Rizky Aditya", major: "Teknik Informatika", grade: "XII", score: 78, status: "assessed", topCareer: "Fullstack Developer" },
-  { name: "Diana Sari", major: "Multimedia", grade: "XI", score: 0, status: "pending", topCareer: "-" },
-  { name: "Fajar Nugroho", major: "Sistem Informasi", grade: "XII", score: 67, status: "assessed", topCareer: "Backend Developer" },
-  { name: "Lestari Wijaya", major: "Teknik Informatika", grade: "XI", score: 83, status: "assessed", topCareer: "Frontend Developer" },
-  { name: "Hendra Susanto", major: "Rekayasa Perangkat Lunak", grade: "XII", score: 71, status: "assessed", topCareer: "Fullstack Developer" },
-  { name: "Putri Ayu", major: "Multimedia", grade: "XI", score: 0, status: "pending", topCareer: "-" },
+  { name: "Budi Santoso", major: "Rekayasa Perangkat Lunak", grade: "XII", score: 72, status: "assessed", topCareer: "Backend Developer" },
+  { name: "Rina Wulandari", major: "Desain Komunikasi Visual", grade: "XII", score: 85, status: "assessed", topCareer: "Frontend Developer" },
+  { name: "Dedi Kurniawan", major: "Teknik Komputer dan Jaringan", grade: "XI", score: 58, status: "assessed", topCareer: "Data Analyst" },
+  { name: "Siti Nurhaliza", major: "Teknik Transmisi", grade: "XII", score: 0, status: "pending", topCareer: "-" },
+  { name: "Andi Pratama", major: "Rekayasa Perangkat Lunak", grade: "XI", score: 91, status: "assessed", topCareer: "Frontend Developer" },
+  { name: "Rizky Aditya", major: "Rekayasa Perangkat Lunak", grade: "XII", score: 78, status: "assessed", topCareer: "Fullstack Developer" },
+  { name: "Diana Sari", major: "Teknik Transmisi", grade: "XI", score: 0, status: "pending", topCareer: "-" },
+  { name: "Fajar Nugroho", major: "Teknik Komputer dan Jaringan", grade: "XII", score: 67, status: "assessed", topCareer: "Backend Developer" },
+  { name: "Lestari Wijaya", major: "Rekayasa Perangkat Lunak", grade: "XI", score: 83, status: "assessed", topCareer: "Frontend Developer" },
+  { name: "Putri Ayu", major: "Desain Komunikasi Visual", grade: "XI", score: 0, status: "pending", topCareer: "-" },
 ];
 
 export default function StudentsPage() {
@@ -35,10 +33,11 @@ export default function StudentsPage() {
 
   return (
     <div>
-      <DashboardHeader
-        title="Data Siswa"
-        subtitle="Kelola dan pantau data seluruh siswa"
-      />
+        <DashboardHeader
+          title="Data Siswa"
+          subtitle="Daftar semua siswa yang terdaftar di platform"
+          role="admin"
+        />
 
       {/* Filters */}
       <div className="flex flex-col sm:flex-row gap-3 mb-6">
