@@ -225,6 +225,72 @@ export const students: Record<string, StudentData> = {
 };
 
 // ===== Helper: Get student data by email prefix =====
+
+export interface UserCredential {
+  email: string;
+  password: string;
+  role: "student" | "admin" | "industry";
+  name: string;
+}
+
+export interface RegisteredUser {
+  email: string;
+  password: string;
+  name: string;
+  major: string;
+  grade: string;
+}
+
+const REGISTERED_USERS_KEY = "registeredUsers";
+
+export function getRegisteredUsers(): RegisteredUser[] {
+  if (typeof window === "undefined") return [];
+  try {
+    return JSON.parse(localStorage.getItem(REGISTERED_USERS_KEY) || "[]");
+  } catch {
+    return [];
+  }
+}
+
+export function registerUser(user: RegisteredUser): boolean {
+  const users = getRegisteredUsers();
+  const exists = users.some((u) => u.email.toLowerCase() === user.email.toLowerCase());
+  if (exists) return false;
+  users.push(user);
+  localStorage.setItem(REGISTERED_USERS_KEY, JSON.stringify(users));
+  return true;
+}
+
+export const userCredentials: UserCredential[] = [
+  { email: "budi@student.smk.id", password: "Budi@2026!", role: "student", name: "Budi Santoso" },
+  { email: "rina@student.smk.id", password: "Rina@2026!", role: "student", name: "Rina Wulandari" },
+  { email: "hendra@student.smk.id", password: "Hendra@2026!", role: "student", name: "Hendra Susanto" },
+  { email: "fajar@student.smk.id", password: "Fajar@2026!", role: "student", name: "Fajar Nugroho" },
+  { email: "admin@smk.id", password: "Admin@2026!", role: "admin", name: "Admin SMK" },
+  { email: "industry@hrd.com", password: "Industry@2026!", role: "industry", name: "HRD Industry" },
+];
+
+export function validateLogin(email: string, password: string): UserCredential | null {
+  const user = userCredentials.find(
+    (u) => u.email.toLowerCase() === email.toLowerCase() && u.password === password
+  );
+  if (user) return user;
+  const registered = getRegisteredUsers().find(
+    (u) => u.email.toLowerCase() === email.toLowerCase() && u.password === password
+  );
+  if (registered) {
+    return { email: registered.email, password: registered.password, role: "student", name: registered.name };
+  }
+  return null;
+}
+
+export function getUserRole(email: string): "student" | "admin" | "industry" {
+  const lower = email.toLowerCase();
+  if (lower.includes("admin") || lower.includes("guru")) return "admin";
+  if (lower.includes("industry") || lower.includes("hrd")) return "industry";
+  return "student";
+}
+
 export function getStudentByEmail(email: string): StudentData | null {
   const lower = email.toLowerCase();
   if (lower.includes("rpl") || lower.includes("budi")) return students.rpl;
@@ -240,6 +306,16 @@ export function getCurrentStudent(): StudentData | null {
   const email = localStorage.getItem("studentEmail");
   if (!email) return students.rpl;
   return getStudentByEmail(email) || students.rpl;
+}
+
+// ===== Helper: Get student data by URL slug (for public portfolio) =====
+export function getStudentBySlug(slug: string): StudentData | null {
+  const lower = slug.toLowerCase();
+  const list = Object.values(students);
+  return list.find((s) => {
+    const sSlug = s.profile.name.toLowerCase().replace(/\s+/g, "-");
+    return sSlug === lower;
+  }) || null;
 }
 
 // ===== Legacy exports for backward compatibility =====

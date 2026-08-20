@@ -19,20 +19,23 @@ import Badge from "../../components/ui/badge";
 import DashboardHeader from "../../components/layout/dashboardheader";
 import { getCurrentStudent } from "../../lib/mock-data";
 import { getMatchBg, formatDate, getInitials } from "../../lib/utils";
+import { useToast } from "../../lib/toast-context";
 import type { JobOpportunity } from "../../lib/type";
 
-type FilterType = "all" | "magang" | "fulltime" | "parttime";
+type FilterType = "all" | "magang" | "fulltime" | "parttime" | "freelance";
 
 const typeLabels = {
   magang: "Magang",
   fulltime: "Full-time",
   parttime: "Part-time",
+  freelance: "Freelance",
 };
 
 const typeBadgeVariant = {
   magang: "primary" as const,
   fulltime: "success" as const,
   parttime: "secondary" as const,
+  freelance: "warning" as const,
 };
 
 const companyColors = [
@@ -44,12 +47,20 @@ const companyColors = [
 ];
 
 export default function JobsPage() {
+  const { toast } = useToast();
   const [mounted, setMounted] = useState(false);
   const [filter, setFilter] = useState<FilterType>("all");
   const [sortBy, setSortBy] = useState<"match" | "date">("match");
   const [selectedJob, setSelectedJob] = useState<JobOpportunity | null>(null);
   const [applied, setApplied] = useState(false);
+  const [search, setSearch] = useState("");
+
   useEffect(() => { setMounted(true); }, []);
+  useEffect(() => {
+    const handler = (e: Event) => setSearch((e as CustomEvent).detail || "");
+    window.addEventListener("global-search", handler);
+    return () => window.removeEventListener("global-search", handler);
+  }, []);
 
   const student = mounted ? getCurrentStudent() : null;
   const jobOpportunities = student?.jobOpportunities || [];
@@ -58,7 +69,14 @@ export default function JobsPage() {
   if (!mounted || !student) return null;
 
   const filteredJobs = jobOpportunities
-    .filter((job) => filter === "all" || job.type === filter)
+    .filter((job) => {
+      if (filter !== "all" && job.type !== filter) return false;
+      if (search) {
+        const q = search.toLowerCase();
+        return job.title.toLowerCase().includes(q) || job.company.toLowerCase().includes(q) || job.requiredSkills.some((s) => s.toLowerCase().includes(q));
+      }
+      return true;
+    })
     .sort((a, b) =>
       sortBy === "match"
         ? b.matchPercentage - a.matchPercentage
@@ -67,6 +85,7 @@ export default function JobsPage() {
 
   const handleApply = () => {
     setApplied(true);
+    toast("Lamaran berhasil dikirim!", "success");
     setTimeout(() => {
       setApplied(false);
       setSelectedJob(null);
@@ -78,12 +97,13 @@ export default function JobsPage() {
       <DashboardHeader
         title="Lowongan Kerja & Magang"
         subtitle="Smart matching berdasarkan skill kamu"
+        enableSearch
       />
 
       {/* Filters */}
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-6">
-        <div className="flex gap-2">
-          {(["all", "magang", "fulltime", "parttime"] as FilterType[]).map((type) => (
+        <div className="flex gap-2 flex-wrap">
+          {(["all", "magang", "fulltime", "parttime", "freelance"] as FilterType[]).map((type) => (
             <button
               key={type}
               onClick={() => setFilter(type)}
@@ -122,7 +142,14 @@ export default function JobsPage() {
         Menampilkan {filteredJobs.length} lowongan
       </p>
 
-      {/* Job Cards */}
+      {filteredJobs.length === 0 ? (
+        <Card className="text-center py-12">
+          <Briefcase className="w-12 h-12 text-muted mx-auto mb-3" />
+          <p className="text-foreground font-medium">Tidak ada lowongan ditemukan</p>
+          <p className="text-sm text-muted mt-1">Coba ubah filter atau kata kunci pencarian</p>
+        </Card>
+      ) : (
+      <>
       <div className="grid gap-4">
         {filteredJobs.map((job, index) => (
           <Card key={job.id} hover className="!p-0">
@@ -181,6 +208,8 @@ export default function JobsPage() {
           </Card>
         ))}
       </div>
+      </>
+      )}
 
       {/* Apply Modal */}
       {selectedJob && (
@@ -237,7 +266,7 @@ export default function JobsPage() {
                 </div>
               </>
             ) : (
-              <div className="p-12 text-center">
+              <div className="p-8 sm:p-12 text-center">
                 <div className="w-16 h-16 rounded-full bg-emerald-100 dark:bg-emerald-900/50 flex items-center justify-center mx-auto mb-4">
                   <CheckCircle2 className="w-8 h-8 text-emerald-600 dark:text-emerald-400" />
                 </div>

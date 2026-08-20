@@ -11,7 +11,7 @@ export default function Card({ children, className, hover = false }: CardProps) 
     <div
       className={cn(
         "bg-card rounded-xl border border-border p-6",
-        hover && "hover:shadow-md hover:border-primary/20 transition-all cursor-pointer",
+        hover && "hover-lift hover:shadow-md hover:border-primary/20 cursor-pointer",
         className
       )}
     >

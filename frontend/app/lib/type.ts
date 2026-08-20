@@ -70,7 +70,7 @@ export interface JobOpportunity {
   company: string;
   companyLogo: string;
   title: string;
-  type: "magang" | "fulltime" | "parttime";
+  type: "magang" | "fulltime" | "parttime" | "freelance";
   location: string;
   description: string;
   requiredSkills: string[];

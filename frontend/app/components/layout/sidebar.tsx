@@ -15,6 +15,8 @@ import {
   BarChart3,
   ChevronLeft,
   LogOut,
+  Menu,
+  X,
 } from "lucide-react";
 import { cn, getInitials } from "../../lib/utils";
 import { getCurrentStudent, adminUser, industryUser } from "../../lib/mock-data";
@@ -45,7 +47,8 @@ const navItems = {
   industry: [
     { label: "Dashboard", href: "/industry", icon: LayoutDashboard },
     { label: "Cari Kandidat", href: "/industry/candidates", icon: Users },
-    { label: "Post Lowongan", href: "/industry/post-job", icon: Briefcase },
+    { label: "Lowongan Saya", href: "/industry/my-jobs", icon: Briefcase },
+    { label: "Post Lowongan", href: "/industry/post-job", icon: Building2 },
   ],
 };
 
@@ -56,92 +59,189 @@ const roleLabels = {
 };
 
 const roleColors = {
-  student: "bg-blue-100 text-blue-700",
-  admin: "bg-purple-100 text-purple-700",
-  industry: "bg-emerald-100 text-emerald-700",
+  student: "bg-blue-100 dark:bg-blue-900/50 text-blue-700 dark:text-blue-300",
+  admin: "bg-purple-100 dark:bg-purple-900/50 text-purple-700 dark:text-purple-300",
+  industry: "bg-emerald-100 dark:bg-emerald-900/50 text-emerald-700 dark:text-emerald-300",
 };
+
+export function MobileMenuButton({ onClick }: { onClick: () => void }) {
+  return (
+    <button
+      onClick={onClick}
+      className="lg:hidden fixed top-4 left-4 z-50 p-2 rounded-xl bg-card border border-border shadow-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
+    >
+      <Menu className="w-5 h-5 text-foreground" />
+    </button>
+  );
+}
 
 export default function Sidebar({ role, currentPath, isCollapsed = false, onToggle }: SidebarProps) {
   const [mounted, setMounted] = useState(false);
+  const [mobileOpen, setMobileOpen] = useState(false);
+  const [profilePhoto, setProfilePhoto] = useState("");
   const { theme, toggleTheme } = useTheme();
-  useEffect(() => { setMounted(true); }, []);
+  useEffect(() => {
+    setMounted(true);
+    const photo = localStorage.getItem("profilePhoto");
+    if (photo) setProfilePhoto(photo);
+    const handlePhotoUpdate = () => {
+      const photo = localStorage.getItem("profilePhoto");
+      setProfilePhoto(photo || "");
+    };
+    window.addEventListener("profile-photo-updated", handlePhotoUpdate as EventListener);
+    return () => window.removeEventListener("profile-photo-updated", handlePhotoUpdate as EventListener);
+  }, []);
+
+  useEffect(() => {
+    setMobileOpen(false);
+  }, [currentPath]);
 
   const items = navItems[role];
   const studentData = mounted ? getCurrentStudent() : null;
   const user = role === "student" && studentData ? studentData.profile : role === "admin" ? adminUser : industryUser;
 
   return (
-    <aside
-      className={cn(
-        "h-screen bg-sidebar-bg border-r border-border flex flex-col transition-all duration-300 fixed left-0 top-0 z-40",
-        isCollapsed ? "w-[72px]" : "w-64"
+    <>
+      <MobileMenuButton onClick={() => setMobileOpen(true)} />
+
+      {mobileOpen && (
+        <div
+          className="lg:hidden fixed inset-0 bg-black/50 z-40"
+          onClick={() => setMobileOpen(false)}
+        />
       )}
-    >
-      <div className="flex items-center justify-between h-16 px-4 border-b border-border">
-        <Link href="/" className="flex items-center gap-2 overflow-hidden">
-          <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-primary to-secondary flex items-center justify-center flex-shrink-0">
-            <Zap className="w-5 h-5 text-white" />
+
+      <aside
+        className={cn(
+          "h-screen bg-sidebar-bg border-r border-border flex flex-col transition-all duration-300 fixed left-0 top-0 z-40",
+          isCollapsed ? "w-[72px]" : "w-64",
+          "max-lg:hidden"
+        )}
+      >
+        <div className="flex items-center justify-between h-16 px-4 border-b border-border">
+          <Link href="/" className={cn("flex items-center gap-2", isCollapsed && "justify-center flex-1")}>
+            <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-primary to-secondary flex items-center justify-center flex-shrink-0">
+              <Zap className="w-5 h-5 text-white" />
+            </div>
+            {!isCollapsed && (
+              <span className="text-lg font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent whitespace-nowrap">
+                SkillMatch
+              </span>
+            )}
+          </Link>
+          <button
+            onClick={onToggle}
+            className="p-1.5 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors flex-shrink-0"
+          >
+            <ChevronLeft className={cn("w-4 h-4 transition-transform", isCollapsed && "rotate-180")} />
+          </button>
+        </div>
+
+        <nav className="flex-1 py-4 px-3 space-y-1 overflow-y-auto">
+          {items.map((item) => {
+            const isActive = currentPath === item.href;
+            return (
+              <Link
+                key={item.href}
+                href={item.href}
+                className={cn(
+                  "flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all",
+                  isActive
+                    ? "bg-primary/10 text-primary"
+                    : "text-muted hover:bg-gray-50 dark:hover:bg-gray-700 hover:text-foreground"
+                )}
+              >
+                <item.icon className={cn("w-5 h-5 flex-shrink-0", isActive && "text-primary")} />
+                {!isCollapsed && <span>{item.label}</span>}
+              </Link>
+            );
+          })}
+        </nav>
+
+        <div className="p-3 border-t border-border">
+          <div className={cn("flex items-center gap-3 p-2 rounded-lg bg-gray-50 dark:bg-gray-800", isCollapsed && "justify-center")}>
+            <div className="w-9 h-9 rounded-full bg-gradient-to-br from-primary to-secondary flex items-center justify-center flex-shrink-0 overflow-hidden">
+              {profilePhoto ? (
+                <img src={profilePhoto} alt="Profile" className="w-full h-full object-cover" />
+              ) : (
+                <span className="text-xs font-bold text-white">{getInitials(user.name)}</span>
+              )}
+            </div>
+            {!isCollapsed && (
+              <div className="flex-1 min-w-0">
+                <p className="text-sm font-medium text-foreground truncate">{user.name}</p>
+                <span className={cn("text-xs px-2 py-0.5 rounded-full font-medium", roleColors[role])}>
+                  {roleLabels[role]}
+                </span>
+              </div>
+            )}
           </div>
-          {!isCollapsed && (
-            <span className="text-lg font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent whitespace-nowrap">
+        </div>
+      </aside>
+
+      {/* Mobile sidebar */}
+      <aside
+        className={cn(
+          "lg:hidden h-screen bg-sidebar-bg border-r border-border flex flex-col transition-all duration-300 fixed left-0 top-0 z-50 w-64",
+          mobileOpen ? "translate-x-0" : "-translate-x-full"
+        )}
+      >
+        <div className="flex items-center justify-between h-16 px-4 border-b border-border">
+          <Link href="/" className="flex items-center gap-2">
+            <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-primary to-secondary flex items-center justify-center">
+              <Zap className="w-5 h-5 text-white" />
+            </div>
+            <span className="text-lg font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
               SkillMatch
             </span>
-          )}
-        </Link>
-        <button
-          onClick={onToggle}
-          className="p-1.5 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors flex-shrink-0"
-        >
-          <ChevronLeft className={cn("w-4 h-4 transition-transform", isCollapsed && "rotate-180")} />
-        </button>
-      </div>
+          </Link>
+          <button
+            onClick={() => setMobileOpen(false)}
+            className="p-1.5 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+          >
+            <X className="w-5 h-5 text-foreground" />
+          </button>
+        </div>
 
-      <nav className="flex-1 py-4 px-3 space-y-1 overflow-y-auto">
-        {items.map((item) => {
-          const isActive = currentPath === item.href;
-          return (
-            <Link
-              key={item.href}
-              href={item.href}
-              className={cn(
-                "flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all",
-                isActive
-                  ? "bg-primary/10 text-primary"
-                  : "text-muted hover:bg-gray-50 dark:hover:bg-gray-700 hover:text-foreground"
+        <nav className="flex-1 py-4 px-3 space-y-1 overflow-y-auto">
+          {items.map((item) => {
+            const isActive = currentPath === item.href;
+            return (
+              <Link
+                key={item.href}
+                href={item.href}
+                className={cn(
+                  "flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all",
+                  isActive
+                    ? "bg-primary/10 text-primary"
+                    : "text-muted hover:bg-gray-50 dark:hover:bg-gray-700 hover:text-foreground"
+                )}
+              >
+                <item.icon className={cn("w-5 h-5 flex-shrink-0", isActive && "text-primary")} />
+                <span>{item.label}</span>
+              </Link>
+            );
+          })}
+        </nav>
+
+        <div className="p-3 border-t border-border">
+          <div className="flex items-center gap-3 p-2 rounded-lg bg-gray-50 dark:bg-gray-800">
+            <div className="w-9 h-9 rounded-full bg-gradient-to-br from-primary to-secondary flex items-center justify-center flex-shrink-0 overflow-hidden">
+              {profilePhoto ? (
+                <img src={profilePhoto} alt="Profile" className="w-full h-full object-cover" />
+              ) : (
+                <span className="text-xs font-bold text-white">{getInitials(user.name)}</span>
               )}
-            >
-              <item.icon className={cn("w-5 h-5 flex-shrink-0", isActive && "text-primary")} />
-              {!isCollapsed && <span>{item.label}</span>}
-            </Link>
-          );
-        })}
-      </nav>
-
-      <div className="p-3 border-t border-border">
-        <button
-          onClick={toggleTheme}
-          className={cn(
-            "flex items-center gap-3 w-full px-3 py-2 rounded-lg text-sm font-medium text-muted hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors mb-1",
-            isCollapsed && "justify-center"
-          )}
-        >
-          {theme === "light" ? <Moon className="w-5 h-5 flex-shrink-0" /> : <Sun className="w-5 h-5 flex-shrink-0" />}
-          {!isCollapsed && <span>{theme === "light" ? "Mode Gelap" : "Mode Terang"}</span>}
-        </button>
-        <div className={cn("flex items-center gap-3 p-2 rounded-lg bg-gray-50 dark:bg-gray-800", isCollapsed && "justify-center")}>
-          <div className="w-9 h-9 rounded-full bg-gradient-to-br from-primary to-secondary flex items-center justify-center flex-shrink-0">
-            <span className="text-xs font-bold text-white">{getInitials(user.name)}</span>
-          </div>
-          {!isCollapsed && (
+            </div>
             <div className="flex-1 min-w-0">
               <p className="text-sm font-medium text-foreground truncate">{user.name}</p>
               <span className={cn("text-xs px-2 py-0.5 rounded-full font-medium", roleColors[role])}>
                 {roleLabels[role]}
               </span>
             </div>
-          )}
+          </div>
         </div>
-      </div>
-    </aside>
+      </aside>
+    </>
   );
 }

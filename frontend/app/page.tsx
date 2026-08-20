@@ -7,7 +7,6 @@ import {
   ArrowRight,
   CheckCircle2,
   Users,
-  TrendingUp,
   Building2,
   Star,
   Zap,
@@ -63,7 +62,7 @@ export default function Home() {
       {/* Hero Section */}
       <section className="relative overflow-hidden">
         <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-transparent to-secondary/5 pointer-events-none" />
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20 lg:py-32">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 sm:py-20 lg:py-32">
           <div className="grid lg:grid-cols-2 gap-12 items-center">
             <div className="space-y-8">
               <div className="inline-flex items-center gap-2 px-3 py-1.5 bg-primary/10 rounded-full">
@@ -148,7 +147,7 @@ export default function Home() {
       </section>
 
       {/* Features Section */}
-      <section id="features" className="py-20 bg-white dark:bg-background">
+      <section id="features" className="py-12 sm:py-20 bg-white dark:bg-background">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
             <h2 className="text-3xl sm:text-4xl font-bold text-foreground mb-4">
@@ -179,9 +178,9 @@ export default function Home() {
       </section>
 
       {/* Stats Section */}
-      <section className="py-20 bg-gradient-to-br from-primary to-secondary">
+      <section className="py-12 sm:py-20 bg-gradient-to-br from-primary to-secondary">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-8">
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-8">
             {stats.map((stat) => (
               <div key={stat.label} className="text-center">
                 <stat.icon className="w-8 h-8 text-white/80 mx-auto mb-3" />
@@ -194,7 +193,7 @@ export default function Home() {
       </section>
 
       {/* How It Works Section */}
-      <section id="about" className="py-20">
+      <section id="about" className="py-12 sm:py-20">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
             <h2 className="text-3xl sm:text-4xl font-bold text-foreground mb-4">
@@ -222,12 +221,8 @@ export default function Home() {
       </section>
 
       {/* Impact Section */}
-      <section id="impact" className="py-20 bg-white dark:bg-background">
+      <section id="impact" className="py-12 sm:py-20 bg-white dark:bg-background">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <div className="inline-flex items-center gap-2 px-4 py-2 bg-emerald-50 dark:bg-emerald-900/30 rounded-full mb-8">
-            <TrendingUp className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
-            <span className="text-sm font-medium text-emerald-700 dark:text-emerald-300">SDG 8 - Decent Work and Economic Growth</span>
-          </div>
           <blockquote className="text-2xl sm:text-3xl font-semibold text-foreground leading-relaxed mb-8">
             &ldquo;SkillMatch berkomitmen untuk menciptakan masa depan di mana setiap siswa vokasi memiliki kesempatan
             yang setara dalam mengakses peluang kerja yang layak dan berkualitas.&rdquo;
@@ -240,9 +235,9 @@ export default function Home() {
       </section>
 
       {/* CTA Section */}
-      <section className="py-20">
+      <section className="py-12 sm:py-20">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="relative bg-gradient-to-br from-primary via-primary-dark to-secondary rounded-3xl p-12 text-center overflow-hidden">
+          <div className="relative bg-gradient-to-br from-primary via-primary-dark to-secondary rounded-3xl p-6 sm:p-10 lg:p-12 text-center overflow-hidden">
             <div className="absolute inset-0 opacity-10">
               <div className="absolute top-0 left-0 w-40 h-40 bg-white rounded-full -translate-x-1/2 -translate-y-1/2" />
               <div className="absolute bottom-0 right-0 w-60 h-60 bg-white rounded-full translate-x-1/3 translate-y-1/3" />
@@ -307,11 +302,6 @@ export default function Home() {
                 <li>Jakarta, Indonesia</li>
               </ul>
             </div>
-          </div>
-          <div className="mt-12 pt-8 border-t border-border text-center">
-            <p className="text-sm text-muted">
-              &copy; 2026 SkillMatch. Dibuat untuk ITechno Cup 2026.
-            </p>
           </div>
         </div>
       </footer>

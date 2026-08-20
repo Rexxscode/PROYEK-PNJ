@@ -7,6 +7,7 @@ import Badge from "../../components/ui/badge";
 import SkillRadar from "../../components/charts/skillradar";
 import DashboardHeader from "../../components/layout/dashboardheader";
 import { getCurrentStudent } from "../../lib/mock-data";
+import { addNotification } from "../../lib/notifications";
 import type { Skill, AssessmentAnswer } from "../../lib/type";
 
 const totalSteps = 4;
@@ -59,6 +60,13 @@ export default function AssessmentPage() {
         }),
       ].filter((s) => s.level > 0);
       setResultSkills(skills);
+
+      addNotification({
+        text: `${currentUser.name} menyelesaikan asesmen dengan ${skills.length} skill dinilai`,
+        type: "assessment_done",
+        targetRole: "admin",
+      });
+      window.dispatchEvent(new CustomEvent("notifications-updated"));
     }
     setCurrentStep(step);
   };
@@ -94,7 +102,7 @@ export default function AssessmentPage() {
                     ? "bg-emerald-500 text-white"
                     : currentStep === i + 1
                     ? "bg-primary text-white"
-                    : "bg-gray-200 text-gray-500"
+                    : "bg-gray-200 dark:bg-gray-700 text-gray-500 dark:text-gray-400"
                 }`}
               >
                 {currentStep > i + 1 ? <CheckCircle2 className="w-4 h-4" /> : i + 1}
@@ -105,7 +113,7 @@ export default function AssessmentPage() {
             </div>
           ))}
         </div>
-        <div className="w-full bg-gray-200 rounded-full h-2">
+        <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
           <div
             className="bg-primary rounded-full h-2 transition-all duration-500"
             style={{ width: `${((currentStep - 1) / (totalSteps - 1)) * 100}%` }}
@@ -115,7 +123,7 @@ export default function AssessmentPage() {
 
       {/* Step 1: Welcome */}
       {currentStep === 1 && (
-        <Card className="text-center py-12 animate-fade-in">
+        <Card className="text-center py-8 sm:py-12 animate-fade-in">
           <div className="w-20 h-20 rounded-full bg-primary/10 flex items-center justify-center mx-auto mb-6">
             <ClipboardCheck className="w-10 h-10 text-primary" />
           </div>
@@ -125,11 +133,11 @@ export default function AssessmentPage() {
             Jawab dengan jujur untuk hasil yang akurat.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center mb-6">
-            <div className="bg-blue-50 rounded-lg px-4 py-2">
-              <p className="text-sm font-medium text-blue-700">{hardSkills.length} Hard Skills</p>
+            <div className="bg-blue-50 dark:bg-blue-900/30 rounded-lg px-4 py-2">
+              <p className="text-sm font-medium text-blue-700 dark:text-blue-300">{hardSkills.length} Hard Skills</p>
             </div>
-            <div className="bg-purple-50 rounded-lg px-4 py-2">
-              <p className="text-sm font-medium text-purple-700">{softSkills.length} Soft Skills</p>
+            <div className="bg-purple-50 dark:bg-purple-900/30 rounded-lg px-4 py-2">
+              <p className="text-sm font-medium text-purple-700 dark:text-purple-300">{softSkills.length} Soft Skills</p>
             </div>
           </div>
           <button
@@ -156,7 +164,7 @@ export default function AssessmentPage() {
               const answer = answers.find((a) => a.skillId === skill.id);
               return (
                 <Card key={skill.id} className="!p-4">
-                  <div className="flex items-center justify-between">
+                  <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
                     <div>
                       <p className="font-medium text-foreground">{skill.name}</p>
                       {answer && (
@@ -165,15 +173,15 @@ export default function AssessmentPage() {
                         </Badge>
                       )}
                     </div>
-                    <div className="flex gap-1.5">
+                    <div className="flex gap-1.5 flex-shrink-0">
                       {[1, 2, 3, 4, 5].map((level) => (
                         <button
                           key={level}
                           onClick={() => handleAnswer(skill.id, level)}
-                          className={`w-10 h-10 rounded-lg text-sm font-medium transition-colors ${
+                          className={`w-9 h-9 sm:w-10 sm:h-10 rounded-lg text-sm font-medium transition-colors ${
                             answer?.level === level
                               ? "bg-primary text-white"
-                              : "bg-gray-100 text-gray-600 hover:bg-gray-200"
+                              : "bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-600"
                           }`}
                         >
                           {level}
@@ -218,7 +226,7 @@ export default function AssessmentPage() {
               const answer = answers.find((a) => a.skillId === skill.id);
               return (
                 <Card key={skill.id} className="!p-4">
-                  <div className="flex items-center justify-between">
+                  <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
                     <div>
                       <p className="font-medium text-foreground">{skill.name}</p>
                       {answer && (
@@ -227,15 +235,15 @@ export default function AssessmentPage() {
                         </Badge>
                       )}
                     </div>
-                    <div className="flex gap-1.5">
+                    <div className="flex gap-1.5 flex-shrink-0">
                       {[1, 2, 3, 4, 5].map((level) => (
                         <button
                           key={level}
                           onClick={() => handleAnswer(skill.id, level)}
-                          className={`w-10 h-10 rounded-lg text-sm font-medium transition-colors ${
+                          className={`w-9 h-9 sm:w-10 sm:h-10 rounded-lg text-sm font-medium transition-colors ${
                             answer?.level === level
                               ? "bg-secondary text-white"
-                              : "bg-gray-100 text-gray-600 hover:bg-gray-200"
+                              : "bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-600"
                           }`}
                         >
                           {level}
@@ -268,12 +276,12 @@ export default function AssessmentPage() {
       {/* Step 4: Results */}
       {currentStep === 4 && resultSkills.length > 0 && (
         <div className="animate-fade-in">
-          <Card className="mb-6 bg-gradient-to-r from-emerald-50 to-teal-50 border-emerald-200">
+          <Card className="mb-6 bg-gradient-to-r from-emerald-50 to-teal-50 dark:from-emerald-900/20 dark:to-teal-900/20 border-emerald-200 dark:border-emerald-800">
             <div className="flex items-center gap-3">
-              <CheckCircle2 className="w-8 h-8 text-emerald-600" />
+              <CheckCircle2 className="w-8 h-8 text-emerald-600 dark:text-emerald-400" />
               <div>
-                <h3 className="font-semibold text-emerald-800">Asesmen Selesai!</h3>
-                <p className="text-sm text-emerald-600">
+                <h3 className="font-semibold text-emerald-800 dark:text-emerald-200">Asesmen Selesai!</h3>
+                <p className="text-sm text-emerald-600 dark:text-emerald-400">
                   Skill profile kamu sudah berhasil dibuat. Lihat hasilnya di bawah.
                 </p>
               </div>
@@ -301,7 +309,7 @@ export default function AssessmentPage() {
                             <div
                               key={i}
                               className={`w-3 h-3 rounded-sm ${
-                                i <= skill.level ? "bg-primary" : "bg-gray-200"
+                                i <= skill.level ? "bg-primary" : "bg-gray-200 dark:bg-gray-700"
                               }`}
                             />
                           ))}

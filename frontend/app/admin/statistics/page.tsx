@@ -5,7 +5,7 @@ import Card from "../../components/ui/card";
 import SkillBarChart from "../../components/charts/barchart";
 import DoughnutChart from "../../components/charts/doughnutchart";
 import LineChart from "../../components/charts/linechart";
-import PolarAreaChart from "../../components/charts/polarareachart";
+import SkillRadar from "../../components/charts/skillradar";
 import DashboardHeader from "../../components/layout/dashboardheader";
 import { studentStats } from "../../lib/mock-data";
 
@@ -30,8 +30,8 @@ export default function StatisticsPage() {
       <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
         <Card>
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-lg bg-blue-100 flex items-center justify-center">
-              <Users className="w-5 h-5 text-blue-600" />
+            <div className="w-10 h-10 rounded-lg bg-blue-100 dark:bg-blue-900/50 flex items-center justify-center">
+              <Users className="w-5 h-5 text-blue-600 dark:text-blue-400" />
             </div>
             <div>
               <p className="text-sm text-muted">Total Siswa</p>
@@ -41,8 +41,8 @@ export default function StatisticsPage() {
         </Card>
         <Card>
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-lg bg-emerald-100 flex items-center justify-center">
-              <TrendingUp className="w-5 h-5 text-emerald-600" />
+            <div className="w-10 h-10 rounded-lg bg-emerald-100 dark:bg-emerald-900/50 flex items-center justify-center">
+              <TrendingUp className="w-5 h-5 text-emerald-600 dark:text-emerald-400" />
             </div>
             <div>
               <p className="text-sm text-muted">Avg Readiness</p>
@@ -52,8 +52,8 @@ export default function StatisticsPage() {
         </Card>
         <Card>
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-lg bg-purple-100 flex items-center justify-center">
-              <BarChart3 className="w-5 h-5 text-purple-600" />
+            <div className="w-10 h-10 rounded-lg bg-purple-100 dark:bg-purple-900/50 flex items-center justify-center">
+              <BarChart3 className="w-5 h-5 text-purple-600 dark:text-purple-400" />
             </div>
             <div>
               <p className="text-sm text-muted">Jurusan</p>
@@ -63,8 +63,8 @@ export default function StatisticsPage() {
         </Card>
         <Card>
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-lg bg-amber-100 flex items-center justify-center">
-              <TrendingUp className="w-5 h-5 text-amber-600" />
+            <div className="w-10 h-10 rounded-lg bg-amber-100 dark:bg-amber-900/50 flex items-center justify-center">
+              <TrendingUp className="w-5 h-5 text-amber-600 dark:text-amber-400" />
             </div>
             <div>
               <p className="text-sm text-muted">Karier Populer</p>
@@ -92,7 +92,7 @@ export default function StatisticsPage() {
         </Card>
       </div>
 
-      <div className="grid lg:grid-cols-3 gap-6">
+      <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
         <Card>
           <SkillBarChart
             labels={studentStats.readinessByMajor.map((m) => m.major)}
@@ -111,10 +111,16 @@ export default function StatisticsPage() {
           />
         </Card>
         <Card>
-          <PolarAreaChart
-            labels={studentStats.readinessByMajor.map((m) => m.major.split(" ").slice(0, 2).join(" "))}
-            data={studentStats.readinessByMajor.map((m) => m.score)}
+          <SkillRadar
+            skills={studentStats.readinessByMajor.map((m) => ({
+              id: m.major,
+              name: m.major.split(" ").slice(0, 2).join(" "),
+              category: "hard" as const,
+              level: m.score,
+            }))}
             title="Readiness per Jurusan"
+            max={100}
+            color="rgba(16, 185, 129, 0.8)"
           />
         </Card>
       </div>

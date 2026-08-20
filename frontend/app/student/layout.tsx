@@ -3,6 +3,8 @@
 import { useState } from "react";
 import { usePathname } from "next/navigation";
 import Sidebar from "../components/layout/sidebar";
+import PageTransition from "../components/ui/page-transition";
+import AuthGuard from "../components/auth-guard";
 
 export default function StudentLayout({
   children,
@@ -13,9 +15,11 @@ export default function StudentLayout({
   const [isCollapsed, setIsCollapsed] = useState(false);
 
   return (
-    <div className="flex min-h-screen bg-background">
-      <Sidebar role="student" currentPath={pathname} isCollapsed={isCollapsed} onToggle={() => setIsCollapsed(!isCollapsed)} />
-      <main className="flex-1 ml-64 p-8 transition-all" style={{ marginLeft: isCollapsed ? "72px" : "256px" }}>{children}</main>
-    </div>
+    <AuthGuard allowedRoles={["student"]}>
+      <div className="flex min-h-screen bg-background">
+        <Sidebar role="student" currentPath={pathname} isCollapsed={isCollapsed} onToggle={() => setIsCollapsed(!isCollapsed)} />
+        <main className={`flex-1 min-w-0 p-4 lg:p-8 transition-[margin] duration-300 ${isCollapsed ? "main-sidebar-collapsed" : "main-sidebar"}`}><PageTransition>{children}</PageTransition></main>
+      </div>
+    </AuthGuard>
   );
 }

@@ -146,7 +146,7 @@ export default function RoadmapPage() {
                         </div>
                         <h3 className="font-semibold text-foreground">{milestone.title}</h3>
                         <p className="text-sm text-muted mt-1">{milestone.description}</p>
-                        <div className="flex gap-1.5 mt-2">
+                        <div className="flex flex-wrap gap-1.5 mt-2">
                           {milestone.skills.map((skill) => (
                             <Badge key={skill} variant="primary" className="text-[10px]">{skill}</Badge>
                           ))}

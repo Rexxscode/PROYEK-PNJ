@@ -3,19 +3,39 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { Zap, Mail, Lock, User, BookOpen } from "lucide-react";
+import { Zap, Mail, Lock, User, BookOpen, Eye, EyeOff } from "lucide-react";
+import { registerUser } from "../../lib/mock-data";
+import { useToast } from "../../lib/toast-context";
 
 export default function RegisterPage() {
   const router = useRouter();
+  const { toast } = useToast();
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [major, setMajor] = useState("");
   const [grade, setGrade] = useState("");
   const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
+  const [error, setError] = useState("");
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    router.push("/student/assessment");
+    if (!name || !email || !major || !grade) {
+      setError("Semua field harus diisi");
+      return;
+    }
+    if (password.length < 8) {
+      setError("Password minimal 8 karakter");
+      return;
+    }
+    const success = registerUser({ email, password, name, major, grade });
+    if (!success) {
+      setError("Email sudah terdaftar, gunakan email lain");
+      toast("Email sudah terdaftar", "error");
+      return;
+    }
+    toast("Registrasi berhasil! Silakan masuk.", "success");
+    router.push("/auth/login");
   };
 
   return (
@@ -34,8 +54,8 @@ export default function RegisterPage() {
           <p className="text-sm text-muted mt-2">Mulai perjalanan kariermu bersama SkillMatch</p>
         </div>
 
-        <div className="bg-card rounded-2xl border border-border p-8 shadow-sm">
-          <form onSubmit={handleSubmit} className="space-y-5">
+        <div className="bg-card rounded-2xl border border-border p-6 sm:p-8 shadow-sm">
+          <form onSubmit={handleSubmit} className="space-y-5" autoComplete="off">
             <div>
               <label htmlFor="name" className="block text-sm font-medium text-foreground mb-1.5">
                 Nama Lengkap
@@ -45,7 +65,7 @@ export default function RegisterPage() {
                 <input
                   id="name"
                   type="text"
-                  placeholder="Budi Santoso"
+                  placeholder="Masukkan nama lengkap"
                   value={name}
                   onChange={(e) => setName(e.target.value)}
                   className="w-full pl-10 pr-4 py-2.5 border border-border rounded-xl text-sm bg-input-bg text-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-colors"
@@ -61,14 +81,14 @@ export default function RegisterPage() {
                 <input
                   id="email"
                   type="email"
-                  placeholder="budi@student.smk.id"
+                  placeholder="Masukkan email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   className="w-full pl-10 pr-4 py-2.5 border border-border rounded-xl text-sm bg-input-bg text-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-colors"
                 />
               </div>
             </div>
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
                 <label htmlFor="major" className="block text-sm font-medium text-foreground mb-1.5">
                   Jurusan
@@ -115,14 +135,22 @@ export default function RegisterPage() {
                 <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted" />
                 <input
                   id="password"
-                  type="password"
+                  type={showPassword ? "text" : "password"}
                   placeholder="Minimal 8 karakter"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className="w-full pl-10 pr-4 py-2.5 border border-border rounded-xl text-sm bg-input-bg text-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-colors"
+                  className="w-full pl-10 pr-10 py-2.5 border border-border rounded-xl text-sm bg-input-bg text-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-colors"
                 />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-muted hover:text-foreground transition-colors"
+                >
+                  {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                </button>
               </div>
             </div>
+            {error && <p className="text-sm text-red-500 mb-2">{error}</p>}
             <button
               type="submit"
               className="w-full py-2.5 bg-primary text-white font-medium rounded-xl hover:bg-primary-dark transition-colors"

@@ -1,5 +1,6 @@
 "use client";
 
+import { useState, useEffect } from "react";
 import {
   Users,
   Target,
@@ -15,13 +16,14 @@ import Card from "../components/ui/card";
 import Badge from "../components/ui/badge";
 import DashboardHeader from "../components/layout/dashboardheader";
 import { getMatchBg, getInitials } from "../lib/utils";
+import { useCountUp } from "../lib/use-count-up";
 
 const recentCandidates = [
   { name: "Budi Santoso", major: "Rekayasa Perangkat Lunak", score: 85, topSkill: "Node.js", matchFor: "Backend Developer Intern" },
-  { name: "Rina Wulandari", major: "Desain Komunikasi Visual", score: 92, topSkill: "React/Next.js", matchFor: "Frontend Developer" },
-  { name: "Andi Pratama", major: "Rekayasa Perangkat Lunak", score: 78, topSkill: "HTML/CSS", matchFor: "Fullstack Developer" },
-  { name: "Rizky Aditya", major: "Rekayasa Perangkat Lunak", score: 71, topSkill: "JavaScript", matchFor: "Backend Developer Intern" },
-  { name: "Fajar Nugroho", major: "Teknik Komputer dan Jaringan", score: 68, topSkill: "Python", matchFor: "Data Analyst Intern" },
+  { name: "Rina Wulandari", major: "Desain Komunikasi Visual", score: 92, topSkill: "UI/UX Design", matchFor: "UI/UX Designer" },
+  { name: "Andi Pratama", major: "Rekayasa Perangkat Lunak", score: 78, topSkill: "React/Next.js", matchFor: "Frontend Developer" },
+  { name: "Lestari Wijaya", major: "Desain Komunikasi Visual", score: 83, topSkill: "Adobe Illustrator", matchFor: "Graphic Designer" },
+  { name: "Fajar Nugroho", major: "Teknik Komputer dan Jaringan", score: 68, topSkill: "Cisco Networking", matchFor: "Network Engineer Intern" },
 ];
 
 const candidateColors = [
@@ -33,16 +35,26 @@ const candidateColors = [
 ];
 
 export default function IndustryDashboard() {
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => { setMounted(true); }, []);
+
+  const animTotal = useCountUp(195);
+  const animMatched = useCountUp(42);
+  const animJobs = useCountUp(3);
+  const animAvgMatch = useCountUp(78);
+
+  if (!mounted) return null;
   return (
     <div>
       <DashboardHeader
         title="Dashboard Industri"
         subtitle="Temukan kandidat terbaik berdasarkan kebutuhan skill"
         role="industry"
+        showNotifications
       />
 
       {/* Stats */}
-      <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+      <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8 stagger-in">
         <Card>
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-lg bg-blue-100 dark:bg-blue-900/50 flex items-center justify-center">
@@ -50,7 +62,7 @@ export default function IndustryDashboard() {
             </div>
             <div>
               <p className="text-sm text-muted">Total Kandidat</p>
-              <p className="text-2xl font-bold text-foreground">195</p>
+              <p className="text-2xl font-bold text-foreground">{animTotal}</p>
             </div>
           </div>
         </Card>
@@ -61,7 +73,7 @@ export default function IndustryDashboard() {
             </div>
             <div>
               <p className="text-sm text-muted">Kandidat Cocok</p>
-              <p className="text-2xl font-bold text-foreground">42</p>
+              <p className="text-2xl font-bold text-foreground">{animMatched}</p>
             </div>
           </div>
         </Card>
@@ -72,7 +84,7 @@ export default function IndustryDashboard() {
             </div>
             <div>
               <p className="text-sm text-muted">Lowongan Aktif</p>
-              <p className="text-2xl font-bold text-foreground">3</p>
+              <p className="text-2xl font-bold text-foreground">{animJobs}</p>
             </div>
           </div>
         </Card>
@@ -83,7 +95,7 @@ export default function IndustryDashboard() {
             </div>
             <div>
               <p className="text-sm text-muted">Avg Match</p>
-              <p className="text-2xl font-bold text-foreground">78%</p>
+              <p className="text-2xl font-bold text-foreground">{animAvgMatch}%</p>
             </div>
           </div>
         </Card>
@@ -99,27 +111,31 @@ export default function IndustryDashboard() {
         </div>
         <div className="space-y-3">
           {recentCandidates.map((candidate, index) => (
-            <div key={candidate.name} className="flex items-center justify-between p-4 bg-gray-50 dark:bg-gray-700/50 rounded-xl hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors">
-              <div className="flex items-center gap-3">
-                <div className={`w-10 h-10 rounded-full bg-gradient-to-br ${candidateColors[index % candidateColors.length]} flex items-center justify-center`}>
-                  <span className="text-xs font-bold text-white">{getInitials(candidate.name)}</span>
+            <div key={candidate.name} className="p-4 bg-gray-50 dark:bg-gray-700/50 rounded-xl hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors">
+              <div className="flex items-center justify-between gap-3">
+                <div className="flex items-center gap-3 min-w-0">
+                  <div className={`w-10 h-10 rounded-full bg-gradient-to-br ${candidateColors[index % candidateColors.length]} flex items-center justify-center flex-shrink-0`}>
+                    <span className="text-xs font-bold text-white">{getInitials(candidate.name)}</span>
+                  </div>
+                  <div className="min-w-0">
+                    <p className="font-medium text-foreground text-sm truncate">{candidate.name}</p>
+                    <p className="text-xs text-muted truncate">{candidate.major}</p>
+                  </div>
                 </div>
+                <span className={`text-lg font-bold ${getMatchBg(candidate.score)} px-3 py-1 rounded-full flex-shrink-0`}>
+                  {candidate.score}%
+                </span>
+              </div>
+              <div className="flex items-center gap-4 mt-3 pl-13">
                 <div>
-                  <p className="font-medium text-foreground text-sm">{candidate.name}</p>
-                  <p className="text-xs text-muted">{candidate.major}</p>
+                  <p className="text-[10px] text-muted">Top Skill</p>
+                  <Badge variant="primary" className="text-[10px]">{candidate.topSkill}</Badge>
+                </div>
+                <div className="min-w-0">
+                  <p className="text-[10px] text-muted">Cocok untuk</p>
+                  <p className="text-xs font-medium text-foreground truncate">{candidate.matchFor}</p>
                 </div>
               </div>
-              <div className="text-center px-4">
-                <p className="text-xs text-muted">Top Skill</p>
-                <Badge variant="primary" className="text-[10px]">{candidate.topSkill}</Badge>
-              </div>
-              <div className="text-center px-4">
-                <p className="text-xs text-muted">Cocok untuk</p>
-                <p className="text-sm font-medium text-foreground">{candidate.matchFor}</p>
-              </div>
-              <span className={`text-lg font-bold ${getMatchBg(candidate.score)} px-3 py-1 rounded-full`}>
-                {candidate.score}%
-              </span>
             </div>
           ))}
         </div>

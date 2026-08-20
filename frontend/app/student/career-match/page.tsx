@@ -15,7 +15,7 @@ import Card from "../../components/ui/card";
 import Badge from "../../components/ui/badge";
 import ProgressBar from "../../components/ui/progressbar";
 import SkillBarChart from "../../components/charts/barchart";
-import PolarAreaChart from "../../components/charts/polarareachart";
+import SkillRadar from "../../components/charts/skillradar";
 import DashboardHeader from "../../components/layout/dashboardheader";
 import { getCurrentStudent } from "../../lib/mock-data";
 import { getMatchBg, getGapStatusColor, getGapStatusLabel, getReadinessLabel } from "../../lib/utils";
@@ -78,7 +78,7 @@ export default function CareerMatchPage() {
             <div className="flex items-start justify-between">
               <div>
                 <Badge variant="primary" className="mb-2">{selectedCareer.category}</Badge>
-                <h2 className="text-2xl font-bold text-foreground mb-2">{selectedCareer.title}</h2>
+                <h2 className="text-xl sm:text-2xl font-bold text-foreground mb-2">{selectedCareer.title}</h2>
                 <p className="text-muted text-sm max-w-lg">{selectedCareer.description}</p>
               </div>
               <div className="text-center">
@@ -134,7 +134,7 @@ export default function CareerMatchPage() {
                       <div className={`w-2.5 h-2.5 rounded-full ${getGapStatusColor(gap.status)}`} />
                       <span className="text-sm font-medium text-foreground">{gap.skillName}</span>
                     </div>
-                    <div className="flex items-center gap-3">
+                    <div className="flex flex-wrap items-center gap-2 sm:gap-3">
                       <span className="text-xs text-muted">
                         Kamu: {gap.currentLevel}/5 → Butuh: {gap.requiredLevel}/5
                       </span>
@@ -180,17 +180,16 @@ export default function CareerMatchPage() {
             </div>
           </Card>
 
-          {/* Skill Profile Polar Chart */}
+          {/* Skill Profile Radar Chart */}
           <Card>
-            <PolarAreaChart
-              labels={student.hardSkills.slice(0, 8).map((s) => s.name)}
-              data={student.hardSkills.slice(0, 8).map((s) => s.level)}
+            <SkillRadar
+              skills={student.hardSkills.slice(0, 8)}
               title="Profil Skill Kamu"
             />
           </Card>
 
           {/* Action */}
-          <div className="flex gap-4">
+          <div className="flex flex-col sm:flex-row gap-3">
             <a
               href="/student/roadmap"
               className="flex items-center gap-2 px-6 py-3 bg-primary text-white font-medium rounded-xl hover:bg-primary-dark transition-colors"

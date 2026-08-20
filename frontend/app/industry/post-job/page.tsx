@@ -5,22 +5,32 @@ import { useRouter } from "next/navigation";
 import { Briefcase, Plus, X, CheckCircle2 } from "lucide-react";
 import DashboardHeader from "../../components/layout/dashboardheader";
 import Card from "../../components/ui/card";
+import ConfirmDialog from "../../components/ui/confirm-dialog";
+import { useToast } from "../../lib/toast-context";
+import { addNotification } from "../../lib/notifications";
 
 const suggestedSkills = [
   "JavaScript", "TypeScript", "React/Next.js", "Node.js", "Python",
   "HTML/CSS", "SQL/Database", "Git", "REST API", "Java",
+  "Figma", "UI/UX Design", "Adobe Photoshop", "Adobe Illustrator",
+  "Video Editing", "Motion Graphics", "Copywriting", "Digital Marketing",
+  "Cisco Networking", "MikroTik", "Linux Administration", "Cloud (AWS/GCP)",
+  "Fiber Optik", "Radio Frequency", "Network Engineering", "Teknik Mekanik Radio", "Operator Radio",
+  "Problem Solving", "Communication", "Team Leadership",
 ];
 
 export default function PostJobPage() {
   const router = useRouter();
+  const { toast } = useToast();
   const [title, setTitle] = useState("");
   const [company, setCompany] = useState("");
   const [location, setLocation] = useState("");
-  const [type, setType] = useState("Internship");
+  const [type, setType] = useState("magang");
   const [description, setDescription] = useState("");
   const [salary, setSalary] = useState("");
   const [selectedSkills, setSelectedSkills] = useState<string[]>([]);
   const [submitted, setSubmitted] = useState(false);
+  const [showConfirm, setShowConfirm] = useState(false);
 
   const toggleSkill = (skill: string) => {
     setSelectedSkills((prev) =>
@@ -30,7 +40,35 @@ export default function PostJobPage() {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    setShowConfirm(true);
+  };
+
+  const handleConfirmSubmit = () => {
+    const newJob = {
+      id: `job-${Date.now()}`,
+      title,
+      company,
+      location,
+      type,
+      description,
+      skills: selectedSkills,
+      deadline: "2026-12-31",
+    };
+    try {
+      const stored = JSON.parse(localStorage.getItem("industryJobs") || "[]");
+      stored.push(newJob);
+      localStorage.setItem("industryJobs", JSON.stringify(stored));
+    } catch {}
+    setShowConfirm(false);
     setSubmitted(true);
+    toast("Lowongan berhasil diposting!", "success");
+
+    addNotification({
+      text: `Lowongan baru: ${title} di ${company}`,
+      type: "job_posted",
+      targetRole: "student",
+    });
+    window.dispatchEvent(new CustomEvent("notifications-updated"));
   };
 
   if (submitted) {
@@ -42,7 +80,7 @@ export default function PostJobPage() {
             <CheckCircle2 className="w-16 h-16 text-emerald-500 mx-auto mb-4" />
             <h2 className="text-2xl font-bold text-foreground mb-2">Lowongan Berhasil Diposting!</h2>
             <p className="text-muted mb-6">Lowongan &quot;{title}&quot; telah berhasil dibuat dan akan terlihat oleh kandidat.</p>
-            <div className="flex gap-3 justify-center">
+            <div className="flex flex-col sm:flex-row gap-3 justify-center">
               <button
                 onClick={() => {
                   setSubmitted(false);
@@ -53,7 +91,7 @@ export default function PostJobPage() {
                   setSalary("");
                   setSelectedSkills([]);
                 }}
-                className="px-4 py-2 border border-border rounded-xl text-sm font-medium hover:bg-gray-50 transition-colors"
+            className="px-4 py-2 border border-border rounded-xl text-sm font-medium hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
               >
                 Post Lowongan Lain
               </button>
@@ -116,12 +154,12 @@ export default function PostJobPage() {
               <select
                 value={type}
                 onChange={(e) => setType(e.target.value)}
-                className="w-full px-4 py-2.5 border border-border rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary bg-white"
+                className="w-full px-4 py-2.5 border border-border rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary bg-white dark:bg-gray-800 dark:text-gray-200"
               >
-                <option>Internship</option>
-                <option>Part Time</option>
-                <option>Full Time</option>
-                <option>Freelance</option>
+                <option value="magang">Magang</option>
+                <option value="parttime">Part Time</option>
+                <option value="fulltime">Full Time</option>
+                <option value="freelance">Freelance</option>
               </select>
             </div>
             <div>
@@ -159,7 +197,7 @@ export default function PostJobPage() {
                 className={`px-3 py-1.5 rounded-full text-xs font-medium transition-colors ${
                   selectedSkills.includes(skill)
                     ? "bg-primary text-white"
-                    : "bg-gray-100 text-gray-600 hover:bg-gray-200"
+                    : "bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-600"
                 }`}
               >
                 {selectedSkills.includes(skill) && <CheckCircle2 className="w-3 h-3 inline mr-1" />}
@@ -181,7 +219,7 @@ export default function PostJobPage() {
           )}
         </Card>
 
-        <div className="flex gap-3 justify-end">
+        <div className="flex flex-col sm:flex-row gap-3 justify-end">
           <button
             type="button"
             onClick={() => router.back()}
@@ -198,6 +236,16 @@ export default function PostJobPage() {
           </button>
         </div>
       </form>
+
+      <ConfirmDialog
+        open={showConfirm}
+        title="Post Lowongan?"
+        message={`Anda akan memposting lowongan "${title || '(tanpa judul)'}" di ${company || '(tanpa perusahaan)'}. Lowongan akan terlihat oleh semua kandidat.`}
+        confirmLabel="Ya, Post Lowongan"
+        variant="primary"
+        onConfirm={handleConfirmSubmit}
+        onCancel={() => setShowConfirm(false)}
+      />
     </div>
   );
 }
