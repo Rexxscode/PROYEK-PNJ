@@ -11,10 +11,12 @@ import {
 import Card from "../components/ui/card";
 import Badge from "../components/ui/badge";
 import ProgressBar from "../components/ui/progressbar";
-import SkillBarChart from "../components/charts/barchart";
+import dynamic from "next/dynamic";
 import DashboardHeader from "../components/layout/dashboardheader";
 import { studentStats } from "../lib/mock-data";
 import { useCountUp } from "../lib/use-count-up";
+
+const SkillBarChart = dynamic(() => import("../components/charts/barchart"), { ssr: false });
 
 const recentStudents = [
   { name: "Budi Santoso", major: "Rekayasa Perangkat Lunak", score: 72, status: "assessed" },

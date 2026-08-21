@@ -13,11 +13,13 @@ import {
 import Card from "../components/ui/card";
 import Badge from "../components/ui/badge";
 import DashboardHeader from "../components/layout/dashboardheader";
-import DoughnutChart from "../components/charts/doughnutchart";
-import LineChart from "../components/charts/linechart";
+import dynamic from "next/dynamic";
 import { getCurrentStudent } from "../lib/mock-data";
 import { getMatchColor, getReadinessLabel } from "../lib/utils";
 import { useCountUp } from "../lib/use-count-up";
+
+const DoughnutChart = dynamic(() => import("../components/charts/doughnutchart"), { ssr: false });
+const LineChart = dynamic(() => import("../components/charts/linechart"), { ssr: false });
 
 export default function StudentDashboard() {
   const [mounted, setMounted] = useState(false);

@@ -6,14 +6,20 @@ import { cn } from "../../lib/utils";
 
 export default function ScrollToTop() {
   const [visible, setVisible] = useState(false);
+  const [sidebarOpen, setSidebarOpen] = useState(false);
 
   useEffect(() => {
     const onScroll = () => setVisible(window.scrollY > 300);
+    const onSidebar = (e: Event) => setSidebarOpen((e as CustomEvent).detail.open);
     window.addEventListener("scroll", onScroll, { passive: true });
-    return () => window.removeEventListener("scroll", onScroll);
+    window.addEventListener("sidebar-toggle", onSidebar);
+    return () => {
+      window.removeEventListener("scroll", onScroll);
+      window.removeEventListener("sidebar-toggle", onSidebar);
+    };
   }, []);
 
-  if (!visible) return null;
+  if (!visible || sidebarOpen) return null;
 
   return (
     <button

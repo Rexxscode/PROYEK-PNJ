@@ -10,11 +10,13 @@ import {
 import Card from "../../components/ui/card";
 import Badge from "../../components/ui/badge";
 import ProgressBar from "../../components/ui/progressbar";
-import SkillRadar from "../../components/charts/skillradar";
+import dynamic from "next/dynamic";
 import DashboardHeader from "../../components/layout/dashboardheader";
 import { getCurrentStudent } from "../../lib/mock-data";
 import { getMatchBg, getGapStatusColor, getGapStatusLabel, getReadinessLabel } from "../../lib/utils";
 import type { CareerMatch } from "../../lib/type";
+
+const SkillRadar = dynamic(() => import("../../components/charts/skillradar"), { ssr: false });
 
 export default function CareerMatchPage() {
   const [mounted, setMounted] = useState(false);

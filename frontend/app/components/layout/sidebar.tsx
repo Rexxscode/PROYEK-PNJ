@@ -75,6 +75,10 @@ export function MobileMenuButton({ onClick }: { onClick: () => void }) {
 export default function Sidebar({ role, currentPath, isCollapsed = false, onToggle }: SidebarProps) {
   const [mounted, setMounted] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
+
+  useEffect(() => {
+    window.dispatchEvent(new CustomEvent("sidebar-toggle", { detail: { open: mobileOpen } }));
+  }, [mobileOpen]);
   const [profilePhoto, setProfilePhoto] = useState("");
   useEffect(() => {
     setMounted(true);

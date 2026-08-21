@@ -2,12 +2,14 @@
 
 import { BarChart3, TrendingUp, Users } from "lucide-react";
 import Card from "../../components/ui/card";
-import SkillBarChart from "../../components/charts/barchart";
-import DoughnutChart from "../../components/charts/doughnutchart";
-import LineChart from "../../components/charts/linechart";
-import SkillRadar from "../../components/charts/skillradar";
+import dynamic from "next/dynamic";
 import DashboardHeader from "../../components/layout/dashboardheader";
 import { studentStats } from "../../lib/mock-data";
+
+const SkillBarChart = dynamic(() => import("../../components/charts/barchart"), { ssr: false });
+const DoughnutChart = dynamic(() => import("../../components/charts/doughnutchart"), { ssr: false });
+const LineChart = dynamic(() => import("../../components/charts/linechart"), { ssr: false });
+const SkillRadar = dynamic(() => import("../../components/charts/skillradar"), { ssr: false });
 
 const monthlyData = [
   { month: "Jan", students: 12 },

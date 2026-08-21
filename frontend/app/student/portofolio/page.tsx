@@ -11,10 +11,12 @@ import {
 } from "lucide-react";
 import Card from "../../components/ui/card";
 import ProgressBar from "../../components/ui/progressbar";
-import SkillRadar from "../../components/charts/skillradar";
+import dynamic from "next/dynamic";
 import DashboardHeader from "../../components/layout/dashboardheader";
 import { getCurrentStudent } from "../../lib/mock-data";
 import { getInitials } from "../../lib/utils";
+
+const SkillRadar = dynamic(() => import("../../components/charts/skillradar"), { ssr: false });
 
 export default function PortfolioPage() {
   const [mounted, setMounted] = useState(false);
