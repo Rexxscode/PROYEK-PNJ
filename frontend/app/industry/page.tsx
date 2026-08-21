@@ -8,8 +8,6 @@ import {
   TrendingUp,
   Search,
   ArrowRight,
-  Star,
-  Building2,
 } from "lucide-react";
 import Link from "next/link";
 import Card from "../components/ui/card";

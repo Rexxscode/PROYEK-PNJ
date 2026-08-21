@@ -14,14 +14,11 @@ import {
   Building2,
   BarChart3,
   ChevronLeft,
-  LogOut,
   Menu,
   X,
 } from "lucide-react";
 import { cn, getInitials } from "../../lib/utils";
 import { getCurrentStudent, adminUser, industryUser } from "../../lib/mock-data";
-import { useTheme } from "../../lib/theme-context";
-import { Sun, Moon } from "lucide-react";
 
 interface SidebarProps {
   role: "student" | "admin" | "industry";
@@ -79,7 +76,6 @@ export default function Sidebar({ role, currentPath, isCollapsed = false, onTogg
   const [mounted, setMounted] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
   const [profilePhoto, setProfilePhoto] = useState("");
-  const { theme, toggleTheme } = useTheme();
   useEffect(() => {
     setMounted(true);
     const photo = localStorage.getItem("profilePhoto");

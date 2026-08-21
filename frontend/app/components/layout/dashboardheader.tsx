@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useRef, useEffect, useCallback } from "react";
+import Link from "next/link";
 import { Bell, Search, X, LogOut, Eye, EyeOff, Check, Moon, Sun, Camera } from "lucide-react";
 import { getInitials } from "../../lib/utils";
 import { useToast } from "../../lib/toast-context";
@@ -119,12 +120,6 @@ export default function DashboardHeader({ title, subtitle, actions, role = "stud
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
-
-  function closeAll() {
-    setShowSearch(false);
-    setShowNotif(false);
-    setShowProfile(false);
-  }
 
   const avatarContent = profilePhoto
     ? <img src={profilePhoto} alt="Profile" className="w-full h-full rounded-full object-cover" />
@@ -348,7 +343,7 @@ export default function DashboardHeader({ title, subtitle, actions, role = "stud
                   </div>
                 </div>
                 <div className="p-3 border-t border-border">
-                  <a
+                  <Link
                     href="/"
                     onClick={() => {
                       toast("Berhasil keluar", "info");
@@ -360,7 +355,7 @@ export default function DashboardHeader({ title, subtitle, actions, role = "stud
                   >
                     <LogOut className="w-4 h-4" />
                     Keluar
-                  </a>
+                  </Link>
                 </div>
               </div>
             )}

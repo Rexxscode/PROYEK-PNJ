@@ -5,10 +5,7 @@ import {
   Briefcase,
   MapPin,
   Calendar,
-  Clock,
-  Filter,
   SortAsc,
-  Search,
   X,
   CheckCircle2,
   Building2,
@@ -18,7 +15,7 @@ import Card from "../../components/ui/card";
 import Badge from "../../components/ui/badge";
 import DashboardHeader from "../../components/layout/dashboardheader";
 import { getCurrentStudent } from "../../lib/mock-data";
-import { getMatchBg, formatDate, getInitials } from "../../lib/utils";
+import { getMatchBg, formatDate } from "../../lib/utils";
 import { useToast } from "../../lib/toast-context";
 import type { JobOpportunity } from "../../lib/type";
 

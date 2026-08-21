@@ -7,7 +7,6 @@ import {
   TrendingUp,
   GraduationCap,
   Eye,
-  Search,
 } from "lucide-react";
 import Card from "../components/ui/card";
 import Badge from "../components/ui/badge";
@@ -15,7 +14,6 @@ import ProgressBar from "../components/ui/progressbar";
 import SkillBarChart from "../components/charts/barchart";
 import DashboardHeader from "../components/layout/dashboardheader";
 import { studentStats } from "../lib/mock-data";
-import { getReadinessLabel } from "../lib/utils";
 import { useCountUp } from "../lib/use-count-up";
 
 const recentStudents = [

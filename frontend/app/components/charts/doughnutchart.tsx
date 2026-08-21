@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useMemo, memo } from "react";
-import { Chart as ChartJS, ArcElement, Tooltip, Legend } from "chart.js";
+import { Chart as ChartJS, ArcElement, Tooltip, Legend, type Chart } from "chart.js";
 import { Doughnut } from "react-chartjs-2";
 import { useTheme } from "../../lib/theme-context";
 
@@ -44,7 +44,7 @@ const DoughnutChart = memo(function DoughnutChart({
     return [
       {
         id: "centerText" as const,
-        beforeDraw(chart: any) {
+        beforeDraw(chart: Chart) {
           const { ctx, width, height } = chart;
           ctx.save();
           ctx.font = "bold 20px system-ui, sans-serif";
@@ -70,7 +70,6 @@ const DoughnutChart = memo(function DoughnutChart({
         },
       ],
     }),
-    // eslint-disable-next-line react-hooks/exhaustive-deps
     [labels, data, colors]
   );
 

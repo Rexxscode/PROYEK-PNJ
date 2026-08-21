@@ -1,6 +1,6 @@
 "use client";
 
-import { BarChart3, TrendingUp, Users, Download } from "lucide-react";
+import { BarChart3, TrendingUp, Users } from "lucide-react";
 import Card from "../../components/ui/card";
 import SkillBarChart from "../../components/charts/barchart";
 import DoughnutChart from "../../components/charts/doughnutchart";

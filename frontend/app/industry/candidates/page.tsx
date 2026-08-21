@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Search, ExternalLink, Star, GraduationCap, X, MapPin } from "lucide-react";
+import { Search, ExternalLink, GraduationCap, X } from "lucide-react";
 import Card from "../../components/ui/card";
 import Badge from "../../components/ui/badge";
 import DashboardHeader from "../../components/layout/dashboardheader";

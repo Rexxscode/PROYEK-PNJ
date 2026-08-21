@@ -45,7 +45,6 @@ const SkillBarChart = memo(function SkillBarChart({ labels, data, title, color =
         },
       ],
     }),
-    // eslint-disable-next-line react-hooks/exhaustive-deps
     [truncatedLabels, data, color]
   );
 
@@ -81,7 +80,6 @@ const SkillBarChart = memo(function SkillBarChart({ labels, data, title, color =
         },
       },
     }),
-    // eslint-disable-next-line react-hooks/exhaustive-deps
     [truncatedLabels, dataMax, tickColor, gridColor]
   );
 

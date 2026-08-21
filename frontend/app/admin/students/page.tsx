@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
-import { Search, Eye, Filter, ChevronDown, ChevronUp } from "lucide-react";
+import { Search, ChevronDown, ChevronUp } from "lucide-react";
 import Card from "../../components/ui/card";
 import Badge from "../../components/ui/badge";
 import DashboardHeader from "../../components/layout/dashboardheader";
@@ -158,7 +158,7 @@ export default function StudentsPage() {
 
       {/* Cards — Mobile */}
       <div className="md:hidden space-y-3">
-        {filtered.map((student, index) => (
+        {filtered.map((student) => (
           <Card key={student.name}>
             <div className="flex items-start justify-between mb-2">
               <div>

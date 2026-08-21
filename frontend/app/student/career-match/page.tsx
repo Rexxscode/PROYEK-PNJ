@@ -5,21 +5,16 @@ import {
   Target,
   TrendingUp,
   ArrowRight,
-  CheckCircle2,
-  AlertCircle,
-  XCircle,
-  ChevronRight,
   Sparkles,
 } from "lucide-react";
 import Card from "../../components/ui/card";
 import Badge from "../../components/ui/badge";
 import ProgressBar from "../../components/ui/progressbar";
-import SkillBarChart from "../../components/charts/barchart";
 import SkillRadar from "../../components/charts/skillradar";
 import DashboardHeader from "../../components/layout/dashboardheader";
 import { getCurrentStudent } from "../../lib/mock-data";
 import { getMatchBg, getGapStatusColor, getGapStatusLabel, getReadinessLabel } from "../../lib/utils";
-import type { CareerMatch, SkillGap } from "../../lib/type";
+import type { CareerMatch } from "../../lib/type";
 
 export default function CareerMatchPage() {
   const [mounted, setMounted] = useState(false);

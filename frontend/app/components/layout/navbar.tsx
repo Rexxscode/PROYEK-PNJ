@@ -3,7 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { Menu, X, Zap, Sun, Moon } from "lucide-react";
-import { cn } from "../../lib/utils";
+
 import { useTheme } from "../../lib/theme-context";
 
 export default function Navbar() {

@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Briefcase, Edit3, Trash2, MapPin, Calendar, Plus, X, CheckCircle2 } from "lucide-react";
+import { Edit3, Trash2, MapPin, Calendar, Plus, X, CheckCircle2 } from "lucide-react";
 import Link from "next/link";
 import DashboardHeader from "../../components/layout/dashboardheader";
 import Card from "../../components/ui/card";

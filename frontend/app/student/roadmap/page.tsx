@@ -21,7 +21,6 @@ import ProgressBar from "../../components/ui/progressbar";
 import DashboardHeader from "../../components/layout/dashboardheader";
 import { getCurrentStudent } from "../../lib/mock-data";
 import { cn } from "../../lib/utils";
-import type { RoadmapMilestone, RoadmapResource } from "../../lib/type";
 
 const statusConfig = {
   completed: { color: "bg-emerald-500", icon: CheckCircle2, label: "Selesai", badge: "success" as const },
@@ -113,7 +112,7 @@ export default function RoadmapPage() {
         <div className="absolute left-6 top-0 bottom-0 w-0.5 bg-gray-200 dark:bg-gray-700" />
 
         <div className="space-y-6">
-          {roadmapMilestones.map((milestone, index) => {
+          {roadmapMilestones.map((milestone) => {
             const config = statusConfig[milestone.status];
             const isExpanded = expandedId === milestone.id;
 

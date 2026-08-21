@@ -4,7 +4,6 @@ import { useState, useEffect, useMemo } from "react";
 import {
   ClipboardCheck,
   Target,
-  Map,
   Briefcase,
   TrendingUp,
   ArrowRight,
@@ -32,7 +31,7 @@ export default function StudentDashboard() {
   const animProjects = useCountUp(mounted && student ? student.projects.length : 0);
   const animJobs = useCountUp(mounted && student ? student.jobOpportunities.filter((j) => j.matchPercentage >= 70).length : 0);
 
-  const { profile, hardSkills, careerMatches, roadmapMilestones, projects, jobOpportunities } = student || { profile: null, hardSkills: [], careerMatches: [], roadmapMilestones: [], projects: [], jobOpportunities: [] };
+  const { profile, careerMatches, roadmapMilestones, projects } = student || { profile: null, hardSkills: [], careerMatches: [], roadmapMilestones: [], projects: [], jobOpportunities: [] };
   const readinessScore = careerMatches.length ? Math.round(careerMatches.reduce((s, c) => s + c.matchPercentage, 0) / careerMatches.length) : 0;
   const completedMilestones = roadmapMilestones.filter((m) => m.status === "completed").length;
   const totalMilestones = roadmapMilestones.length || 1;

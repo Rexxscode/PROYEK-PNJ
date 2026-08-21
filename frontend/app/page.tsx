@@ -5,7 +5,6 @@ import {
   Map,
   Briefcase,
   ArrowRight,
-  CheckCircle2,
   Users,
   Building2,
   Star,

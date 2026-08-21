@@ -2,24 +2,19 @@
 
 import { useState, useEffect, useRef } from "react";
 import {
-  GraduationCap,
   Link2,
   Copy,
   Check,
   Download,
   ExternalLink,
-  Star,
-  Target,
-  Briefcase,
   Loader2,
 } from "lucide-react";
 import Card from "../../components/ui/card";
-import Badge from "../../components/ui/badge";
 import ProgressBar from "../../components/ui/progressbar";
 import SkillRadar from "../../components/charts/skillradar";
 import DashboardHeader from "../../components/layout/dashboardheader";
 import { getCurrentStudent } from "../../lib/mock-data";
-import { getMatchBg, getInitials } from "../../lib/utils";
+import { getInitials } from "../../lib/utils";
 
 export default function PortfolioPage() {
   const [mounted, setMounted] = useState(false);

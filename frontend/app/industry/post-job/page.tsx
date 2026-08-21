@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { Briefcase, Plus, X, CheckCircle2 } from "lucide-react";
+import { Briefcase, X, CheckCircle2 } from "lucide-react";
 import DashboardHeader from "../../components/layout/dashboardheader";
 import Card from "../../components/ui/card";
 import ConfirmDialog from "../../components/ui/confirm-dialog";

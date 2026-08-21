@@ -86,7 +86,6 @@ const SkillRadar = memo(function SkillRadar({ skills, title, max = 5, color = "r
         },
       ],
     }),
-    // eslint-disable-next-line react-hooks/exhaustive-deps
     [skills, color]
   );
 
