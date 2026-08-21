@@ -1,7 +1,8 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Search, ExternalLink, GraduationCap, X } from "lucide-react";
+import { Search, ExternalLink, GraduationCap } from "lucide-react";
+import Link from "next/link";
 import Card from "../../components/ui/card";
 import Badge from "../../components/ui/badge";
 import DashboardHeader from "../../components/layout/dashboardheader";
@@ -23,7 +24,6 @@ const allSkillFilters = [...new Set(candidates.flatMap((c) => c.skills))].sort()
 export default function CandidatesPage() {
   const [search, setSearch] = useState("");
   const [selectedSkills, setSelectedSkills] = useState<string[]>([]);
-  const [selectedCandidate, setSelectedCandidate] = useState<(typeof candidates)[0] | null>(null);
 
   useEffect(() => {
     const handler = (e: Event) => setSearch((e as CustomEvent).detail || "");
@@ -133,95 +133,17 @@ export default function CandidatesPage() {
                 ))}
               </div>
 
-              <button
-                onClick={() => setSelectedCandidate(candidate)}
+              <Link
+                href={`/portfolio/${candidate.name.toLowerCase().replace(/\s+/g, "-")}`}
                 className="w-full py-2.5 border border-border text-foreground text-sm font-medium rounded-xl hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors flex items-center justify-center gap-2"
               >
                 <ExternalLink className="w-4 h-4" />
                 Lihat Portfolio
-              </button>
+              </Link>
             </Card>
            ))}
       </div>
       </>
-      )}
-
-      {/* Portfolio Modal */}
-      {selectedCandidate && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40" onClick={() => setSelectedCandidate(null)}>
-          <div className="bg-card rounded-2xl shadow-2xl w-full max-w-lg mx-4 max-h-[90vh] overflow-y-auto border border-border" onClick={(e) => e.stopPropagation()}>
-            <div className="flex items-center justify-between p-6 border-b border-border">
-              <div className="flex items-center gap-3">
-                <div className="w-12 h-12 rounded-full bg-gradient-to-br from-primary to-secondary flex items-center justify-center">
-                  <span className="text-sm font-bold text-white">{getInitials(selectedCandidate.name)}</span>
-                </div>
-                <div>
-                  <h3 className="font-bold text-foreground text-lg">{selectedCandidate.name}</h3>
-                  <p className="text-sm text-muted">{selectedCandidate.major} - Kelas {selectedCandidate.grade}</p>
-                </div>
-              </div>
-              <button onClick={() => setSelectedCandidate(null)} className="p-1.5 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700">
-                <X className="w-5 h-5 text-muted" />
-              </button>
-            </div>
-
-            <div className="p-6 space-y-5">
-              {/* Score */}
-              <div className="flex items-center justify-between">
-                <span className="text-sm text-muted">Career Readiness Score</span>
-                <span className={`text-2xl font-bold ${getMatchBg(selectedCandidate.score)}`}>{selectedCandidate.score}%</span>
-              </div>
-
-              {/* Career Match */}
-              <div>
-                <p className="text-sm font-medium text-foreground mb-1">Target Karier</p>
-                <Badge variant="primary">{selectedCandidate.topCareer}</Badge>
-              </div>
-
-              {/* Skills */}
-              <div>
-                <p className="text-sm font-medium text-foreground mb-2">Skill</p>
-                <div className="flex flex-wrap gap-1.5">
-                  {selectedCandidate.skills.map((skill) => (
-                    <Badge key={skill} variant="default">{skill}</Badge>
-                  ))}
-                </div>
-              </div>
-
-              {/* Projects */}
-              <div>
-                <p className="text-sm font-medium text-foreground mb-2">Proyek</p>
-                <div className="space-y-2">
-                  {selectedCandidate.projects.map((project) => (
-                    <div key={project} className="flex items-center gap-2 text-sm text-foreground bg-gray-50 dark:bg-gray-700/50 rounded-lg px-3 py-2">
-                      <div className="w-2 h-2 rounded-full bg-primary" />
-                      {project}
-                    </div>
-                  ))}
-                </div>
-              </div>
-
-              {/* Experience */}
-              <div>
-                <p className="text-sm font-medium text-foreground mb-1">Pengalaman</p>
-                <p className="text-sm text-muted">{selectedCandidate.experience}</p>
-              </div>
-
-              {/* Actions */}
-              <div className="flex gap-3 pt-2">
-                <button className="flex-1 py-2.5 bg-primary text-white rounded-xl text-sm font-medium hover:bg-primary-dark transition-colors">
-                  Hubungi Kandidat
-                </button>
-                <button
-                  onClick={() => setSelectedCandidate(null)}
-                  className="flex-1 py-2.5 border border-border rounded-xl text-sm font-medium hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
-                >
-                  Tutup
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
       )}
     </div>
   );

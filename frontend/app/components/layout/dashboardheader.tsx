@@ -132,7 +132,7 @@ export default function DashboardHeader({ title, subtitle, actions, role = "stud
         <div className="w-12 lg:hidden flex-shrink-0" />
 
         {/* Title - takes remaining space */}
-        <h1 className="flex-1 min-w-0 text-lg sm:text-2xl font-bold text-foreground truncate">
+        <h1 className="flex-1 min-w-0 text-lg sm:text-2xl font-bold text-foreground">
           {title}
         </h1>
 

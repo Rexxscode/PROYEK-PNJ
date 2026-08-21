@@ -3,7 +3,6 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import {
-  Zap,
   LayoutDashboard,
   ClipboardCheck,
   Target,
@@ -120,9 +119,7 @@ export default function Sidebar({ role, currentPath, isCollapsed = false, onTogg
       >
         <div className="flex items-center justify-between h-16 px-4 border-b border-border">
           <Link href="/" className={cn("flex items-center gap-2", isCollapsed && "justify-center flex-1")}>
-            <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-primary to-secondary flex items-center justify-center flex-shrink-0">
-              <Zap className="w-5 h-5 text-white" />
-            </div>
+            <img src="/logo-skillmatch-baru.png" alt="SkillMatch" className="w-8 h-8 rounded-lg object-contain flex-shrink-0" />
             {!isCollapsed && (
               <span className="text-lg font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent whitespace-nowrap">
                 SkillMatch
@@ -188,9 +185,7 @@ export default function Sidebar({ role, currentPath, isCollapsed = false, onTogg
       >
         <div className="flex items-center justify-between h-16 px-4 border-b border-border">
           <Link href="/" className="flex items-center gap-2">
-            <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-primary to-secondary flex items-center justify-center">
-              <Zap className="w-5 h-5 text-white" />
-            </div>
+            <img src="/logo-skillmatch-baru.png" alt="SkillMatch" className="w-8 h-8 rounded-lg object-contain" />
             <span className="text-lg font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
               SkillMatch
             </span>

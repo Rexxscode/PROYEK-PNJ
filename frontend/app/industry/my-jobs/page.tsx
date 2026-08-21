@@ -121,9 +121,9 @@ export default function MyJobsPage() {
         subtitle="Kelola lowongan yang sudah kamu posting"
         role="industry"
         actions={
-          <Link href="/industry/post-job" className="flex items-center gap-2 px-4 py-2 bg-primary text-white text-sm font-medium rounded-xl hover:bg-primary-dark transition-colors">
+          <Link href="/industry/post-job" className="flex items-center gap-2 px-3 sm:px-4 py-2 bg-primary text-white text-sm font-medium rounded-xl hover:bg-primary-dark transition-colors">
             <Plus className="w-4 h-4" />
-            Post Lowongan
+            <span className="hidden sm:inline">Post Lowongan</span>
           </Link>
         }
       />
@@ -263,14 +263,14 @@ export default function MyJobsPage() {
                 )}
               </div>
             </div>
-            <div className="flex gap-3 p-6 border-t border-border">
+            <div className="flex flex-col sm:flex-row gap-3 p-6 border-t border-border">
               <button onClick={() => setEditJob(null)}
                 className="flex-1 py-2.5 border border-border rounded-xl text-sm font-medium hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors">
                 Batal
               </button>
               <button onClick={handleSaveEdit}
-                className="flex-1 py-2.5 bg-primary text-white rounded-xl text-sm font-medium hover:bg-primary-dark transition-colors flex items-center justify-center gap-2">
-                <CheckCircle2 className="w-4 h-4" />
+                className="flex-1 py-2.5 bg-primary text-white rounded-xl text-sm font-medium hover:bg-primary-dark transition-colors flex items-center justify-center gap-2 whitespace-nowrap">
+                <CheckCircle2 className="w-4 h-4 flex-shrink-0" />
                 Simpan Perubahan
               </button>
             </div>

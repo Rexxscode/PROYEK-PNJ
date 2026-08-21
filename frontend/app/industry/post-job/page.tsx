@@ -124,7 +124,7 @@ export default function PostJobPage() {
                 placeholder="Contoh: Frontend Developer Intern"
                 value={title}
                 onChange={(e) => setTitle(e.target.value)}
-                className="w-full px-4 py-2.5 border border-border rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary"
+                className="w-full px-4 py-2.5 border border-border rounded-xl text-sm bg-input-bg text-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary"
               />
             </div>
             <div>
@@ -135,7 +135,7 @@ export default function PostJobPage() {
                 placeholder="Contoh: PT Tech Indonesia"
                 value={company}
                 onChange={(e) => setCompany(e.target.value)}
-                className="w-full px-4 py-2.5 border border-border rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary"
+                className="w-full px-4 py-2.5 border border-border rounded-xl text-sm bg-input-bg text-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary"
               />
             </div>
             <div>
@@ -146,7 +146,7 @@ export default function PostJobPage() {
                 placeholder="Contoh: Jakarta Selatan"
                 value={location}
                 onChange={(e) => setLocation(e.target.value)}
-                className="w-full px-4 py-2.5 border border-border rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary"
+                className="w-full px-4 py-2.5 border border-border rounded-xl text-sm bg-input-bg text-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary"
               />
             </div>
             <div>
@@ -154,7 +154,7 @@ export default function PostJobPage() {
               <select
                 value={type}
                 onChange={(e) => setType(e.target.value)}
-                className="w-full px-4 py-2.5 border border-border rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary bg-white dark:bg-gray-800 dark:text-gray-200"
+                className="w-full px-4 py-2.5 border border-border rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary bg-input-bg text-foreground"
               >
                 <option value="magang">Magang</option>
                 <option value="parttime">Part Time</option>
@@ -169,7 +169,7 @@ export default function PostJobPage() {
                 placeholder="Contoh: Rp 2-4 juta/bulan"
                 value={salary}
                 onChange={(e) => setSalary(e.target.value)}
-                className="w-full px-4 py-2.5 border border-border rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary"
+                className="w-full px-4 py-2.5 border border-border rounded-xl text-sm bg-input-bg text-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary"
               />
             </div>
           </div>
@@ -181,7 +181,7 @@ export default function PostJobPage() {
               placeholder="Jelaskan tentang pekerjaan, tanggung jawab, dan kualifikasi yang dibutuhkan..."
               value={description}
               onChange={(e) => setDescription(e.target.value)}
-              className="w-full px-4 py-2.5 border border-border rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary resize-none"
+              className="w-full px-4 py-2.5 border border-border rounded-xl text-sm bg-input-bg text-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary resize-none"
             />
           </div>
         </Card>
@@ -197,7 +197,7 @@ export default function PostJobPage() {
                 className={`px-3 py-1.5 rounded-full text-xs font-medium transition-colors ${
                   selectedSkills.includes(skill)
                     ? "bg-primary text-white"
-                    : "bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-600"
+                    : "bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600"
                 }`}
               >
                 {selectedSkills.includes(skill) && <CheckCircle2 className="w-3 h-3 inline mr-1" />}
@@ -223,7 +223,7 @@ export default function PostJobPage() {
           <button
             type="button"
             onClick={() => router.back()}
-            className="px-4 py-2 border border-border rounded-xl text-sm font-medium hover:bg-gray-50 transition-colors"
+            className="px-4 py-2 border border-border rounded-xl text-sm font-medium hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
           >
             Batal
           </button>

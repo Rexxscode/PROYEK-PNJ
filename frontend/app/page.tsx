@@ -8,7 +8,6 @@ import {
   Users,
   Building2,
   Star,
-  Zap,
   ChevronRight,
 } from "lucide-react";
 
@@ -65,7 +64,7 @@ export default function Home() {
           <div className="grid lg:grid-cols-2 gap-12 items-center">
             <div className="space-y-8">
               <div className="inline-flex items-center gap-2 px-3 py-1.5 bg-primary/10 rounded-full">
-                <Zap className="w-4 h-4 text-primary" />
+                <img src="/logo-skillmatch-baru.png" alt="SkillMatch" className="w-4 h-4 object-contain" />
                 <span className="text-sm font-medium text-primary">Career Readiness Platform</span>
               </div>
               <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold leading-tight">
@@ -266,9 +265,7 @@ export default function Home() {
           <div className="grid md:grid-cols-4 gap-8">
             <div>
               <div className="flex items-center gap-2 mb-4">
-                <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-primary to-secondary flex items-center justify-center">
-                  <Zap className="w-5 h-5 text-white" />
-                </div>
+                <img src="/logo-skillmatch-baru.png" alt="SkillMatch" className="w-8 h-8 rounded-lg object-contain" />
                 <span className="text-lg font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
                   SkillMatch
                 </span>
