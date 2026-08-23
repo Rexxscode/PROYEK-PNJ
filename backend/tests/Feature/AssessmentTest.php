@@ -113,6 +113,74 @@ class AssessmentTest extends TestCase
         $this->assertCount($countBefore + $generated->count(), RoadmapMilestone::where('user_id', $fajar->id)->get());
     }
 
+    /**
+     * Reproduksi persis laporan bug manual Postman:
+     * payload 5 skill (Node.js, REST API, SQL/Database, Git = level 5; Docker = 1)
+     * harus menghasilkan Backend Developer 100% pada RESPONSE dan DB,
+     * dengan skillGaps dihitung dari state terbaru (bukan state sebelum asesmen).
+     */
+    public function test_postman_regression_exact_payload_yields_100_for_backend_developer(): void
+    {
+        $budi = User::where('email', 'budi@student.smk.id')->first();
+        $backendId = Career::where('title', 'Backend Developer')->value('id');
+
+        // Pre-state seeder: nilai mock lama, membuktikan transisi terjadi
+        $this->assertDatabaseHas('student_career_matches', [
+            'user_id' => $budi->id,
+            'career_id' => $backendId,
+            'match_percentage' => 82,
+        ]);
+
+        $milestonesBefore = RoadmapMilestone::where('user_id', $budi->id)->count();
+        $notifBefore = AppNotification::where('target_role', 'admin')->count();
+
+        // Payload identik dengan manual testing Postman
+        $payload = [
+            ['skillId' => Skill::where('name', 'Node.js')->value('id'), 'level' => 5],
+            ['skillId' => Skill::where('name', 'REST API')->value('id'), 'level' => 5],
+            ['skillId' => Skill::where('name', 'SQL/Database')->value('id'), 'level' => 5],
+            ['skillId' => Skill::where('name', 'Git')->value('id'), 'level' => 5],
+            ['skillId' => Skill::where('name', 'Docker')->value('id'), 'level' => 1],
+        ];
+
+        $response = $this->withToken($this->tokenFor('budi@student.smk.id'))
+            ->postJson("/api/students/{$budi->id}/assessment", $payload);
+
+        $response->assertStatus(200);
+
+        // RESPONSE harus dihitung dari level terbaru
+        $matches = collect($response->json('careerMatches'));
+        $this->assertSame(100, $matches->firstWhere('title', 'Backend Developer')['matchPercentage']);
+        $this->assertSame(76, $matches->firstWhere('title', 'Fullstack Developer')['matchPercentage']);
+
+        // Karier teratas dikuasai penuh -> tidak boleh ada gap level lama lagi
+        $this->assertSame([], $response->json('skillGaps'));
+
+        // student_skills benar-benar ter-update
+        foreach (['Node.js', 'REST API', 'SQL/Database', 'Git'] as $name) {
+            $this->assertDatabaseHas('student_skills', [
+                'user_id' => $budi->id,
+                'skill_id' => Skill::where('name', $name)->value('id'),
+                'level' => 5,
+            ]);
+        }
+        $this->assertDatabaseHas('student_skills', [
+            'user_id' => $budi->id,
+            'skill_id' => Skill::where('name', 'Docker')->value('id'),
+            'level' => 1,
+        ]);
+        $this->assertNotNull($budi->fresh()->assessed_at);
+
+        // Tidak ada gap karier teratas -> roadmap tidak bertambah
+        $this->assertSame(
+            $milestonesBefore,
+            RoadmapMilestone::where('user_id', $budi->id)->count()
+        );
+
+        // Notifikasi admin bertambah tepat satu
+        $this->assertSame($notifBefore + 1, AppNotification::where('target_role', 'admin')->count());
+    }
+
     public function test_level_out_of_range_fails_validation(): void
     {
         $budi = User::where('email', 'budi@student.smk.id')->first();

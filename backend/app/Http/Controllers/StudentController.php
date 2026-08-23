@@ -157,11 +157,15 @@ class StudentController extends Controller
 
             $student->forceFill(['assessed_at' => now()])->save();
 
-            $matches = app(MatchingService::class)->syncMatches($student);
+            // Satu snapshot level diambil SETELAH seluruh upsert selesai,
+            // dipakai bersama oleh matching, roadmap, dan skillGaps pada response.
+            $levels = MatchingService::skillLevelsOf($student);
+
+            $matches = app(MatchingService::class)->syncMatches($student, $levels);
 
             $top = $matches->first();
             if ($top !== null) {
-                $this->generateRoadmapFromGaps($student, $top['career']);
+                $this->generateRoadmapFromGaps($student, $top['career'], $levels);
             }
 
             AppNotification::create([
@@ -175,7 +179,7 @@ class StudentController extends Controller
 
         return response()->json([
             'careerMatches' => $this->data->careerMatchesOf($student),
-            'skillGaps' => $this->data->skillGapsForTopMatch($student),
+            'skillGaps' => $this->data->skillGapsForTopMatch($student, MatchingService::skillLevelsOf($student)),
         ]);
     }
 
@@ -183,9 +187,8 @@ class StudentController extends Controller
      * Milestone dibuat dari skill gap karier teratas:
      * gap pertama "available", sisanya "locked".
      */
-    private function generateRoadmapFromGaps(User $student, \App\Models\Career $career): void
+    private function generateRoadmapFromGaps(User $student, \App\Models\Career $career, array $levels): void
     {
-        $levels = MatchingService::skillLevelsOf($student);
         $gaps = app(MatchingService::class)->gapsFor($career, $levels);
 
         if ($gaps === []) {

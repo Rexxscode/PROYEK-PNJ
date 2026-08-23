@@ -36,11 +36,13 @@ class MatchingService
     /**
      * Semua karier dengan persentase kecocokan, terurut dari tertinggi.
      *
+     * @param  array<int, int>|null  $levels  Snapshot level pasca-upsert; bila null dibaca dari DB.
+     *
      * @return Collection<int, array{career: Career, percentage: int}>
      */
-    public function matchesFor(User $student): Collection
+    public function matchesFor(User $student, ?array $levels = null): Collection
     {
-        $levels = static::skillLevelsOf($student);
+        $levels ??= static::skillLevelsOf($student);
 
         return Career::with('skills')->get()
             ->map(function (Career $career) use ($levels) {
@@ -70,10 +72,12 @@ class MatchingService
 
     /**
      * Simpan hasil matching ke student_career_matches (sinkron penuh).
+     *
+     * @param  array<int, int>|null  $levels  Snapshot level pasca-upsert; bila null dibaca dari DB.
      */
-    public function syncMatches(User $student): Collection
+    public function syncMatches(User $student, ?array $levels = null): Collection
     {
-        $matches = $this->matchesFor($student);
+        $matches = $this->matchesFor($student, $levels);
 
         $keepIds = [];
         foreach ($matches as ['career' => $career, 'percentage' => $percentage]) {
