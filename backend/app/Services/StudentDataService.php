@@ -142,12 +142,15 @@ class StudentDataService
             ->filter(fn (array $row) => $row['percentage'] > 0)
             ->sortByDesc('percentage')
             ->take(12)
-            ->map(fn (array $row) => $this->formatJob($row['job'], $row['percentage']))
+            ->map(fn (array $row) => static::formatJob($row['job'], $row['percentage']))
             ->values()
             ->all();
     }
 
-    public function formatJob(Job $job, int $percentage): array
+    /**
+     * Format satu lowongan sesuai kontrak JobOpportunity frontend.
+     */
+    public static function formatJob(Job $job, int $percentage): array
     {
         return [
             'id' => 'job-'.$job->id,
@@ -156,10 +159,11 @@ class StudentDataService
             'title' => $job->title,
             'type' => $job->type,
             'location' => $job->location,
-            'description' => $job->description,
-            'requiredSkills' => $job->skills->pluck('name')->values()->all(),
-            'matchPercentage' => $percentage,
-            'postedAt' => $job->posted_at?->toDateString(),
+                'description' => $job->description,
+                'requiredSkills' => $job->skills->pluck('name')->values()->all(),
+                'matchPercentage' => $percentage,
+                'salary' => $job->salary,
+                'postedAt' => $job->posted_at?->toDateString(),
             'deadline' => $job->deadline?->toDateString(),
         ];
     }
