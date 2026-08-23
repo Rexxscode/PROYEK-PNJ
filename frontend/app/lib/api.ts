@@ -48,7 +48,24 @@
  *   Authorization: Bearer <token>
  */
 
-const BASE_URL = ""; // Isi dengan URL backend, contoh: "http://localhost:3000"
+const BASE_URL = "http://localhost:8000"; // URL backend Laravel
+
+// ===== TOKEN STORAGE =====
+const TOKEN_KEY = "auth_token";
+
+export function setStoredToken(token: string): void {
+  localStorage.setItem(TOKEN_KEY, token);
+}
+
+export function getStoredToken(): string | null {
+  if (typeof window === "undefined") return null;
+  return localStorage.getItem(TOKEN_KEY);
+}
+
+export function clearStoredToken(): void {
+  if (typeof window === "undefined") return;
+  localStorage.removeItem(TOKEN_KEY);
+}
 
 interface FetchOptions extends RequestInit {
   token?: string;

@@ -4,6 +4,7 @@ import { useState, useRef, useEffect, useCallback } from "react";
 import Link from "next/link";
 import { Bell, Search, X, LogOut, Eye, EyeOff, Check, Moon, Sun, Camera } from "lucide-react";
 import { getInitials } from "../../lib/utils";
+import { clearStoredToken } from "../../lib/api";
 import { useToast } from "../../lib/toast-context";
 import { useTheme } from "../../lib/theme-context";
 import {
@@ -347,6 +348,7 @@ export default function DashboardHeader({ title, subtitle, actions, role = "stud
                     href="/"
                     onClick={() => {
                       toast("Berhasil keluar", "info");
+                      clearStoredToken();
                       localStorage.removeItem("studentEmail");
                       localStorage.removeItem("loggedUserName");
                       localStorage.removeItem("loggedUserRole");

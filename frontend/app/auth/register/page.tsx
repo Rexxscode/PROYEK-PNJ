@@ -4,7 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { Mail, Lock, User, BookOpen, Eye, EyeOff } from "lucide-react";
-import { registerUser } from "../../lib/mock-data";
+import { authAPI } from "../../lib/api";
 import { useToast } from "../../lib/toast-context";
 
 export default function RegisterPage() {
@@ -18,7 +18,7 @@ export default function RegisterPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState("");
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!name || !email || !major || !grade) {
       setError("Semua field harus diisi");
@@ -28,14 +28,18 @@ export default function RegisterPage() {
       setError("Password minimal 8 karakter");
       return;
     }
-    const success = registerUser({ email, password, name, major, grade });
-    if (!success) {
-      setError("Email sudah terdaftar, gunakan email lain");
-      toast("Email sudah terdaftar", "error");
-      return;
+    try {
+      await authAPI.register({ name, email, password, major, grade });
+      toast("Registrasi berhasil! Silakan masuk.", "success");
+      router.push("/auth/login");
+    } catch (err) {
+      const raw = err instanceof Error ? err.message : "Registrasi gagal";
+      const message = /email/i.test(raw)
+        ? "Email sudah terdaftar, gunakan email lain"
+        : raw;
+      setError(message);
+      toast(message, "error");
     }
-    toast("Registrasi berhasil! Silakan masuk.", "success");
-    router.push("/auth/login");
   };
 
   return (

@@ -4,7 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { Mail, Lock, Eye, EyeOff } from "lucide-react";
-import { validateLogin } from "../../lib/mock-data";
+import { authAPI, setStoredToken } from "../../lib/api";
 import { useToast } from "../../lib/toast-context";
 
 export default function LoginPage() {
@@ -15,7 +15,7 @@ export default function LoginPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState("");
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!email || !password) {
       setError("Email dan password harus diisi");
@@ -25,23 +25,25 @@ export default function LoginPage() {
       setError("Password minimal 8 karakter");
       return;
     }
-    const user = validateLogin(email, password);
-    if (!user) {
-      setError("Email atau password salah");
-      toast("Email atau password salah", "error");
-      return;
-    }
-    setError("");
-    toast(`Selamat datang, ${user.name}!`, "success");
-    localStorage.setItem("studentEmail", email);
-    localStorage.setItem("loggedUserName", user.name);
-    localStorage.setItem("loggedUserRole", user.role);
-    if (user.role === "admin") {
-      router.push("/admin");
-    } else if (user.role === "industry") {
-      router.push("/industry");
-    } else {
-      router.push("/student");
+    try {
+      const { token, user } = await authAPI.login(email, password);
+      setStoredToken(token);
+      localStorage.setItem("studentEmail", user.email);
+      localStorage.setItem("loggedUserName", user.name);
+      localStorage.setItem("loggedUserRole", user.role);
+      setError("");
+      toast(`Selamat datang, ${user.name}!`, "success");
+      if (user.role === "admin") {
+        router.push("/admin");
+      } else if (user.role === "industry") {
+        router.push("/industry");
+      } else {
+        router.push("/student");
+      }
+    } catch (err) {
+      const message = err instanceof Error ? err.message : "Login gagal";
+      setError(message);
+      toast(message, "error");
     }
   };
 
