@@ -14,6 +14,7 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
+use Illuminate\Validation\Rule;
 
 class StudentController extends Controller
 {
@@ -83,6 +84,50 @@ class StudentController extends Controller
         $this->authorize('view', $student);
 
         return response()->json($this->data->portfolio($student));
+    }
+
+    /**
+     * GET /api/students/{id}/roadmap.
+     */
+    public function roadmap(User $student): JsonResponse
+    {
+        $this->authorize('view', $student);
+
+        return response()->json($this->data->roadmapOf($student));
+    }
+
+    /**
+     * PUT /api/students/{id}/roadmap/{milestoneId} — hanya pemilik milestone.
+     *
+     * Body: { "status": "locked|available|in_progress|completed" }
+     */
+    public function updateMilestone(Request $request, User $student, RoadmapMilestone $milestone): JsonResponse
+    {
+        $this->authorize('update', $student);
+
+        if ($milestone->user_id !== $student->id) {
+            abort(404);
+        }
+
+        $validated = $request->validate([
+            'status' => ['required', Rule::in(['locked', 'available', 'in_progress', 'completed'])],
+        ]);
+
+        $milestone->update(['status' => $validated['status']]);
+
+        return response()->json([
+            'id' => 'rm-'.$milestone->id,
+            'title' => $milestone->title,
+            'description' => $milestone->description ?? '',
+            'status' => $milestone->status,
+            'skills' => $milestone->skills ?? [],
+            'estimatedHours' => (int) $milestone->estimated_hours,
+            'resources' => collect($milestone->resources ?? [])->map(fn ($r) => [
+                'title' => $r['title'] ?? '',
+                'url' => $r['url'] ?? '',
+                'type' => $r['type'] ?? 'article',
+            ])->values()->all(),
+        ]);
     }
 
     /**
