@@ -3,11 +3,16 @@
 namespace App\Http\Controllers;
 
 use App\Http\Resources\UserProfileResource;
+use App\Models\AppNotification;
+use App\Models\RoadmapMilestone;
+use App\Models\StudentSkill;
 use App\Models\User;
+use App\Services\MatchingService;
 use App\Services\StudentDataService;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 
 class StudentController extends Controller
@@ -78,5 +83,90 @@ class StudentController extends Controller
         $this->authorize('view', $student);
 
         return response()->json($this->data->portfolio($student));
+    }
+
+    /**
+     * POST /api/students/{id}/assessment.
+     *
+     * Body: [{"skillId": 1, "level": 4}, ...]
+     * Proses (dalam transaksi): upsert student_skills -> set assessed_at ->
+     * sinkron student_career_matches -> generate roadmap dari gap karier teratas
+     * -> notifikasi ke admin -> kembalikan careerMatches + skillGaps.
+     */
+    public function submitAssessment(Request $request, User $student): JsonResponse
+    {
+        $this->authorize('update', $student);
+
+        $validated = $request->validate([
+            '*.skillId' => ['required', 'integer', 'exists:skills,id'],
+            '*.level' => ['required', 'integer', 'min:1', 'max:5'],
+        ]);
+
+        $result = DB::transaction(function () use ($validated, $student) {
+            foreach ($validated as $answer) {
+                StudentSkill::updateOrCreate(
+                    ['user_id' => $student->id, 'skill_id' => $answer['skillId']],
+                    ['level' => $answer['level']]
+                );
+            }
+
+            $student->forceFill(['assessed_at' => now()])->save();
+
+            $matches = app(MatchingService::class)->syncMatches($student);
+
+            $top = $matches->first();
+            if ($top !== null) {
+                $this->generateRoadmapFromGaps($student, $top['career']);
+            }
+
+            AppNotification::create([
+                'target_role' => 'admin',
+                'type' => 'assessment_done',
+                'text' => $student->name.' menyelesaikan asesmen dengan '.count($validated).' skill dinilai',
+            ]);
+
+            return $matches;
+        });
+
+        return response()->json([
+            'careerMatches' => $this->data->careerMatchesOf($student),
+            'skillGaps' => $this->data->skillGapsForTopMatch($student),
+        ]);
+    }
+
+    /**
+     * Milestone dibuat dari skill gap karier teratas:
+     * gap pertama "available", sisanya "locked".
+     */
+    private function generateRoadmapFromGaps(User $student, \App\Models\Career $career): void
+    {
+        $levels = MatchingService::skillLevelsOf($student);
+        $gaps = app(MatchingService::class)->gapsFor($career, $levels);
+
+        if ($gaps === []) {
+            return;
+        }
+
+        $nextSequence = (int) ($student->roadmapMilestones()->max('sequence') ?? 0);
+
+        foreach ($gaps as $index => $gap) {
+            RoadmapMilestone::updateOrCreate(
+                [
+                    'user_id' => $student->id,
+                    'title' => 'Pelajari '.$gap['skillName'],
+                ],
+                [
+                    'description' => sprintf(
+                        'Tutup skill gap untuk karier %s: tingkatkan %s dari level %d ke level %d.',
+                        $career->title, $gap['skillName'], $gap['currentLevel'], $gap['requiredLevel']
+                    ),
+                    'status' => $index === 0 ? 'available' : 'locked',
+                    'estimated_hours' => 8,
+                    'sequence' => ++$nextSequence,
+                    'skills' => [$gap['skillName']],
+                    'resources' => [],
+                ]
+            );
+        }
     }
 }
