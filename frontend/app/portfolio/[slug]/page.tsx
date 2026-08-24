@@ -1,8 +1,9 @@
 "use client";
 
-import { use } from "react";
+import { use, useEffect, useState } from "react";
 import Link from "next/link";
-import { getStudentBySlug } from "../../lib/mock-data";
+import { portfolioAPI } from "../../lib/api";
+import type { Portfolio } from "../../lib/type";
 import { getInitials } from "../../lib/utils";
 import { Briefcase, ArrowLeft } from "lucide-react";
 import Card from "../../components/ui/card";
@@ -11,9 +12,27 @@ import SkillRadar from "../../components/charts/skillradar";
 
 export default function PublicPortfolioPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = use(params);
-  const student = getStudentBySlug(slug);
+  const [portfolio, setPortfolio] = useState<Portfolio | null>(null);
+  const [missing, setMissing] = useState(false);
 
-  if (!student) {
+  useEffect(() => {
+    let cancelled = false;
+    setPortfolio(null);
+    setMissing(false);
+    portfolioAPI
+      .getBySlug(slug)
+      .then((data) => {
+        if (!cancelled) setPortfolio(data);
+      })
+      .catch(() => {
+        if (!cancelled) setMissing(true);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [slug]);
+
+  if (missing) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center p-4">
         <Card className="text-center py-12 max-w-md">
@@ -31,9 +50,15 @@ export default function PublicPortfolioPage({ params }: { params: Promise<{ slug
     );
   }
 
-  const { profile, hardSkills, softSkills, projects, careerMatches } = student;
-  const allSkills = [...hardSkills, ...softSkills];
-  const avgScore = Math.round(careerMatches.reduce((sum, c) => sum + c.matchPercentage, 0) / careerMatches.length);
+  if (!portfolio) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin" />
+      </div>
+    );
+  }
+
+  const { user: profile, skills: allSkills, projects, careerMatches, readinessScore: avgScore } = portfolio;
 
   return (
     <div className="min-h-screen bg-background">

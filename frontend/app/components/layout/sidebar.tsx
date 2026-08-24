@@ -17,7 +17,7 @@ import {
   X,
 } from "lucide-react";
 import { cn, getInitials } from "../../lib/utils";
-import { getCurrentStudent, adminUser, industryUser } from "../../lib/mock-data";
+import { adminUser, industryUser } from "../../lib/mock-data";
 
 interface SidebarProps {
   role: "student" | "admin" | "industry";
@@ -96,8 +96,13 @@ export default function Sidebar({ role, currentPath, isCollapsed = false, onTogg
   }, [currentPath]);
 
   const items = navItems[role];
-  const studentData = mounted ? getCurrentStudent() : null;
-  const user = role === "student" && studentData ? studentData.profile : role === "admin" ? adminUser : industryUser;
+  const localName = mounted ? localStorage.getItem("loggedUserName") || "" : "";
+  const user =
+    role === "student"
+      ? { name: localName || "Siswa" }
+      : role === "admin"
+        ? adminUser
+        : industryUser;
 
   return (
     <>

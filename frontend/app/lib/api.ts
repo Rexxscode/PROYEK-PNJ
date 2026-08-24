@@ -127,7 +127,7 @@ export const studentAPI = {
   getPortfolio: (id: string, token: string) =>
     apiFetch<import("./type").Portfolio>(`/api/students/${id}/portfolio`, { token }),
 
-  submitAssessment: (id: string, answers: import("./type").AssessmentAnswer[], token: string) =>
+  submitAssessment: (id: string, answers: Array<{ skillId: number | string; level: number }>, token: string) =>
     apiFetch<{ careerMatches: import("./type").CareerMatch[]; skillGaps: import("./type").SkillGap[] }>(
       `/api/students/${id}/assessment`, { method: "POST", body: JSON.stringify(answers), token }
     ),

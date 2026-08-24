@@ -19,7 +19,9 @@ import Card from "../../components/ui/card";
 import Badge from "../../components/ui/badge";
 import ProgressBar from "../../components/ui/progressbar";
 import DashboardHeader from "../../components/layout/dashboardheader";
-import { getCurrentStudent } from "../../lib/mock-data";
+import { useStudentData } from "../../lib/use-student-data";
+import { getStoredToken, studentAPI } from "../../lib/api";
+import { useToast } from "../../lib/toast-context";
 import { cn } from "../../lib/utils";
 
 const statusConfig = {
@@ -37,12 +39,23 @@ const resourceIcons = {
 };
 
 export default function RoadmapPage() {
-  const [mounted, setMounted] = useState(false);
   const [expandedId, setExpandedId] = useState<string | null>(null);
-  useEffect(() => { setMounted(true); }, []);
-
-  const student = mounted ? getCurrentStudent() : null;
+  const { toast } = useToast();
+  const { data: student, loading, refresh } = useStudentData();
   const roadmapMilestones = student?.roadmapMilestones || [];
+
+  const handleStart = async (milestoneId: string) => {
+    const token = getStoredToken();
+    const userId = typeof window !== "undefined" ? localStorage.getItem("loggedUserId") : null;
+    if (!token || !userId) return;
+    try {
+      await studentAPI.updateMilestone(userId, milestoneId.replace("rm-", ""), { status: "in_progress" }, token);
+      await refresh();
+      toast("Milestone dimulai, selamat belajar!", "success");
+    } catch (err) {
+      toast(err instanceof Error ? err.message : "Gagal memperbarui milestone", "error");
+    }
+  };
 
   useEffect(() => {
     if (roadmapMilestones.length > 0 && !expandedId) {
@@ -51,7 +64,7 @@ export default function RoadmapPage() {
     }
   }, [roadmapMilestones, expandedId]);
 
-  if (!mounted || !student) return null;
+  if (loading || !student) return null;
 
   const completedCount = roadmapMilestones.filter((m) => m.status === "completed").length;
   const totalHours = roadmapMilestones.reduce((sum, m) => sum + m.estimatedHours, 0);
@@ -178,7 +191,10 @@ export default function RoadmapPage() {
                           })}
                         </div>
                         {milestone.status === "available" && (
-                          <button className="mt-4 w-full py-2.5 bg-primary text-white font-medium rounded-xl hover:bg-primary-dark transition-colors text-sm">
+                          <button
+                            onClick={() => void handleStart(milestone.id)}
+                            className="mt-4 w-full py-2.5 bg-primary text-white font-medium rounded-xl hover:bg-primary-dark transition-colors text-sm"
+                          >
                             Mulai Belajar
                           </button>
                         )}

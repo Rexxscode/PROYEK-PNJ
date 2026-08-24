@@ -1,29 +1,40 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { ClipboardCheck, ChevronRight, ChevronLeft, CheckCircle2, Sparkles } from "lucide-react";
 import Card from "../../components/ui/card";
 import Badge from "../../components/ui/badge";
 import SkillRadar from "../../components/charts/skillradar";
 import DashboardHeader from "../../components/layout/dashboardheader";
-import { getCurrentStudent } from "../../lib/mock-data";
+import { useStudentData } from "../../lib/use-student-data";
+import { getStoredToken, studentAPI } from "../../lib/api";
+import { useToast } from "../../lib/toast-context";
 import { addNotification } from "../../lib/notifications";
 import type { Skill, AssessmentAnswer } from "../../lib/type";
 
 const totalSteps = 4;
 
 export default function AssessmentPage() {
-  const [mounted, setMounted] = useState(false);
   const [currentStep, setCurrentStep] = useState(1);
   const [answers, setAnswers] = useState<AssessmentAnswer[]>([]);
   const [resultSkills, setResultSkills] = useState<Skill[]>([]);
+  const { toast } = useToast();
+  const { data: student, loading, refresh } = useStudentData();
 
-  useEffect(() => { setMounted(true); }, []);
-
-  if (!mounted) return null;
-  const student = getCurrentStudent();
-  if (!student) return null;
+  if (loading || !student) return null;
   const { hardSkills, softSkills, profile: currentUser } = student;
+
+  const submitAssessmentResult = async (payload: Array<{ skillId: number; level: number }>) => {
+    const token = getStoredToken();
+    const userId = typeof window !== "undefined" ? localStorage.getItem("loggedUserId") : null;
+    if (!token || !userId) return;
+    try {
+      await studentAPI.submitAssessment(userId, payload, token);
+      await refresh();
+    } catch (err) {
+      toast(err instanceof Error ? err.message : "Gagal menyimpan asesmen", "error");
+    }
+  };
 
   const hardSkillAnswers = answers.filter((a) =>
     hardSkills.some((s) => s.id === a.skillId)
@@ -60,6 +71,11 @@ export default function AssessmentPage() {
         }),
       ].filter((s) => s.level > 0);
       setResultSkills(skills);
+
+      // Kirim hasil asesmen ke backend (upsert skill, career match, roadmap)
+      void submitAssessmentResult(
+        answers.map((a) => ({ skillId: Number(a.skillId), level: a.level }))
+      );
 
       addNotification({
         text: `${currentUser.name} menyelesaikan asesmen dengan ${skills.length} skill dinilai`,

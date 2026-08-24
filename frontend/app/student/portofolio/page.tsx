@@ -13,19 +13,17 @@ import Card from "../../components/ui/card";
 import ProgressBar from "../../components/ui/progressbar";
 import dynamic from "next/dynamic";
 import DashboardHeader from "../../components/layout/dashboardheader";
-import { getCurrentStudent } from "../../lib/mock-data";
+import { useStudentData } from "../../lib/use-student-data";
 import { getInitials } from "../../lib/utils";
 
 const SkillRadar = dynamic(() => import("../../components/charts/skillradar"), { ssr: false });
 
 export default function PortfolioPage() {
-  const [mounted, setMounted] = useState(false);
   const [copied, setCopied] = useState(false);
   const [generatingPdf, setGeneratingPdf] = useState(false);
   const portfolioRef = useRef<HTMLDivElement>(null);
-  useEffect(() => { setMounted(true); }, []);
 
-  const student = mounted ? getCurrentStudent() : null;
+  const { data: student, loading } = useStudentData();
 
   const handleCopy = () => {
     navigator.clipboard.writeText(portfolioUrl);
@@ -34,9 +32,8 @@ export default function PortfolioPage() {
   };
 
   const handleDownloadPdf = async () => {
-    if (generatingPdf) return;
-    const s = getCurrentStudent();
-    if (!s) return;
+    if (generatingPdf || !student) return;
+    const s = student;
     setGeneratingPdf(true);
     try {
       const { domToPng } = await import("modern-screenshot");
@@ -148,7 +145,7 @@ export default function PortfolioPage() {
     }
   };
 
-  if (!mounted || !student) return null;
+  if (loading || !student) return null;
   const { profile, hardSkills, softSkills, projects, careerMatches } = student;
   const allSkills = [...hardSkills, ...softSkills];
   const readinessScore = Math.round(careerMatches.reduce((sum, c) => sum + c.matchPercentage, 0) / careerMatches.length);

@@ -14,7 +14,7 @@ import {
 import Card from "../../components/ui/card";
 import Badge from "../../components/ui/badge";
 import DashboardHeader from "../../components/layout/dashboardheader";
-import { getCurrentStudent } from "../../lib/mock-data";
+import { useStudentData } from "../../lib/use-student-data";
 import { getMatchBg, formatDate } from "../../lib/utils";
 import { useToast } from "../../lib/toast-context";
 import type { JobOpportunity } from "../../lib/type";
@@ -45,25 +45,22 @@ const companyColors = [
 
 export default function JobsPage() {
   const { toast } = useToast();
-  const [mounted, setMounted] = useState(false);
   const [filter, setFilter] = useState<FilterType>("all");
   const [sortBy, setSortBy] = useState<"match" | "date">("match");
   const [selectedJob, setSelectedJob] = useState<JobOpportunity | null>(null);
   const [applied, setApplied] = useState(false);
   const [search, setSearch] = useState("");
+  const { data: student, loading } = useStudentData();
 
-  useEffect(() => { setMounted(true); }, []);
   useEffect(() => {
     const handler = (e: Event) => setSearch((e as CustomEvent).detail || "");
     window.addEventListener("global-search", handler);
     return () => window.removeEventListener("global-search", handler);
   }, []);
 
-  const student = mounted ? getCurrentStudent() : null;
-  const jobOpportunities = student?.jobOpportunities || [];
-  const profile = student?.profile;
-
-  if (!mounted || !student) return null;
+  if (loading || !student) return null;
+  const profile = student.profile;
+  const jobOpportunities = student.jobOpportunities;
 
   const filteredJobs = jobOpportunities
     .filter((job) => {

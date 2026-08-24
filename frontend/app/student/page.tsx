@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useMemo } from "react";
+import { useMemo } from "react";
 import {
   ClipboardCheck,
   Target,
@@ -14,7 +14,7 @@ import Card from "../components/ui/card";
 import Badge from "../components/ui/badge";
 import DashboardHeader from "../components/layout/dashboardheader";
 import dynamic from "next/dynamic";
-import { getCurrentStudent } from "../lib/mock-data";
+import { useStudentData } from "../lib/use-student-data";
 import { getMatchColor, getReadinessLabel } from "../lib/utils";
 import { useCountUp } from "../lib/use-count-up";
 
@@ -22,16 +22,13 @@ const DoughnutChart = dynamic(() => import("../components/charts/doughnutchart")
 const LineChart = dynamic(() => import("../components/charts/linechart"), { ssr: false });
 
 export default function StudentDashboard() {
-  const [mounted, setMounted] = useState(false);
-  useEffect(() => { setMounted(true); }, []);
+  const { data: student, loading } = useStudentData();
 
-  const student = mounted ? getCurrentStudent() : null;
-
-  const animReadiness = useCountUp(mounted && student ? Math.round(student.careerMatches.reduce((s, c) => s + c.matchPercentage, 0) / student.careerMatches.length) : 0);
-  const animSkills = useCountUp(mounted && student ? student.hardSkills.length : 0);
-  const animMatches = useCountUp(mounted && student ? student.careerMatches.length : 0);
-  const animProjects = useCountUp(mounted && student ? student.projects.length : 0);
-  const animJobs = useCountUp(mounted && student ? student.jobOpportunities.filter((j) => j.matchPercentage >= 70).length : 0);
+  const animReadiness = useCountUp(student ? Math.round(student.careerMatches.reduce((s, c) => s + c.matchPercentage, 0) / student.careerMatches.length) : 0);
+  const animSkills = useCountUp(student ? student.hardSkills.length : 0);
+  const animMatches = useCountUp(student ? student.careerMatches.length : 0);
+  const animProjects = useCountUp(student ? student.projects.length : 0);
+  const animJobs = useCountUp(student ? student.jobOpportunities.filter((j) => j.matchPercentage >= 70).length : 0);
 
   const { profile, careerMatches, roadmapMilestones, projects } = student || { profile: null, hardSkills: [], careerMatches: [], roadmapMilestones: [], projects: [], jobOpportunities: [] };
   const readinessScore = careerMatches.length ? Math.round(careerMatches.reduce((s, c) => s + c.matchPercentage, 0) / careerMatches.length) : 0;

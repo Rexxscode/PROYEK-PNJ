@@ -12,18 +12,16 @@ import Badge from "../../components/ui/badge";
 import ProgressBar from "../../components/ui/progressbar";
 import dynamic from "next/dynamic";
 import DashboardHeader from "../../components/layout/dashboardheader";
-import { getCurrentStudent } from "../../lib/mock-data";
+import { useStudentData } from "../../lib/use-student-data";
 import { getMatchBg, getGapStatusColor, getGapStatusLabel, getReadinessLabel } from "../../lib/utils";
 import type { CareerMatch } from "../../lib/type";
 
 const SkillRadar = dynamic(() => import("../../components/charts/skillradar"), { ssr: false });
 
 export default function CareerMatchPage() {
-  const [mounted, setMounted] = useState(false);
   const [selectedCareer, setSelectedCareer] = useState<CareerMatch | null>(null);
-  useEffect(() => { setMounted(true); }, []);
 
-  const student = mounted ? getCurrentStudent() : null;
+  const { data: student, loading } = useStudentData();
   const careerMatches = student?.careerMatches || [];
   const skillGaps = student?.skillGaps || [];
 
@@ -33,7 +31,7 @@ export default function CareerMatchPage() {
     }
   }, [careerMatches, selectedCareer]);
 
-  if (!mounted || !student || !selectedCareer) return null;
+  if (loading || !student || !selectedCareer) return null;
   const readinessScore = selectedCareer.matchPercentage;
 
   return (

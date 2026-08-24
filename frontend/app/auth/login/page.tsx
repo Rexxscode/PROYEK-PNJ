@@ -31,6 +31,9 @@ export default function LoginPage() {
       localStorage.setItem("studentEmail", user.email);
       localStorage.setItem("loggedUserName", user.name);
       localStorage.setItem("loggedUserRole", user.role);
+      localStorage.setItem("loggedUserId", String(user.id));
+      localStorage.setItem("loggedUserMajor", user.major ?? "");
+      localStorage.setItem("loggedUserGrade", user.grade ?? "");
       setError("");
       toast(`Selamat datang, ${user.name}!`, "success");
       if (user.role === "admin") {
