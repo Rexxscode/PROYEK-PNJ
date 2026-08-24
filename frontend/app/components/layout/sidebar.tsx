@@ -17,7 +17,6 @@ import {
   X,
 } from "lucide-react";
 import { cn, getInitials } from "../../lib/utils";
-import { adminUser, industryUser } from "../../lib/mock-data";
 
 interface SidebarProps {
   role: "student" | "admin" | "industry";
@@ -80,6 +79,8 @@ export default function Sidebar({ role, currentPath, isCollapsed = false, onTogg
   }, [mobileOpen]);
   const [profilePhoto, setProfilePhoto] = useState("");
   useEffect(() => {
+    // Hydration guard: sinkronisasi state dari localStorage setelah mount.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setMounted(true);
     const photo = localStorage.getItem("profilePhoto");
     if (photo) setProfilePhoto(photo);
@@ -92,17 +93,13 @@ export default function Sidebar({ role, currentPath, isCollapsed = false, onTogg
   }, []);
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setMobileOpen(false);
   }, [currentPath]);
 
   const items = navItems[role];
   const localName = mounted ? localStorage.getItem("loggedUserName") || "" : "";
-  const user =
-    role === "student"
-      ? { name: localName || "Siswa" }
-      : role === "admin"
-        ? adminUser
-        : industryUser;
+  const user = { name: localName || roleLabels[role] };
 
   return (
     <>

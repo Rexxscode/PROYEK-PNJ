@@ -27,6 +27,7 @@ export default function CareerMatchPage() {
 
   useEffect(() => {
     if (careerMatches.length > 0 && !selectedCareer) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setSelectedCareer(careerMatches[0]);
     }
   }, [careerMatches, selectedCareer]);

@@ -52,6 +52,8 @@ export default function DashboardHeader({ title, subtitle, actions, role = "stud
   } = useNotifications();
 
   useEffect(() => {
+    // Hydration guard: sinkronisasi state dari localStorage setelah mount.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setMounted(true);
     const storedName = localStorage.getItem("loggedUserName");
     if (storedName) setEditName(storedName);

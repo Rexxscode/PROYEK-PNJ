@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { use, useEffect, useState } from "react";
 import Link from "next/link";
@@ -17,6 +17,7 @@ export default function PublicPortfolioPage({ params }: { params: Promise<{ slug
 
   useEffect(() => {
     let cancelled = false;
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setPortfolio(null);
     setMissing(false);
     portfolioAPI
@@ -69,7 +70,7 @@ export default function PublicPortfolioPage({ params }: { params: Promise<{ slug
             <span className="text-2xl font-bold text-white">{getInitials(profile.name)}</span>
           </div>
           <h1 className="text-2xl font-bold text-white mb-1">{profile.name}</h1>
-          <p className="text-white/80 text-sm">{profile.major} — Kelas {profile.grade}</p>
+          <p className="text-white/80 text-sm">{profile.major} â€” Kelas {profile.grade}</p>
           <div className="mt-4 inline-flex items-center gap-2 px-4 py-2 bg-white/15 backdrop-blur-sm rounded-full">
             <span className="text-sm text-white/90">Readiness Score</span>
             <span className="text-lg font-bold text-white">{avgScore}%</span>
@@ -139,7 +140,7 @@ export default function PublicPortfolioPage({ params }: { params: Promise<{ slug
 
         {/* Footer */}
         <div className="text-center py-6">
-          <p className="text-xs text-muted">Portfolio by SkillMatch — Career Readiness Platform</p>
+          <p className="text-xs text-muted">Portfolio by SkillMatch â€” Career Readiness Platform</p>
         </div>
       </div>
     </div>

@@ -9,7 +9,6 @@ import DashboardHeader from "../../components/layout/dashboardheader";
 import { useStudentData } from "../../lib/use-student-data";
 import { getStoredToken, studentAPI } from "../../lib/api";
 import { useToast } from "../../lib/toast-context";
-import { addNotification } from "../../lib/notifications";
 import type { Skill, AssessmentAnswer } from "../../lib/type";
 
 const totalSteps = 4;
@@ -72,17 +71,11 @@ export default function AssessmentPage() {
       ].filter((s) => s.level > 0);
       setResultSkills(skills);
 
-      // Kirim hasil asesmen ke backend (upsert skill, career match, roadmap)
+      // Kirim hasil asesmen ke backend (upsert skill, career match, roadmap).
+      // Notifikasi untuk admin dibuat otomatis oleh backend.
       void submitAssessmentResult(
         answers.map((a) => ({ skillId: Number(a.skillId), level: a.level }))
       );
-
-      addNotification({
-        text: `${currentUser.name} menyelesaikan asesmen dengan ${skills.length} skill dinilai`,
-        type: "assessment_done",
-        targetRole: "admin",
-      });
-      window.dispatchEvent(new CustomEvent("notifications-updated"));
     }
     setCurrentStep(step);
   };

@@ -60,6 +60,7 @@ export default function RoadmapPage() {
   useEffect(() => {
     if (roadmapMilestones.length > 0 && !expandedId) {
       const inProgress = roadmapMilestones.find((m) => m.status === "in_progress");
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       if (inProgress) setExpandedId(inProgress.id);
     }
   }, [roadmapMilestones, expandedId]);

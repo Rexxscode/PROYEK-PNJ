@@ -8,6 +8,7 @@ export default function PageTransition({ children }: { children: React.ReactNode
   const [key, setKey] = useState(pathname);
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setKey(pathname);
   }, [pathname]);
 

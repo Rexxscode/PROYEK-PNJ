@@ -26,7 +26,11 @@ export default function PortfolioPage() {
 
   const { data: student, loading } = useStudentData();
 
-  useEffect(() => { setMounted(true); }, []);
+  useEffect(() => {
+    // Hydration guard: sinkronisasi state setelah mount.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setMounted(true);
+  }, []);
 
   const handleCopy = () => {
     navigator.clipboard.writeText(portfolioUrl);
