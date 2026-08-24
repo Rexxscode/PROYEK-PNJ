@@ -1,19 +1,13 @@
 "use client";
 
-import { useState, useRef, useEffect, useCallback } from "react";
+import { useState, useRef, useEffect } from "react";
 import Link from "next/link";
 import { Bell, Search, X, LogOut, Eye, EyeOff, Check, Moon, Sun, Camera } from "lucide-react";
 import { getInitials } from "../../lib/utils";
 import { clearStoredToken } from "../../lib/api";
 import { useToast } from "../../lib/toast-context";
 import { useTheme } from "../../lib/theme-context";
-import {
-  getNotificationsFor,
-  getUnreadCount,
-  markAllAsRead,
-  markAsRead,
-  type AppNotification,
-} from "../../lib/notifications";
+import { useNotifications } from "../../lib/use-notifications";
 
 interface DashboardHeaderProps {
   title: string;
@@ -39,8 +33,6 @@ export default function DashboardHeader({ title, subtitle, actions, role = "stud
   const [showNotif, setShowNotif] = useState(false);
   const [showProfile, setShowProfile] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
-  const [activeNotifications, setActiveNotifications] = useState<AppNotification[]>([]);
-  const [unreadCount, setUnreadCount] = useState(0);
   const [mounted, setMounted] = useState(false);
   const [editName, setEditName] = useState("");
   const [editPassword, setEditPassword] = useState("");
@@ -51,24 +43,21 @@ export default function DashboardHeader({ title, subtitle, actions, role = "stud
   const profileRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const email = typeof window !== "undefined" ? localStorage.getItem("studentEmail") || undefined : undefined;
-
-  const refreshNotifs = useCallback(() => {
-    const notifs = getNotificationsFor(role || "student", email);
-    setActiveNotifications(notifs);
-    setUnreadCount(getUnreadCount(role || "student", email));
-  }, [role, email]);
+  const {
+    notifications: activeNotifications,
+    unreadCount,
+    markRead,
+    markAllRead,
+    refresh: refreshNotifs,
+  } = useNotifications();
 
   useEffect(() => {
     setMounted(true);
-    localStorage.removeItem("app_notifications");
-    localStorage.removeItem("notifications_seeded");
     const storedName = localStorage.getItem("loggedUserName");
     if (storedName) setEditName(storedName);
     const storedPhoto = localStorage.getItem(PROFILE_PHOTO_KEY);
     if (storedPhoto) setProfilePhoto(storedPhoto);
-    refreshNotifs();
-  }, [refreshNotifs]);
+  }, []);
 
   useEffect(() => {
     const handler = () => refreshNotifs();
@@ -94,15 +83,13 @@ export default function DashboardHeader({ title, subtitle, actions, role = "stud
     reader.readAsDataURL(file);
   };
 
-  const handleMarkAllRead = () => {
-    markAllAsRead(role || "student", email);
-    refreshNotifs();
+  const handleMarkAllRead = async () => {
+    await markAllRead();
     toast("Semua notifikasi ditandai sudah dibaca", "success");
   };
 
   const handleMarkRead = (id: string) => {
-    markAsRead(id);
-    refreshNotifs();
+    void markRead(Number(id));
   };
 
   const handleSearch = (query: string) => {

@@ -21,9 +21,12 @@ const SkillRadar = dynamic(() => import("../../components/charts/skillradar"), {
 export default function PortfolioPage() {
   const [copied, setCopied] = useState(false);
   const [generatingPdf, setGeneratingPdf] = useState(false);
+  const [mounted, setMounted] = useState(false);
   const portfolioRef = useRef<HTMLDivElement>(null);
 
   const { data: student, loading } = useStudentData();
+
+  useEffect(() => { setMounted(true); }, []);
 
   const handleCopy = () => {
     navigator.clipboard.writeText(portfolioUrl);

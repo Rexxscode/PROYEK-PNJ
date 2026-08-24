@@ -183,7 +183,7 @@ export const notificationAPI = {
   getAll: (token: string) =>
     apiFetch<import("./notifications").AppNotification[]>("/api/notifications", { token }),
 
-  markAsRead: (id: string, token: string) =>
+  markAsRead: (id: string | number, token: string) =>
     apiFetch<{ success: boolean }>(`/api/notifications/${id}/read`, { method: "PUT", token }),
 
   markAllAsRead: (token: string) =>
