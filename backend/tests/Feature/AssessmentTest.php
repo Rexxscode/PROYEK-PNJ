@@ -181,6 +181,24 @@ class AssessmentTest extends TestCase
         $this->assertSame($notifBefore + 1, AppNotification::where('target_role', 'admin')->count());
     }
 
+    public function test_empty_payload_is_rejected_without_side_effects(): void
+    {
+        $budi = User::where('email', 'budi@student.smk.id')->first();
+        $notifBefore = AppNotification::where('target_role', 'admin')->count();
+        $assessedAtBefore = $budi->assessed_at;
+
+        // Body kosong = persis kondisi yang dulu menyebabkan matching jalan
+        // atas state lama secara senyap (insiden 63%).
+        $this->withToken($this->tokenFor('budi@student.smk.id'))
+            ->postJson("/api/students/{$budi->id}/assessment", [])
+            ->assertStatus(422)
+            ->assertJsonPath('message', 'Payload asesmen tidak boleh kosong');
+
+        // Tidak ada efek samping
+        $this->assertSame($notifBefore, AppNotification::where('target_role', 'admin')->count());
+        $this->assertEquals($assessedAtBefore?->format('Y-m-d H:i:s'), $budi->fresh()->assessed_at?->format('Y-m-d H:i:s'));
+    }
+
     public function test_level_out_of_range_fails_validation(): void
     {
         $budi = User::where('email', 'budi@student.smk.id')->first();

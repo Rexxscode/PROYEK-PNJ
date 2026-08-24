@@ -147,6 +147,11 @@ class StudentController extends Controller
             '*.level' => ['required', 'integer', 'min:1', 'max:5'],
         ]);
 
+        if ($validated === []) {
+            // Tanpa ini, body kosong "lolos" senyap lalu matching jalan atas state lama.
+            abort(422, 'Payload asesmen tidak boleh kosong');
+        }
+
         $result = DB::transaction(function () use ($validated, $student) {
             foreach ($validated as $answer) {
                 StudentSkill::updateOrCreate(
