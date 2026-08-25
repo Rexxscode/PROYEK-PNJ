@@ -29,6 +29,21 @@ class NotificationController extends Controller
     }
 
     /**
+     * GET /api/admin/notifications — semua notifikasi untuk halaman admin.
+     */
+    public function all(): JsonResponse
+    {
+        $notifications = AppNotification::query()
+            ->orderByDesc('created_at')
+            ->get()
+            ->map(fn (AppNotification $n) => $this->format($n))
+            ->values()
+            ->all();
+
+        return response()->json($notifications);
+    }
+
+    /**
      * POST /api/notifications — admin broadcast/target.
      */
     public function store(Request $request): JsonResponse

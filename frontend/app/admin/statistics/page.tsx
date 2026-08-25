@@ -1,15 +1,24 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import { BarChart3, TrendingUp, Users } from "lucide-react";
 import Card from "../../components/ui/card";
 import dynamic from "next/dynamic";
 import DashboardHeader from "../../components/layout/dashboardheader";
-import { studentStats } from "../../lib/mock-data";
+import { adminAPI, getStoredToken } from "../../lib/api";
+import type { StudentStats } from "../../lib/type";
 
 const SkillBarChart = dynamic(() => import("../../components/charts/barchart"), { ssr: false });
 const DoughnutChart = dynamic(() => import("../../components/charts/doughnutchart"), { ssr: false });
 const LineChart = dynamic(() => import("../../components/charts/linechart"), { ssr: false });
 const SkillRadar = dynamic(() => import("../../components/charts/skillradar"), { ssr: false });
+
+interface AdminStudent {
+  id: string;
+  name: string;
+  score: number;
+  status: "assessed" | "pending";
+}
 
 const monthlyData = [
   { month: "Jan", students: 12 },
@@ -20,7 +29,52 @@ const monthlyData = [
   { month: "Jun", students: 35 },
 ];
 
+function readinessDistribution(students: AdminStudent[]): [number, number, number, number] {
+  const assessed = students.filter((s) => s.status === "assessed");
+  return [
+    assessed.filter((s) => s.score >= 80).length,
+    assessed.filter((s) => s.score >= 60 && s.score < 80).length,
+    assessed.filter((s) => s.score >= 40 && s.score < 60).length,
+    assessed.filter((s) => s.score < 40).length,
+  ];
+}
+
 export default function StatisticsPage() {
+  const [mounted, setMounted] = useState(false);
+  const [error, setError] = useState("");
+  const [studentStats, setStudentStats] = useState<StudentStats | null>(null);
+  const [students, setStudents] = useState<AdminStudent[]>([]);
+
+  useEffect(() => {
+    const token = getStoredToken();
+    const load = token
+      ? Promise.all([adminAPI.getStats(token), adminAPI.getStudents(token)])
+      : Promise.reject(new Error("Sesi tidak ditemukan"));
+
+    load
+      .then(([stats, list]) => {
+        setStudentStats(stats);
+        setStudents(list);
+        setError("");
+      })
+      .catch((err) => setError(err instanceof Error ? err.message : "Gagal memuat data"))
+      .finally(() => setMounted(true));
+  }, []);
+
+  if (!mounted || !studentStats) {
+    return (
+      <div>
+        <DashboardHeader title="Statistik" subtitle="Analisis data kesiapan kerja siswa" role="admin" />
+        <Card className="text-center py-12">
+          <p className="text-foreground font-medium">{error || "Memuat data..."}</p>
+        </Card>
+      </div>
+    );
+  }
+
+  const distribution = readinessDistribution(students);
+  const totalAssessed = distribution.reduce((a, b) => a + b, 0);
+
   return (
     <div>
       <DashboardHeader
@@ -106,10 +160,10 @@ export default function StatisticsPage() {
         <Card>
           <DoughnutChart
             labels={["Sangat Siap", "Siap", "Perlu Persiapan", "Mulai Belajar"]}
-            data={[15, 35, 30, 20]}
+            data={distribution}
             title="Distribusi Readiness"
             colors={["#10b981", "#3b82f6", "#f59e0b", "#ef4444"]}
-            centerLabel="100%"
+            centerLabel={`${totalAssessed}`}
           />
         </Card>
         <Card>

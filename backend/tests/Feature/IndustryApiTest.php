@@ -29,7 +29,7 @@ class IndustryApiTest extends TestCase
             ->getJson('/api/industry/candidates');
 
         $response->assertStatus(200)->assertJsonStructure([
-            'candidates' => [['id', 'name', 'major', 'grade', 'score', 'topCareer', 'skills', 'portfolioUrl']],
+            'candidates' => [['id', 'name', 'major', 'grade', 'score', 'topCareer', 'skills', 'slug']],
             'skills',
         ]);
 
@@ -47,7 +47,7 @@ class IndustryApiTest extends TestCase
         $this->assertSame(70, $budi['score']);
         $this->assertSame('Backend Developer', $budi['topCareer']);
         $this->assertContains('Node.js', $budi['skills']);
-        $this->assertStringContainsString('/portfolio/budi-santoso', $budi['portfolioUrl']);
+        $this->assertSame('budi-santoso', $budi['slug']);
 
         // Tidak ada data sensitif
         $this->assertStringNotContainsString('password', $response->getContent());

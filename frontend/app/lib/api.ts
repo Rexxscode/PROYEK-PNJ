@@ -48,7 +48,7 @@
  *   Authorization: Bearer <token>
  */
 
-const BASE_URL = "http://localhost:8000"; // URL backend Laravel
+const BASE_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000"; // URL backend Laravel
 
 // ===== TOKEN STORAGE =====
 const TOKEN_KEY = "auth_token";
@@ -143,15 +143,40 @@ export const studentAPI = {
 
 // ===== JOBS =====
 export const jobAPI = {
-  getAll: (token?: string) =>
-    apiFetch<import("./type").JobOpportunity[]>("/api/jobs", { token }),
+  getAll: (token?: string, mine = false) =>
+    apiFetch<import("./type").JobOpportunity[]>(`/api/jobs${mine ? "?mine=1" : ""}`, { token }),
 
-  create: (data: Omit<import("./type").JobOpportunity, "id" | "postedAt" | "matchPercentage" | "companyLogo">, token: string) =>
+  create: (
+    data: {
+      title: string;
+      company: string;
+      location: string;
+      type: import("./type").JobOpportunity["type"];
+      description: string;
+      requiredSkills: string[];
+      deadline?: string | null;
+      salary?: string | null;
+    },
+    token: string
+  ) =>
     apiFetch<import("./type").JobOpportunity>("/api/jobs", {
       method: "POST", body: JSON.stringify(data), token
     }),
 
-  update: (id: string, data: Partial<import("./type").JobOpportunity>, token: string) =>
+  update: (
+    id: string,
+    data: {
+      title?: string;
+      company?: string;
+      location?: string;
+      type?: import("./type").JobOpportunity["type"];
+      description?: string;
+      requiredSkills?: string[];
+      deadline?: string | null;
+      salary?: string | null;
+    },
+    token: string
+  ) =>
     apiFetch<import("./type").JobOpportunity>(`/api/jobs/${id}`, {
       method: "PUT", body: JSON.stringify(data), token
     }),
@@ -163,7 +188,7 @@ export const jobAPI = {
 // ===== INDUSTRY =====
 export const industryAPI = {
   getCandidates: (token: string) =>
-    apiFetch<{ candidates: import("./type").UserProfile[]; skills: string[] }>("/api/industry/candidates", { token }),
+    apiFetch<{ candidates: import("./type").IndustryCandidate[]; skills: string[] }>("/api/industry/candidates", { token }),
 
   getStats: (token: string) =>
     apiFetch<{ totalCandidates: number; matched: number; activeJobs: number; avgMatch: number }>("/api/industry/stats", { token }),
@@ -175,13 +200,16 @@ export const adminAPI = {
     apiFetch<import("./type").StudentStats>("/api/admin/stats", { token }),
 
   getStudents: (token: string) =>
-    apiFetch<import("./type").UserProfile[]>("/api/admin/students", { token }),
+    apiFetch<import("./type").AdminStudent[]>("/api/admin/students", { token }),
 };
 
 // ===== NOTIFICATIONS =====
 export const notificationAPI = {
   getAll: (token: string) =>
     apiFetch<import("./notifications").AppNotification[]>("/api/notifications", { token }),
+
+  getAdminAll: (token: string) =>
+    apiFetch<import("./notifications").AppNotification[]>("/api/admin/notifications", { token }),
 
   markAsRead: (id: string | number, token: string) =>
     apiFetch<{ success: boolean }>(`/api/notifications/${id}/read`, { method: "PUT", token }),

@@ -77,6 +77,13 @@ export interface JobOpportunity {
   matchPercentage: number;
   postedAt: string;
   deadline: string;
+  salary?: string | null;
+}
+
+export interface AdminStudent extends UserProfile {
+  score: number;
+  status: "assessed" | "pending";
+  topCareer: string | null;
 }
 
 export interface Portfolio {
@@ -99,4 +106,15 @@ export interface StudentStats {
 export interface AssessmentAnswer {
   skillId: string;
   level: number;
+}
+
+export interface IndustryCandidate {
+  id: string;
+  name: string;
+  major: string | null;
+  grade: string | null;
+  score: number;
+  topCareer: string | null;
+  skills: string[];
+  slug: string;
 }

@@ -5,21 +5,22 @@ import { Search, ChevronDown, ChevronUp } from "lucide-react";
 import Card from "../../components/ui/card";
 import Badge from "../../components/ui/badge";
 import DashboardHeader from "../../components/layout/dashboardheader";
+import { adminAPI, getStoredToken } from "../../lib/api";
 
-const allStudents = [
-  { name: "Budi Santoso", major: "Rekayasa Perangkat Lunak", grade: "XII", score: 72, status: "assessed", topCareer: "Backend Developer" },
-  { name: "Rina Wulandari", major: "Desain Komunikasi Visual", grade: "XII", score: 85, status: "assessed", topCareer: "Frontend Developer" },
-  { name: "Dedi Kurniawan", major: "Teknik Komputer dan Jaringan", grade: "XI", score: 58, status: "assessed", topCareer: "Data Analyst" },
-  { name: "Siti Nurhaliza", major: "Teknik Transmisi", grade: "XII", score: 0, status: "pending", topCareer: "-" },
-  { name: "Andi Pratama", major: "Rekayasa Perangkat Lunak", grade: "XI", score: 91, status: "assessed", topCareer: "Frontend Developer" },
-  { name: "Rizky Aditya", major: "Rekayasa Perangkat Lunak", grade: "XII", score: 78, status: "assessed", topCareer: "Fullstack Developer" },
-  { name: "Diana Sari", major: "Teknik Transmisi", grade: "XI", score: 0, status: "pending", topCareer: "-" },
-  { name: "Fajar Nugroho", major: "Teknik Komputer dan Jaringan", grade: "XII", score: 67, status: "assessed", topCareer: "Backend Developer" },
-  { name: "Lestari Wijaya", major: "Rekayasa Perangkat Lunak", grade: "XI", score: 83, status: "assessed", topCareer: "Frontend Developer" },
-  { name: "Putri Ayu", major: "Desain Komunikasi Visual", grade: "XI", score: 0, status: "pending", topCareer: "-" },
-];
+interface AdminStudent {
+  id: string;
+  name: string;
+  major: string | null;
+  grade: string | null;
+  score: number;
+  status: "assessed" | "pending";
+  topCareer: string | null;
+}
 
 export default function StudentsPage() {
+  const [mounted, setMounted] = useState(false);
+  const [error, setError] = useState("");
+  const [allStudents, setAllStudents] = useState<AdminStudent[]>([]);
   const [search, setSearch] = useState("");
   const [majorFilter, setMajorFilter] = useState("all");
   const [statusFilter, setStatusFilter] = useState("all");
@@ -29,6 +30,21 @@ export default function StudentsPage() {
   const statusTimer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
 
   useEffect(() => {
+    const token = getStoredToken();
+    const load = token
+      ? adminAPI.getStudents(token)
+      : Promise.reject(new Error("Sesi tidak ditemukan"));
+
+    load
+      .then((list) => {
+        setAllStudents(list);
+        setError("");
+      })
+      .catch((err) => setError(err instanceof Error ? err.message : "Gagal memuat data"))
+      .finally(() => setMounted(true));
+  }, []);
+
+  useEffect(() => {
     const handler = (e: Event) => setSearch((e as CustomEvent).detail || "");
     window.addEventListener("global-search", handler);
     return () => window.removeEventListener("global-search", handler);
@@ -36,13 +52,31 @@ export default function StudentsPage() {
 
   const filtered = allStudents.filter((s) => {
     const q = search.toLowerCase();
-    const matchesSearch = !q || s.name.toLowerCase().includes(q) || s.major.toLowerCase().includes(q) || s.topCareer.toLowerCase().includes(q);
+    const name = s.name.toLowerCase();
+    const major = (s.major || "").toLowerCase();
+    const topCareer = (s.topCareer || "").toLowerCase();
+    const matchesSearch = !q || name.includes(q) || major.includes(q) || topCareer.includes(q);
     const matchesMajor = majorFilter === "all" || s.major === majorFilter;
     const matchesStatus = statusFilter === "all" || s.status === statusFilter;
     return matchesSearch && matchesMajor && matchesStatus;
   });
 
-  const majors = [...new Set(allStudents.map((s) => s.major))];
+  if (!mounted) {
+    return (
+      <div>
+        <DashboardHeader
+          title="Data Siswa"
+          subtitle="Daftar semua siswa yang terdaftar di platform"
+          role="admin"
+        />
+        <Card className="text-center py-12">
+          <p className="text-foreground font-medium">{error || "Memuat data..."}</p>
+        </Card>
+      </div>
+    );
+  }
+
+  const majors = [...new Set(allStudents.map((s) => s.major).filter((m): m is string => !!m))];
 
   return (
     <div>
@@ -128,11 +162,11 @@ export default function StudentsPage() {
             </thead>
             <tbody>
               {filtered.map((student, index) => (
-                <tr key={student.name} className="border-b border-border/50 hover:bg-gray-50 dark:hover:bg-gray-700/50">
+                <tr key={student.id} className="border-b border-border/50 hover:bg-gray-50 dark:hover:bg-gray-700/50">
                   <td className="py-3 px-3 text-muted">{index + 1}</td>
                   <td className="py-3 px-3 font-medium text-foreground">{student.name}</td>
-                  <td className="py-3 px-3 text-muted">{student.major}</td>
-                  <td className="py-3 px-3 text-muted">{student.grade}</td>
+                  <td className="py-3 px-3 text-muted">{student.major || "-"}</td>
+                  <td className="py-3 px-3 text-muted">{student.grade || "-"}</td>
                   <td className="py-3 px-3">
                     {student.status === "assessed" ? (
                       <span className={`font-semibold ${student.score >= 70 ? "text-emerald-600 dark:text-emerald-400" : student.score >= 50 ? "text-amber-600 dark:text-amber-400" : "text-red-500 dark:text-red-400"}`}>
@@ -142,7 +176,7 @@ export default function StudentsPage() {
                       <span className="text-muted">-</span>
                     )}
                   </td>
-                  <td className="py-3 px-3 text-muted">{student.topCareer}</td>
+                  <td className="py-3 px-3 text-muted">{student.topCareer || "-"}</td>
                   <td className="py-3 px-3">
                     <Badge variant={student.status === "assessed" ? "success" : "warning"}>
                       {student.status === "assessed" ? "Dinilai" : "Belum"}
@@ -159,18 +193,18 @@ export default function StudentsPage() {
       {/* Cards — Mobile */}
       <div className="md:hidden space-y-3">
         {filtered.map((student) => (
-          <Card key={student.name}>
+          <Card key={student.id}>
             <div className="flex items-start justify-between mb-2">
               <div>
                 <p className="font-medium text-foreground">{student.name}</p>
-                <p className="text-xs text-muted">{student.major} - Kelas {student.grade}</p>
+                <p className="text-xs text-muted">{student.major || "-"} - Kelas {student.grade || "-"}</p>
               </div>
               <Badge variant={student.status === "assessed" ? "success" : "warning"}>
                 {student.status === "assessed" ? "Dinilai" : "Belum"}
               </Badge>
             </div>
             <div className="flex items-center justify-between text-sm">
-              <span className="text-muted">Top Karier: {student.topCareer}</span>
+              <span className="text-muted">Top Karier: {student.topCareer || "-"}</span>
               {student.status === "assessed" ? (
                 <span className={`font-semibold ${student.score >= 70 ? "text-emerald-600 dark:text-emerald-400" : student.score >= 50 ? "text-amber-600 dark:text-amber-400" : "text-red-500 dark:text-red-400"}`}>
                   {student.score}%

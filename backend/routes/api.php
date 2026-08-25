@@ -47,6 +47,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::middleware('role:admin')->group(function () {
         Route::get('/admin/stats', [AdminController::class, 'stats']);
         Route::get('/admin/students', [AdminController::class, 'students']);
+        Route::get('/admin/notifications', [NotificationController::class, 'all']);
         Route::post('/notifications', [NotificationController::class, 'store']);
     });
 

@@ -7,29 +7,53 @@ import Card from "../../components/ui/card";
 import Badge from "../../components/ui/badge";
 import DashboardHeader from "../../components/layout/dashboardheader";
 import { getMatchBg, getInitials } from "../../lib/utils";
-
-const candidates = [
-  { name: "Rina Wulandari", major: "Desain Komunikasi Visual", grade: "XII", score: 92, skills: ["UI/UX Design", "Figma", "Adobe Photoshop", "HTML/CSS"], topCareer: "UI/UX Designer", projects: ["E-Commerce UI", "Portfolio Website", "Mobile App Design"], experience: "Magang 3 bulan di PT TechSol" },
-  { name: "Budi Santoso", major: "Rekayasa Perangkat Lunak", grade: "XII", score: 85, skills: ["JavaScript", "Node.js", "SQL/Database", "REST API"], topCareer: "Backend Developer", projects: ["Sistem Absensi Online", "API CRUD RESTful"], experience: "Proyek sekolah: Sistem Perpustakaan" },
-  { name: "Andi Pratama", major: "Rekayasa Perangkat Lunak", grade: "XI", score: 78, skills: ["HTML/CSS", "JavaScript", "React/Next.js", "Git"], topCareer: "Frontend Developer", projects: ["Blog Pribadi", "Todo App"], experience: "Freelance web developer" },
-  { name: "Rizky Aditya", major: "Rekayasa Perangkat Lunak", grade: "XII", score: 71, skills: ["JavaScript", "Python", "Git", "Problem Solving"], topCareer: "Fullstack Developer", projects: ["Chat Application", "Weather API"], experience: "Proyek klub IT" },
-  { name: "Lestari Wijaya", major: "Desain Komunikasi Visual", grade: "XI", score: 83, skills: ["Adobe Illustrator", "Adobe Photoshop", "Video Editing", "Copywriting"], topCareer: "Graphic Designer", projects: ["Dashboard Admin", "Landing Page Company"], experience: "Magang 2 bulan di Startup" },
-  { name: "Fajar Nugroho", major: "Teknik Komputer dan Jaringan", grade: "XII", score: 68, skills: ["Cisco Networking", "Linux Administration", "MikroTik", "Cloud (AWS/GCP)"], topCareer: "Network Engineer", projects: ["Analisis Penjualan", "Data Visualization"], experience: "Asisten lab komputer" },
-  { name: "Hendra Susanto", major: "Teknik Transmisi", grade: "XII", score: 71, skills: ["Fiber Optik", "Radio Frequency", "Network Engineering", "Teknik Mekanik Radio"], topCareer: "Network Engineer", projects: ["Instalasi Jaringan Fiber Optik", "Konfigurasi Radio Link"], experience: "Praktik di PT Telkom 2 bulan" },
-  { name: "Dedi Kurniawan", major: "Teknik Komputer dan Jaringan", grade: "XI", score: 58, skills: ["Linux Administration", "Python", "SQL/Database"], topCareer: "System Administrator", projects: ["Scraper Data", "Report Generator"], experience: "Belum ada pengalaman" },
-];
-
-const allSkillFilters = [...new Set(candidates.flatMap((c) => c.skills))].sort();
+import { getStoredToken, industryAPI } from "../../lib/api";
+import type { IndustryCandidate } from "../../lib/type";
 
 export default function CandidatesPage() {
+  const [mounted, setMounted] = useState(false);
+  const [error, setError] = useState("");
+  const [candidates, setCandidates] = useState<IndustryCandidate[]>([]);
   const [search, setSearch] = useState("");
   const [selectedSkills, setSelectedSkills] = useState<string[]>([]);
+
+  useEffect(() => {
+    const token = getStoredToken();
+    const load = token
+      ? industryAPI.getCandidates(token)
+      : Promise.reject(new Error("Sesi tidak ditemukan"));
+
+    load
+      .then(({ candidates: list }) => {
+        setCandidates(list);
+        setError("");
+      })
+      .catch((err) => setError(err instanceof Error ? err.message : "Gagal memuat data"))
+      .finally(() => setMounted(true));
+  }, []);
 
   useEffect(() => {
     const handler = (e: Event) => setSearch((e as CustomEvent).detail || "");
     window.addEventListener("global-search", handler);
     return () => window.removeEventListener("global-search", handler);
   }, []);
+
+  const allSkillFilters = [...new Set(candidates.flatMap((c) => c.skills))].sort();
+
+  if (!mounted || candidates.length === 0) {
+    return (
+      <div>
+        <DashboardHeader
+          title="Cari Kandidat"
+          subtitle="Temukan kandidat berdasarkan kebutuhan skill perusahaan"
+          role="industry"
+        />
+        <Card className="text-center py-12">
+          <p className="text-foreground font-medium">{error || "Memuat data..."}</p>
+        </Card>
+      </div>
+    );
+  }
 
   const toggleSkill = (skill: string) => {
     setSelectedSkills((prev) =>
@@ -107,7 +131,7 @@ export default function CandidatesPage() {
         {filtered
           .sort((a, b) => b.score - a.score)
           .map((candidate) => (
-            <Card key={candidate.name} hover>
+            <Card key={candidate.id} hover>
               <div className="flex items-center gap-3 mb-4">
                 <div className="w-12 h-12 rounded-full bg-gradient-to-br from-primary to-secondary flex items-center justify-center">
                   <span className="text-sm font-bold text-white">{getInitials(candidate.name)}</span>
@@ -115,7 +139,7 @@ export default function CandidatesPage() {
                 <div>
                   <p className="font-semibold text-foreground">{candidate.name}</p>
                   <p className="text-xs text-muted flex items-center gap-1">
-                    <GraduationCap className="w-3 h-3" /> {candidate.major} - {candidate.grade}
+                    <GraduationCap className="w-3 h-3" /> {candidate.major || "-"} - {candidate.grade || "-"}
                   </p>
                 </div>
               </div>
@@ -124,7 +148,7 @@ export default function CandidatesPage() {
                 <span className={`text-2xl font-bold ${getMatchBg(candidate.score)} px-3 py-1 rounded-lg`}>
                   {candidate.score}%
                 </span>
-                <Badge variant="primary">{candidate.topCareer}</Badge>
+                <Badge variant="primary">{candidate.topCareer || "-"}</Badge>
               </div>
 
               <div className="flex flex-wrap gap-1.5 mb-4">
@@ -134,7 +158,7 @@ export default function CandidatesPage() {
               </div>
 
               <Link
-                href={`/portfolio/${candidate.name.toLowerCase().replace(/\s+/g, "-")}`}
+                href={`/portfolio/${candidate.slug}`}
                 className="w-full py-2.5 border border-border text-foreground text-sm font-medium rounded-xl hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors flex items-center justify-center gap-2"
               >
                 <ExternalLink className="w-4 h-4" />

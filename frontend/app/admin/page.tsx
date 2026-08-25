@@ -13,33 +13,69 @@ import Badge from "../components/ui/badge";
 import ProgressBar from "../components/ui/progressbar";
 import dynamic from "next/dynamic";
 import DashboardHeader from "../components/layout/dashboardheader";
-import { studentStats } from "../lib/mock-data";
+import { adminAPI, getStoredToken } from "../lib/api";
 import { useCountUp } from "../lib/use-count-up";
+import type { StudentStats } from "../lib/type";
 
 const SkillBarChart = dynamic(() => import("../components/charts/barchart"), { ssr: false });
 
-const recentStudents = [
-  { name: "Budi Santoso", major: "Rekayasa Perangkat Lunak", score: 72, status: "assessed" },
-  { name: "Rina Wulandari", major: "Desain Komunikasi Visual", score: 85, status: "assessed" },
-  { name: "Dedi Kurniawan", major: "Teknik Komputer dan Jaringan", score: 58, status: "assessed" },
-  { name: "Siti Nurhaliza", major: "Teknik Transmisi", score: 65, status: "pending" },
-  { name: "Andi Pratama", major: "Rekayasa Perangkat Lunak", score: 91, status: "assessed" },
-  { name: "Maya Putri", major: "Desain Komunikasi Visual", score: 0, status: "pending" },
-  { name: "Rizky Aditya", major: "Rekayasa Perangkat Lunak", score: 78, status: "assessed" },
-  { name: "Diana Sari", major: "Teknik Transmisi", score: 0, status: "pending" },
-];
+interface AdminStudent {
+  id: string;
+  name: string;
+  major: string | null;
+  grade: string | null;
+  score: number;
+  status: "assessed" | "pending";
+  topCareer: string | null;
+}
 
 export default function AdminDashboard() {
   const [mounted, setMounted] = useState(false);
-  useEffect(() => { setMounted(true); }, []);
+  const [error, setError] = useState("");
+  const [studentStats, setStudentStats] = useState<StudentStats | null>(null);
+  const [recentStudents, setRecentStudents] = useState<AdminStudent[]>([]);
 
-  const assessedPercentage = Math.round((studentStats.assessedStudents / studentStats.totalStudents) * 100);
-  const animTotal = useCountUp(studentStats.totalStudents);
-  const animAssessed = useCountUp(studentStats.assessedStudents);
-  const animAvgScore = useCountUp(studentStats.avgReadinessScore);
+  useEffect(() => {
+    const token = getStoredToken();
+    const load = token
+      ? Promise.all([adminAPI.getStats(token), adminAPI.getStudents(token)])
+      : Promise.reject(new Error("Sesi tidak ditemukan"));
+
+    load
+      .then(([stats, students]) => {
+        setStudentStats(stats);
+        setRecentStudents(students.slice(0, 8));
+        setError("");
+      })
+      .catch((err) => setError(err instanceof Error ? err.message : "Gagal memuat data"))
+      .finally(() => setMounted(true));
+  }, []);
+
+  const assessedPercentage = studentStats
+    ? Math.round((studentStats.assessedStudents / studentStats.totalStudents) * 100)
+    : 0;
+  const animTotal = useCountUp(studentStats?.totalStudents ?? 0);
+  const animAssessed = useCountUp(studentStats?.assessedStudents ?? 0);
+  const animAvgScore = useCountUp(studentStats?.avgReadinessScore ?? 0);
   const animPercentage = useCountUp(assessedPercentage);
 
   if (!mounted) return null;
+
+  if (error || !studentStats) {
+    return (
+      <div>
+        <DashboardHeader
+          title="Dashboard Admin"
+          subtitle="Pantau kesiapan kerja siswa secara keseluruhan"
+          role="admin"
+          showNotifications
+        />
+        <Card className="text-center py-12">
+          <p className="text-foreground font-medium">{error || "Memuat data..."}</p>
+        </Card>
+      </div>
+    );
+  }
 
   return (
     <div>
@@ -147,9 +183,9 @@ export default function AdminDashboard() {
             </thead>
             <tbody>
               {recentStudents.map((student) => (
-                <tr key={student.name} className="border-b border-border/50 hover:bg-gray-50 dark:hover:bg-gray-700/50">
+                <tr key={student.id} className="border-b border-border/50 hover:bg-gray-50 dark:hover:bg-gray-700/50">
                   <td className="py-3 px-2 font-medium text-foreground">{student.name}</td>
-                  <td className="py-3 px-2 text-muted">{student.major}</td>
+                  <td className="py-3 px-2 text-muted">{student.major || "-"}</td>
                   <td className="py-3 px-2">
                     {student.status === "assessed" ? (
                       <span className={`font-semibold ${student.score >= 70 ? "text-emerald-600 dark:text-emerald-400" : student.score >= 50 ? "text-amber-600 dark:text-amber-400" : "text-red-500 dark:text-red-400"}`}>
@@ -173,14 +209,14 @@ export default function AdminDashboard() {
         {/* Mobile cards */}
         <div className="sm:hidden space-y-3">
           {recentStudents.map((student) => (
-            <div key={student.name} className="p-3 bg-gray-50 dark:bg-gray-700/50 rounded-lg">
+            <div key={student.id} className="p-3 bg-gray-50 dark:bg-gray-700/50 rounded-lg">
               <div className="flex items-center justify-between mb-1">
                 <p className="font-medium text-foreground text-sm">{student.name}</p>
                 <Badge variant={student.status === "assessed" ? "success" : "warning"}>
                   {student.status === "assessed" ? "Dinilai" : "Belum"}
                 </Badge>
               </div>
-              <p className="text-xs text-muted mb-1">{student.major}</p>
+              <p className="text-xs text-muted mb-1">{student.major || "-"}</p>
               {student.status === "assessed" && (
                 <p className={`text-sm font-semibold ${student.score >= 70 ? "text-emerald-600 dark:text-emerald-400" : student.score >= 50 ? "text-amber-600 dark:text-amber-400" : "text-red-500 dark:text-red-400"}`}>
                   Readiness: {student.score}%

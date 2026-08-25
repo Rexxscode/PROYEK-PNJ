@@ -7,7 +7,7 @@ import DashboardHeader from "../../components/layout/dashboardheader";
 import Card from "../../components/ui/card";
 import ConfirmDialog from "../../components/ui/confirm-dialog";
 import { useToast } from "../../lib/toast-context";
-import { addNotification } from "../../lib/notifications";
+import { getStoredToken, jobAPI } from "../../lib/api";
 
 const suggestedSkills = [
   "JavaScript", "TypeScript", "React/Next.js", "Node.js", "Python",
@@ -28,7 +28,9 @@ export default function PostJobPage() {
   const [type, setType] = useState("magang");
   const [description, setDescription] = useState("");
   const [salary, setSalary] = useState("");
+  const [deadline, setDeadline] = useState("");
   const [selectedSkills, setSelectedSkills] = useState<string[]>([]);
+  const [submitting, setSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
 
@@ -43,32 +45,32 @@ export default function PostJobPage() {
     setShowConfirm(true);
   };
 
-  const handleConfirmSubmit = () => {
-    const newJob = {
-      id: `job-${Date.now()}`,
-      title,
-      company,
-      location,
-      type,
-      description,
-      skills: selectedSkills,
-      deadline: "2026-12-31",
-    };
+  const handleConfirmSubmit = async () => {
+    const token = getStoredToken();
+    if (!token) {
+      toast("Sesi tidak ditemukan, silakan login ulang", "error");
+      return;
+    }
+    setSubmitting(true);
     try {
-      const stored = JSON.parse(localStorage.getItem("industryJobs") || "[]");
-      stored.push(newJob);
-      localStorage.setItem("industryJobs", JSON.stringify(stored));
-    } catch {}
-    setShowConfirm(false);
-    setSubmitted(true);
-    toast("Lowongan berhasil diposting!", "success");
-
-    addNotification({
-      text: `Lowongan baru: ${title} di ${company}`,
-      type: "job_posted",
-      targetRole: "student",
-    });
-    window.dispatchEvent(new CustomEvent("notifications-updated"));
+      await jobAPI.create({
+        title,
+        company,
+        location,
+        type: type as "magang" | "fulltime" | "parttime" | "freelance",
+        description,
+        requiredSkills: selectedSkills,
+        deadline: deadline || null,
+        salary: salary || null,
+      }, token);
+      setShowConfirm(false);
+      setSubmitted(true);
+      toast("Lowongan berhasil diposting!", "success");
+    } catch (err) {
+      toast(err instanceof Error ? err.message : "Gagal memposting lowongan", "error");
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   if (submitted) {
@@ -172,6 +174,15 @@ export default function PostJobPage() {
                 className="w-full px-4 py-2.5 border border-border rounded-xl text-sm bg-input-bg text-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary"
               />
             </div>
+            <div>
+              <label className="block text-sm font-medium text-foreground mb-1.5">Deadline</label>
+              <input
+                type="date"
+                value={deadline}
+                onChange={(e) => setDeadline(e.target.value)}
+                className="w-full px-4 py-2.5 border border-border rounded-xl text-sm bg-input-bg text-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary"
+              />
+            </div>
           </div>
           <div className="mt-4">
             <label className="block text-sm font-medium text-foreground mb-1.5">Deskripsi *</label>
@@ -241,10 +252,10 @@ export default function PostJobPage() {
         open={showConfirm}
         title="Post Lowongan?"
         message={`Anda akan memposting lowongan "${title || '(tanpa judul)'}" di ${company || '(tanpa perusahaan)'}. Lowongan akan terlihat oleh semua kandidat.`}
-        confirmLabel="Ya, Post Lowongan"
+        confirmLabel={submitting ? "Memposting..." : "Ya, Post Lowongan"}
         variant="primary"
         onConfirm={handleConfirmSubmit}
-        onCancel={() => setShowConfirm(false)}
+        onCancel={() => !submitting && setShowConfirm(false)}
       />
     </div>
   );

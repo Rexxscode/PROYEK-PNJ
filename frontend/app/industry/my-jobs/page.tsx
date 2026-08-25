@@ -1,31 +1,15 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Edit3, Trash2, MapPin, Calendar, Plus, X, CheckCircle2 } from "lucide-react";
+import { Edit3, Trash2, MapPin, Calendar, Plus, X, CheckCircle2, Briefcase } from "lucide-react";
 import Link from "next/link";
 import DashboardHeader from "../../components/layout/dashboardheader";
 import Card from "../../components/ui/card";
 import Badge from "../../components/ui/badge";
 import ConfirmDialog from "../../components/ui/confirm-dialog";
 import { useToast } from "../../lib/toast-context";
-
-const defaultJobs = [
-  { id: "dj-1", title: "Frontend Developer Intern", company: "TechCorp Indonesia", location: "Jakarta Selatan", type: "magang" as const, description: "Magang 3 bulan, project React/Next.js", skills: ["React/Next.js", "TypeScript", "HTML/CSS"], deadline: "2026-03-15", salary: "Rp 2-3 juta/bulan" },
-  { id: "dj-2", title: "Junior Backend Developer", company: "TechCorp Indonesia", location: "Remote", type: "fulltime" as const, description: "Full-time developer dengan pengalaman Node.js", skills: ["Node.js", "SQL/Database", "REST API"], deadline: "2026-04-01", salary: "Rp 4-6 juta/bulan" },
-  { id: "dj-3", title: "UI/UX Design Freelance", company: "Creative Studio", location: "Bandung", type: "freelance" as const, description: "Project desain UI/UX mobile app", skills: ["Figma", "UI/UX Design", "HTML/CSS"], deadline: "2026-03-30", salary: "Negosiasi" },
-];
-
-const JOBS_KEY = "industryJobs";
-
-function getJobs() {
-  if (typeof window === "undefined") return defaultJobs;
-  try {
-    const stored = JSON.parse(localStorage.getItem(JOBS_KEY) || "[]");
-    return stored.length > 0 ? stored : defaultJobs;
-  } catch {
-    return defaultJobs;
-  }
-}
+import { getStoredToken, jobAPI } from "../../lib/api";
+import type { JobOpportunity } from "../../lib/type";
 
 const typeLabels: Record<string, string> = { magang: "Magang", fulltime: "Full-time", parttime: "Part-time", freelance: "Freelance" };
 
@@ -39,42 +23,49 @@ const allSuggestedSkills = [
   "Problem Solving", "Communication", "Team Leadership",
 ];
 
-interface Job {
-  id: string;
-  title: string;
-  company: string;
-  location: string;
-  type: "magang" | "fulltime" | "parttime" | "freelance" | string;
-  description: string;
-  skills: string[];
-  deadline: string;
-  salary?: string;
-}
+const jobId = (id: string) => Number(id.replace("job-", ""));
 
 export default function MyJobsPage() {
   const { toast } = useToast();
-  const [jobs, setJobs] = useState<Job[]>(defaultJobs);
+  const [jobs, setJobs] = useState<JobOpportunity[]>([]);
   const [mounted, setMounted] = useState(false);
+  const [error, setError] = useState("");
   const [deleteTarget, setDeleteTarget] = useState<{ id: string; title: string } | null>(null);
-  const [editJob, setEditJob] = useState<Job | null>(null);
+  const [saving, setSaving] = useState(false);
+  const [editJob, setEditJob] = useState<JobOpportunity | null>(null);
   const [editForm, setEditForm] = useState({ title: "", company: "", location: "", type: "magang" as string, description: "", skills: [] as string[], deadline: "", salary: "" });
   const [editSkillInput, setEditSkillInput] = useState("");
 
   useEffect(() => {
-    setJobs(getJobs());
-    setMounted(true);
+    const token = getStoredToken();
+    const load = token
+      ? jobAPI.getAll(token, true)
+      : Promise.reject(new Error("Sesi tidak ditemukan"));
+
+    load
+      .then((list) => {
+        setJobs(list);
+        setError("");
+      })
+      .catch((err) => setError(err instanceof Error ? err.message : "Gagal memuat data"))
+      .finally(() => setMounted(true));
   }, []);
 
   const handleDelete = () => {
     if (!deleteTarget) return;
-    const updated = jobs.filter((j) => j.id !== deleteTarget.id);
-    setJobs(updated);
-    localStorage.setItem(JOBS_KEY, JSON.stringify(updated));
-    toast(`Lowongan "${deleteTarget.title}" berhasil dihapus`, "success");
-    setDeleteTarget(null);
+    const token = getStoredToken();
+    if (!token) return;
+    jobAPI
+      .delete(String(jobId(deleteTarget.id)), token)
+      .then(() => {
+        setJobs((prev) => prev.filter((j) => j.id !== deleteTarget.id));
+        toast(`Lowongan "${deleteTarget.title}" berhasil dihapus`, "success");
+      })
+      .catch((err) => toast(err instanceof Error ? err.message : "Gagal menghapus lowongan", "error"))
+      .finally(() => setDeleteTarget(null));
   };
 
-  const openEdit = (job: Job) => {
+  const openEdit = (job: JobOpportunity) => {
     setEditJob(job);
     setEditForm({
       title: job.title,
@@ -82,8 +73,8 @@ export default function MyJobsPage() {
       location: job.location,
       type: job.type,
       description: job.description,
-      skills: [...job.skills],
-      deadline: job.deadline,
+      skills: [...job.requiredSkills],
+      deadline: job.deadline || "",
       salary: job.salary || "",
     });
   };
@@ -103,16 +94,54 @@ export default function MyJobsPage() {
     }
   };
 
-  const handleSaveEdit = () => {
+  const handleSaveEdit = async () => {
     if (!editJob) return;
-    const updated = jobs.map((j) => j.id === editJob.id ? { ...j, ...editForm } : j);
-    setJobs(updated);
-    localStorage.setItem(JOBS_KEY, JSON.stringify(updated));
-    toast(`Lowongan "${editForm.title}" berhasil diperbarui`, "success");
-    setEditJob(null);
+    const token = getStoredToken();
+    if (!token) return;
+    setSaving(true);
+    try {
+      const updated = await jobAPI.update(String(jobId(editJob.id)), {
+        title: editForm.title,
+        company: editForm.company,
+        location: editForm.location,
+        type: editForm.type as JobOpportunity["type"],
+        description: editForm.description,
+        requiredSkills: editForm.skills,
+        deadline: editForm.deadline || null,
+        salary: editForm.salary || null,
+      }, token);
+      setJobs((prev) => prev.map((j) => (j.id === updated.id ? updated : j)));
+      toast(`Lowongan "${editForm.title}" berhasil diperbarui`, "success");
+      setEditJob(null);
+    } catch (err) {
+      toast(err instanceof Error ? err.message : "Gagal memperbarui lowongan", "error");
+    } finally {
+      setSaving(false);
+    }
   };
 
   if (!mounted) return null;
+
+  if (error) {
+    return (
+      <div>
+        <DashboardHeader
+          title="Lowongan Saya"
+          subtitle="Kelola lowongan yang sudah kamu posting"
+          role="industry"
+          actions={
+            <Link href="/industry/post-job" className="flex items-center gap-2 px-3 sm:px-4 py-2 bg-primary text-white text-sm font-medium rounded-xl hover:bg-primary-dark transition-colors">
+              <Plus className="w-4 h-4" />
+              <span className="hidden sm:inline">Post Lowongan</span>
+            </Link>
+          }
+        />
+        <Card className="text-center py-12">
+          <p className="text-foreground font-medium">{error || "Memuat data..."}</p>
+        </Card>
+      </div>
+    );
+  }
 
   return (
     <div>
@@ -128,10 +157,18 @@ export default function MyJobsPage() {
         }
       />
 
-      <p className="text-sm text-muted mb-4">Total {jobs.length} lowongan aktif</p>
+      {jobs.length === 0 ? (
+        <Card className="text-center py-12">
+          <Briefcase className="w-12 h-12 text-muted mx-auto mb-3" />
+          <p className="text-foreground font-medium">Belum ada lowongan diposting</p>
+          <p className="text-sm text-muted mt-1">Buat lowongan pertamamu untuk menarik kandidat</p>
+        </Card>
+      ) : (
+        <>
+        <p className="text-sm text-muted mb-4">Total {jobs.length} lowongan aktif</p>
 
-      <div className="space-y-4">
-        {jobs.map((job) => (
+        <div className="space-y-4">
+          {jobs.map((job) => (
           <Card key={job.id}>
             <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4">
               <div className="flex-1">
@@ -142,10 +179,10 @@ export default function MyJobsPage() {
                 <p className="text-sm text-muted mb-2">{job.description}</p>
                 <div className="flex flex-wrap items-center gap-3 text-xs text-muted">
                   <span className="flex items-center gap-1"><MapPin className="w-3 h-3" />{job.location}</span>
-                  <span className="flex items-center gap-1"><Calendar className="w-3 h-3" />Deadline: {job.deadline}</span>
+                  <span className="flex items-center gap-1"><Calendar className="w-3 h-3" />Deadline: {job.deadline || "-"}</span>
                 </div>
                 <div className="flex flex-wrap gap-1.5 mt-2">
-                  {job.skills.map((sk) => (
+                  {job.requiredSkills.map((sk) => (
                     <span key={sk} className="px-2 py-0.5 bg-primary/10 text-primary text-[10px] rounded-full font-medium">{sk}</span>
                   ))}
                 </div>
@@ -170,6 +207,8 @@ export default function MyJobsPage() {
           </Card>
         ))}
       </div>
+        </>
+      )}
 
       {/* Edit Modal */}
       {editJob && (
@@ -268,10 +307,10 @@ export default function MyJobsPage() {
                 className="flex-1 py-2.5 border border-border rounded-xl text-sm font-medium hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors">
                 Batal
               </button>
-              <button onClick={handleSaveEdit}
-                className="flex-1 py-2.5 bg-primary text-white rounded-xl text-sm font-medium hover:bg-primary-dark transition-colors flex items-center justify-center gap-2 whitespace-nowrap">
+              <button onClick={handleSaveEdit} disabled={saving}
+                className="flex-1 py-2.5 bg-primary text-white rounded-xl text-sm font-medium hover:bg-primary-dark transition-colors flex items-center justify-center gap-2 whitespace-nowrap disabled:opacity-60">
                 <CheckCircle2 className="w-4 h-4 flex-shrink-0" />
-                Simpan Perubahan
+                {saving ? "Menyimpan..." : "Simpan Perubahan"}
               </button>
             </div>
           </div>

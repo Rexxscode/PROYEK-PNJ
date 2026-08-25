@@ -35,7 +35,7 @@ class IndustryController extends Controller
                     'score' => (int) round((float) $student->studentCareerMatches->avg('match_percentage')),
                     'topCareer' => $matches->first()?->career?->title,
                     'skills' => $student->skills->pluck('name')->sort()->values()->all(),
-                    'portfolioUrl' => url('/portfolio/'.$student->slug),
+                    'slug' => $student->slug,
                 ];
             })
             ->sortByDesc('score')

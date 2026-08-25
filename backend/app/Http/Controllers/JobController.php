@@ -21,12 +21,19 @@ class JobController extends Controller
      * GET /api/jobs — token optional.
      * Student mendapat matchPercentage personal (terurut paling cocok),
      * role lain / guest mendapat matchPercentage 0 terurut terbaru.
+     * Query `?mine=1` (industry) membatasi ke lowongan milik user ini.
      */
     public function index(Request $request): JsonResponse
     {
-        $jobs = Job::with('skills')->orderByDesc('posted_at')->get();
-        // Guard sanctum eksplisit karena route ini tidak memakai middleware auth
         $user = $request->user('sanctum');
+
+        $jobsQuery = Job::with('skills')->orderByDesc('posted_at');
+        if ($request->boolean('mine') && $user && $user->role === 'industry') {
+            $jobsQuery->where('posted_by', $user->id);
+        }
+        $jobs = $jobsQuery->get();
+
+        // Guard sanctum eksplisit karena route ini tidak memakai middleware auth
         $isStudent = (bool) ($user && $user->role === 'student');
         $levels = $isStudent ? MatchingService::skillLevelsOf($user) : [];
 

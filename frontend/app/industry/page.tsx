@@ -15,14 +15,15 @@ import Badge from "../components/ui/badge";
 import DashboardHeader from "../components/layout/dashboardheader";
 import { getMatchBg, getInitials } from "../lib/utils";
 import { useCountUp } from "../lib/use-count-up";
+import { getStoredToken, industryAPI } from "../lib/api";
+import type { IndustryCandidate } from "../lib/type";
 
-const recentCandidates = [
-  { name: "Budi Santoso", major: "Rekayasa Perangkat Lunak", score: 85, topSkill: "Node.js", matchFor: "Backend Developer Intern" },
-  { name: "Rina Wulandari", major: "Desain Komunikasi Visual", score: 92, topSkill: "UI/UX Design", matchFor: "UI/UX Designer" },
-  { name: "Andi Pratama", major: "Rekayasa Perangkat Lunak", score: 78, topSkill: "React/Next.js", matchFor: "Frontend Developer" },
-  { name: "Lestari Wijaya", major: "Desain Komunikasi Visual", score: 83, topSkill: "Adobe Illustrator", matchFor: "Graphic Designer" },
-  { name: "Fajar Nugroho", major: "Teknik Komputer dan Jaringan", score: 68, topSkill: "Cisco Networking", matchFor: "Network Engineer Intern" },
-];
+interface IndustryStats {
+  totalCandidates: number;
+  matched: number;
+  activeJobs: number;
+  avgMatch: number;
+}
 
 const candidateColors = [
   "from-blue-500 to-cyan-500",
@@ -34,14 +35,51 @@ const candidateColors = [
 
 export default function IndustryDashboard() {
   const [mounted, setMounted] = useState(false);
-  useEffect(() => { setMounted(true); }, []);
+  const [error, setError] = useState("");
+  const [stats, setStats] = useState<IndustryStats | null>(null);
+  const [recentCandidates, setRecentCandidates] = useState<IndustryCandidate[]>([]);
 
-  const animTotal = useCountUp(195);
-  const animMatched = useCountUp(42);
-  const animJobs = useCountUp(3);
-  const animAvgMatch = useCountUp(78);
+  useEffect(() => {
+    const token = getStoredToken();
+    const load = token
+      ? Promise.all([
+          industryAPI.getStats(token),
+          industryAPI.getCandidates(token).then((r) => r.candidates),
+        ])
+      : Promise.reject(new Error("Sesi tidak ditemukan"));
 
-  if (!mounted) return null;
+    load
+      .then(([s, cands]) => {
+        setStats(s);
+        setRecentCandidates(cands.slice(0, 5));
+        setError("");
+      })
+      .catch((err) => setError(err instanceof Error ? err.message : "Gagal memuat data"))
+      .finally(() => setMounted(true));
+  }, []);
+
+  const animTotal = useCountUp(stats?.totalCandidates ?? 0);
+  const animMatched = useCountUp(stats?.matched ?? 0);
+  const animJobs = useCountUp(stats?.activeJobs ?? 0);
+  const animAvgMatch = useCountUp(stats?.avgMatch ?? 0);
+
+  if (!mounted || !stats) return null;
+
+  if (error) {
+    return (
+      <div>
+        <DashboardHeader
+          title="Dashboard Industri"
+          subtitle="Temukan kandidat terbaik berdasarkan kebutuhan skill"
+          role="industry"
+          showNotifications
+        />
+        <Card className="text-center py-12">
+          <p className="text-foreground font-medium">{error || "Memuat data..."}</p>
+        </Card>
+      </div>
+    );
+  }
   return (
     <div>
       <DashboardHeader
@@ -109,7 +147,7 @@ export default function IndustryDashboard() {
         </div>
         <div className="space-y-3">
           {recentCandidates.map((candidate, index) => (
-            <div key={candidate.name} className="p-4 bg-gray-50 dark:bg-gray-700/50 rounded-xl hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors">
+            <div key={candidate.id} className="p-4 bg-gray-50 dark:bg-gray-700/50 rounded-xl hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors">
               <div className="flex items-center justify-between gap-3">
                 <div className="flex items-center gap-3 min-w-0">
                   <div className={`w-10 h-10 rounded-full bg-gradient-to-br ${candidateColors[index % candidateColors.length]} flex items-center justify-center flex-shrink-0`}>
@@ -117,7 +155,7 @@ export default function IndustryDashboard() {
                   </div>
                   <div className="min-w-0">
                     <p className="font-medium text-foreground text-sm truncate">{candidate.name}</p>
-                    <p className="text-xs text-muted truncate">{candidate.major}</p>
+                    <p className="text-xs text-muted truncate">{candidate.major || "-"}</p>
                   </div>
                 </div>
                 <span className={`text-lg font-bold ${getMatchBg(candidate.score)} px-3 py-1 rounded-full flex-shrink-0`}>
@@ -127,11 +165,11 @@ export default function IndustryDashboard() {
               <div className="flex items-center gap-4 mt-3 pl-13">
                 <div>
                   <p className="text-[10px] text-muted">Top Skill</p>
-                  <Badge variant="primary" className="text-[10px]">{candidate.topSkill}</Badge>
+                  <Badge variant="primary" className="text-[10px]">{candidate.skills[0] || "-"}</Badge>
                 </div>
                 <div className="min-w-0">
                   <p className="text-[10px] text-muted">Cocok untuk</p>
-                  <p className="text-xs font-medium text-foreground truncate">{candidate.matchFor}</p>
+                  <p className="text-xs font-medium text-foreground truncate">{candidate.topCareer || "-"}</p>
                 </div>
               </div>
             </div>
