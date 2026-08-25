@@ -1,7 +1,8 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Edit3, Trash2, MapPin, Calendar, Plus, X, CheckCircle2 } from "lucide-react";
+import { createPortal } from "react-dom";
+import { Edit3, Trash2, MapPin, Calendar, Plus, X, CheckCircle2, Briefcase } from "lucide-react";
 import Link from "next/link";
 import DashboardHeader from "../../components/layout/dashboardheader";
 import Card from "../../components/ui/card";
@@ -9,21 +10,50 @@ import Badge from "../../components/ui/badge";
 import ConfirmDialog from "../../components/ui/confirm-dialog";
 import { useToast } from "../../lib/toast-context";
 
-const defaultJobs = [
-  { id: "dj-1", title: "Frontend Developer Intern", company: "TechCorp Indonesia", location: "Jakarta Selatan", type: "magang" as const, description: "Magang 3 bulan, project React/Next.js", skills: ["React/Next.js", "TypeScript", "HTML/CSS"], deadline: "2026-03-15", salary: "Rp 2-3 juta/bulan" },
-  { id: "dj-2", title: "Junior Backend Developer", company: "TechCorp Indonesia", location: "Remote", type: "fulltime" as const, description: "Full-time developer dengan pengalaman Node.js", skills: ["Node.js", "SQL/Database", "REST API"], deadline: "2026-04-01", salary: "Rp 4-6 juta/bulan" },
-  { id: "dj-3", title: "UI/UX Design Freelance", company: "Creative Studio", location: "Bandung", type: "freelance" as const, description: "Project desain UI/UX mobile app", skills: ["Figma", "UI/UX Design", "HTML/CSS"], deadline: "2026-03-30", salary: "Negosiasi" },
-];
+interface Job {
+  id: string;
+  title: string;
+  company: string;
+  location: string;
+  type: "magang" | "fulltime" | "parttime" | "freelance" | string;
+  description: string;
+  skills: string[];
+  deadline: string;
+  salary?: string;
+}
 
-const JOBS_KEY = "industryJobs";
+const seedJobsByCompany: Record<string, Job[]> = {
+  "hrd@techcorp.com": [
+    { id: "dj-tc1", title: "Frontend Developer Intern", company: "TechCorp Indonesia", location: "Jakarta Selatan (Hybrid)", type: "magang", description: "Magang 3 bulan, project React/Next.js. Akses ke mentorship langsung dari senior developer.", skills: ["React/Next.js", "TypeScript", "HTML/CSS"], deadline: "2026-03-15", salary: "Rp 2-3 juta/bulan" },
+    { id: "dj-tc2", title: "Junior Backend Developer", company: "TechCorp Indonesia", location: "Remote", type: "fulltime", description: "Full-time developer dengan pengalaman Node.js. Wajib bisa REST API dan SQL.", skills: ["Node.js", "SQL/Database", "REST API"], deadline: "2026-04-01", salary: "Rp 4-6 juta/bulan" },
+    { id: "dj-tc3", title: "UI/UX Design Freelance", company: "TechCorp Indonesia", location: "Bandung", type: "freelance", description: "Project desain UI/UX mobile app 2 bulan.", skills: ["Figma", "UI/UX Design", "HTML/CSS"], deadline: "2026-03-30", salary: "Negosiasi" },
+  ],
+  "recruit@creativestudio.com": [
+    { id: "dj-cs1", title: "Graphic Designer", company: "Creative Studio", location: "Bandung (On-site)", type: "fulltime", description: "Desain material marketing, social media, dan brand identity klien.", skills: ["Adobe Photoshop", "Adobe Illustrator", "Brand Identity"], deadline: "2026-03-20", salary: "Rp 4-5 juta/bulan" },
+    { id: "dj-cs2", title: "Motion Graphics Intern", company: "Creative Studio", location: "Bandung (Hybrid)", type: "magang", description: "Buat animasi dan video motion untuk iklan digital.", skills: ["Motion Graphics", "Video Editing", "Adobe After Effects"], deadline: "2026-04-10", salary: "Rp 1.5-2.5 juta/bulan" },
+  ],
+  "info@telkom.co.id": [
+    { id: "dj-tk1", title: "Network Technician Intern", company: "PT Telkom Indonesia", location: "Surabaya (On-site)", type: "magang", description: "Magang instalasi dan maintenance jaringan telekomunikasi.", skills: ["Networking Basics", "Fiber Optics", "Cisco IOS"], deadline: "2026-03-15", salary: "Rp 2-3 juta/bulan" },
+    { id: "dj-tk2", title: "Junior Network Engineer", company: "PT Telkom Indonesia", location: "Jakarta (On-site)", type: "fulltime", description: "Konfigurasi dan monitoring infrastruktur jaringan klien.", skills: ["Cisco IOS", "TCP/IP", "Network Security"], deadline: "2026-03-20", salary: "Rp 5-7 juta/bulan" },
+  ],
+};
 
-function getJobs() {
-  if (typeof window === "undefined") return defaultJobs;
+function getJobs(): Job[] {
+  if (typeof window === "undefined") return [];
+  const email = localStorage.getItem("studentEmail") || "";
+  if (!email) return [];
+  const key = `industryJobs_${email}`;
   try {
-    const stored = JSON.parse(localStorage.getItem(JOBS_KEY) || "[]");
-    return stored.length > 0 ? stored : defaultJobs;
+    const stored = JSON.parse(localStorage.getItem(key) || "[]");
+    if (stored.length > 0) return stored;
+    const seeds = seedJobsByCompany[email];
+    if (seeds && seeds.length > 0) {
+      localStorage.setItem(key, JSON.stringify(seeds));
+      return seeds;
+    }
+    return [];
   } catch {
-    return defaultJobs;
+    return [];
   }
 }
 
@@ -39,21 +69,9 @@ const allSuggestedSkills = [
   "Problem Solving", "Communication", "Team Leadership",
 ];
 
-interface Job {
-  id: string;
-  title: string;
-  company: string;
-  location: string;
-  type: "magang" | "fulltime" | "parttime" | "freelance" | string;
-  description: string;
-  skills: string[];
-  deadline: string;
-  salary?: string;
-}
-
 export default function MyJobsPage() {
   const { toast } = useToast();
-  const [jobs, setJobs] = useState<Job[]>(defaultJobs);
+  const [jobs, setJobs] = useState<Job[]>([]);
   const [mounted, setMounted] = useState(false);
   const [deleteTarget, setDeleteTarget] = useState<{ id: string; title: string } | null>(null);
   const [editJob, setEditJob] = useState<Job | null>(null);
@@ -67,9 +85,10 @@ export default function MyJobsPage() {
 
   const handleDelete = () => {
     if (!deleteTarget) return;
+    const email = localStorage.getItem("studentEmail") || "";
     const updated = jobs.filter((j) => j.id !== deleteTarget.id);
     setJobs(updated);
-    localStorage.setItem(JOBS_KEY, JSON.stringify(updated));
+    localStorage.setItem(`industryJobs_${email}`, JSON.stringify(updated));
     toast(`Lowongan "${deleteTarget.title}" berhasil dihapus`, "success");
     setDeleteTarget(null);
   };
@@ -105,9 +124,10 @@ export default function MyJobsPage() {
 
   const handleSaveEdit = () => {
     if (!editJob) return;
+    const email = localStorage.getItem("studentEmail") || "";
     const updated = jobs.map((j) => j.id === editJob.id ? { ...j, ...editForm } : j);
     setJobs(updated);
-    localStorage.setItem(JOBS_KEY, JSON.stringify(updated));
+    localStorage.setItem(`industryJobs_${email}`, JSON.stringify(updated));
     toast(`Lowongan "${editForm.title}" berhasil diperbarui`, "success");
     setEditJob(null);
   };
@@ -130,6 +150,17 @@ export default function MyJobsPage() {
 
       <p className="text-sm text-muted mb-4">Total {jobs.length} lowongan aktif</p>
 
+      {jobs.length === 0 ? (
+        <Card className="text-center py-12">
+          <Briefcase className="w-12 h-12 text-muted mx-auto mb-3" />
+          <p className="text-foreground font-medium">Belum ada lowongan</p>
+          <p className="text-sm text-muted mt-1 mb-4">Mulai posting lowongan untuk menarik kandidat terbaik</p>
+          <Link href="/industry/post-job" className="inline-flex items-center gap-2 px-4 py-2 bg-primary text-white text-sm font-medium rounded-xl hover:bg-primary-dark transition-colors">
+            <Plus className="w-4 h-4" />
+            Post Lowongan Sekarang
+          </Link>
+        </Card>
+      ) : (
       <div className="space-y-4">
         {jobs.map((job) => (
           <Card key={job.id}>
@@ -170,10 +201,11 @@ export default function MyJobsPage() {
           </Card>
         ))}
       </div>
+      )}
 
       {/* Edit Modal */}
-      {editJob && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40" onClick={() => setEditJob(null)}>
+      {editJob && createPortal(
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/15 backdrop-blur-sm" onClick={() => setEditJob(null)}>
           <div className="bg-card rounded-2xl shadow-2xl w-full max-w-lg mx-4 max-h-[90vh] overflow-y-auto border border-border" onClick={(e) => e.stopPropagation()}>
             <div className="flex items-center justify-between p-6 border-b border-border">
               <h3 className="font-bold text-foreground text-lg">Edit Lowongan</h3>
@@ -275,7 +307,8 @@ export default function MyJobsPage() {
               </button>
             </div>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
 
       <ConfirmDialog

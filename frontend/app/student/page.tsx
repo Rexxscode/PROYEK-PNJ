@@ -8,18 +8,23 @@ import {
   TrendingUp,
   ArrowRight,
   Star,
-  Clock,
+  BookOpen,
+  Sparkles,
+  BarChart3,
 } from "lucide-react";
 import Card from "../components/ui/card";
 import Badge from "../components/ui/badge";
 import DashboardHeader from "../components/layout/dashboardheader";
 import dynamic from "next/dynamic";
 import { getCurrentStudent } from "../lib/mock-data";
-import { getMatchColor, getReadinessLabel } from "../lib/utils";
+import { getMatchColor, getReadinessTier } from "../lib/utils";
 import { useCountUp } from "../lib/use-count-up";
+import { getQuizResult } from "../lib/major-roadmap";
+import { loadCareerMatches, generateCareerMatches, saveCareerMatches } from "../lib/career-match";
+import type { CareerMatch } from "../lib/type";
+import Link from "next/link";
 
 const DoughnutChart = dynamic(() => import("../components/charts/doughnutchart"), { ssr: false });
-const LineChart = dynamic(() => import("../components/charts/linechart"), { ssr: false });
 
 export default function StudentDashboard() {
   const [mounted, setMounted] = useState(false);
@@ -27,37 +32,38 @@ export default function StudentDashboard() {
 
   const student = mounted ? getCurrentStudent() : null;
 
-  const animReadiness = useCountUp(mounted && student ? Math.round(student.careerMatches.reduce((s, c) => s + c.matchPercentage, 0) / student.careerMatches.length) : 0);
-  const animSkills = useCountUp(mounted && student ? student.hardSkills.length : 0);
-  const animMatches = useCountUp(mounted && student ? student.careerMatches.length : 0);
   const animProjects = useCountUp(mounted && student ? student.projects.length : 0);
-  const animJobs = useCountUp(mounted && student ? student.jobOpportunities.filter((j) => j.matchPercentage >= 70).length : 0);
 
-  const { profile, careerMatches, roadmapMilestones, projects } = student || { profile: null, hardSkills: [], careerMatches: [], roadmapMilestones: [], projects: [], jobOpportunities: [] };
-  const readinessScore = careerMatches.length ? Math.round(careerMatches.reduce((s, c) => s + c.matchPercentage, 0) / careerMatches.length) : 0;
-  const completedMilestones = roadmapMilestones.filter((m) => m.status === "completed").length;
-  const totalMilestones = roadmapMilestones.length || 1;
-  const inProgressMilestones = roadmapMilestones.filter((m) => m.status === "in_progress").length;
-  const availableMilestones = roadmapMilestones.filter((m) => m.status === "available").length;
-  const lockedMilestones = roadmapMilestones.filter((m) => m.status === "locked").length;
+  const { profile, projects } = student || { profile: null, hardSkills: [], projects: [], jobOpportunities: [] };
 
-  const doughnut1Labels = useMemo(() => ["Selesai", "Dalam Progres", "Tersedia", "Terkunci"], []);
-  const doughnut1Data = useMemo(() => [completedMilestones, inProgressMilestones, availableMilestones, lockedMilestones], [completedMilestones, inProgressMilestones, availableMilestones, lockedMilestones]);
-  const doughnut1Colors = useMemo(() => ["#10b981", "#f59e0b", "#3b82f6", "#94a3b8"], []);
-  const doughnut1Center = useMemo(() => `${Math.round((completedMilestones / totalMilestones) * 100)}%`, [completedMilestones, totalMilestones]);
+  const [hasQuiz, setHasQuiz] = useState(false);
+  const [careerMatches, setCareerMatches] = useState<CareerMatch[]>([]);
 
-  const doughnut2Labels = useMemo(() => careerMatches.map((c) => c.title), [careerMatches]);
-  const doughnut2Data = useMemo(() => careerMatches.map((c) => c.matchPercentage), [careerMatches]);
+  useEffect(() => {
+    if (!student || !profile) return;
+    const qr = getQuizResult();
+    setHasQuiz(!!qr);
+    const savedMatches = loadCareerMatches();
+    if (qr && savedMatches && savedMatches.length > 0 && savedMatches.some((m) => !m.skillGaps || m.skillGaps.length === 0)) {
+      const fresh = generateCareerMatches(student.profile.major, qr);
+      saveCareerMatches(fresh);
+      setCareerMatches(fresh);
+    } else if (savedMatches && savedMatches.length > 0) {
+      setCareerMatches(savedMatches);
+    } else {
+      setCareerMatches(student.careerMatches);
+    }
+  }, [mounted]);
 
-  const lineLabels = useMemo(() => ["Jan", "Feb", "Mar", "Apr", "Mei", "Jun"], []);
-  const lineDatasets = useMemo(() => [{ label: "Skill Progress (%)", data: [
-    Math.round(readinessScore * 0.30),
-    Math.round(readinessScore * 0.50),
-    100,
-    100,
-    100,
-    readinessScore,
-  ], fill: true }], [readinessScore]);
+  const readinessScore = careerMatches.length ? Math.round(careerMatches.reduce((s, c) => s + (c.readinessScore || 0), 0) / careerMatches.length) : 0;
+  const readinessTier = getReadinessTier(readinessScore);
+
+  const animReadiness = useCountUp(mounted ? readinessScore : 0);
+  const animMatches = useCountUp(mounted ? careerMatches.length : 0);
+  const animSkills = useCountUp(mounted && student ? student.hardSkills.length : 0);
+
+  const doughnutLabels = useMemo(() => careerMatches.map((c) => c.title), [careerMatches]);
+  const doughnutData = useMemo(() => careerMatches.map((c) => c.matchPercentage), [careerMatches]);
 
   if (!student || !profile) return null;
 
@@ -69,44 +75,68 @@ export default function StudentDashboard() {
         showNotifications
       />
 
-      {/* Readiness Score Card */}
-      <div className="grid lg:grid-cols-3 gap-6 mb-8">
-        <Card className="lg:col-span-2 bg-gradient-to-br from-primary to-secondary text-white overflow-hidden">
-          <div className="flex items-center justify-between gap-4">
-            <div className="min-w-0">
-              <p className="text-white/80 text-xs sm:text-sm mb-1">Career Readiness Score</p>
-              <p className="text-3xl sm:text-5xl font-bold">{animReadiness}%</p>
-              <p className="text-white/70 text-xs sm:text-sm mt-2 truncate">{getReadinessLabel(readinessScore)}</p>
+      {/* Assessment CTA */}
+      {!hasQuiz && (
+        <Card className="mb-6 border-amber-200 dark:border-amber-800 bg-amber-50 dark:bg-amber-900/20">
+          <div className="flex flex-col sm:flex-row items-center gap-4">
+            <div className="w-12 h-12 rounded-full bg-amber-100 dark:bg-amber-900/50 flex items-center justify-center flex-shrink-0">
+              <ClipboardCheck className="w-6 h-6 text-amber-600 dark:text-amber-400" />
             </div>
-            <div className="w-16 h-16 sm:w-24 sm:h-24 rounded-full border-4 border-white/30 flex items-center justify-center flex-shrink-0">
-              <TrendingUp className="w-8 h-8 sm:w-10 sm:h-10 text-white" />
+            <div className="text-center sm:text-left flex-1">
+              <h3 className="font-semibold text-foreground">Isi Tes Know Yourself!</h3>
+              <p className="text-sm text-muted">Ikuti tes jurusan untuk mengetahui profil skill dan rekomendasi karier kamu.</p>
             </div>
-          </div>
-          <div className="mt-4">
-            <div className="w-full bg-white/20 rounded-full h-2">
-              <div className="bg-white rounded-full h-2 transition-all duration-700" style={{ width: `${animReadiness}%` }} />
-            </div>
+            <Link
+              href="/student/assessment"
+              className="inline-flex items-center gap-2 px-5 py-2.5 bg-primary text-white font-medium rounded-xl hover:bg-primary-dark transition-colors text-sm whitespace-nowrap"
+            >
+              <ClipboardCheck className="w-4 h-4" />
+              Mulai Tes
+            </Link>
           </div>
         </Card>
+      )}
 
-        <Card>
-          <DoughnutChart
-            labels={doughnut1Labels}
-            data={doughnut1Data}
-            title="Progress Roadmap"
-            colors={doughnut1Colors}
-            centerLabel={doughnut1Center}
-          />
-        </Card>
-      </div>
+      {/* Readiness Score Card */}
+      {hasQuiz && readinessScore > 0 && (
+        <div className="grid lg:grid-cols-3 gap-6 mb-8">
+          <Card className={`lg:col-span-2 ${readinessTier.bgColor} border ${readinessTier.borderColor}`}>
+            <div className="flex items-center justify-between gap-4">
+              <div className="min-w-0">
+                <div className="flex items-center gap-2 mb-1">
+                  <span className="text-lg">{readinessTier.icon}</span>
+                  <p className={`text-xs sm:text-sm font-medium ${readinessTier.color}`}>{readinessTier.label}</p>
+                </div>
+                <p className="text-3xl sm:text-5xl font-bold text-foreground">{animReadiness}%</p>
+                <p className={`text-xs sm:text-sm mt-2 ${readinessTier.color}`}>{readinessTier.description}</p>
+              </div>
+              <div className={`w-16 h-16 sm:w-24 sm:h-24 rounded-full border-4 ${readinessTier.borderColor} flex items-center justify-center flex-shrink-0`}>
+                <BarChart3 className={`w-8 h-8 sm:w-10 sm:h-10 ${readinessTier.color}`} />
+              </div>
+            </div>
+            <div className="mt-4">
+              <div className="w-full bg-black/10 rounded-full h-2">
+                <div className={`h-2 rounded-full transition-all duration-700 ${readinessTier.level >= 4 ? "bg-emerald-500" : readinessTier.level >= 3 ? "bg-amber-500" : readinessTier.level >= 2 ? "bg-orange-500" : "bg-red-500"}`} style={{ width: `${animReadiness}%` }} />
+              </div>
+            </div>
+          </Card>
+
+          <Card>
+            <DoughnutChart
+              labels={doughnutLabels}
+              data={doughnutData}
+              title="Distribusi Kecocokan Karir"
+            />
+          </Card>
+        </div>
+      )}
 
       {/* Quick Stats */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8 stagger-in">
+      <div className="grid grid-cols-2 lg:grid-cols-3 gap-4 mb-8 stagger-in">
         {[
-          { label: "Skills Dinilai", value: animSkills.toString(), icon: ClipboardCheck, color: "bg-blue-100 dark:bg-blue-900/50 text-blue-600 dark:text-blue-400" },
           { label: "Career Matches", value: animMatches.toString(), icon: Target, color: "bg-purple-100 dark:bg-purple-900/50 text-purple-600 dark:text-purple-400" },
+          { label: "Skills Dinilai", value: animSkills.toString(), icon: ClipboardCheck, color: "bg-blue-100 dark:bg-blue-900/50 text-blue-600 dark:text-blue-400" },
           { label: "Proyek Selesai", value: animProjects.toString(), icon: Star, color: "bg-amber-100 dark:bg-amber-900/50 text-amber-600 dark:text-amber-400" },
-          { label: "Lowongan Cocok", value: animJobs.toString(), icon: Briefcase, color: "bg-emerald-100 dark:bg-emerald-900/50 text-emerald-600 dark:text-emerald-400" },
         ].map((stat) => (
           <Card key={stat.label}>
             <div className="flex items-center gap-3">
@@ -122,25 +152,27 @@ export default function StudentDashboard() {
         ))}
       </div>
 
-      {/* Skill Progress Line Chart */}
-      <div className="grid lg:grid-cols-2 gap-6 mb-8 min-w-0">
-        <Card>
-          <LineChart
-            labels={lineLabels}
-            datasets={lineDatasets}
-            title="Progress Skill (6 Bulan)"
-            yMax={100}
-          />
+      {/* Learning Recommendation CTA */}
+      {hasQuiz && readinessTier.level <= 2 && (
+        <Card className="mb-8 border-primary/20 bg-primary/5">
+          <div className="flex flex-col sm:flex-row items-center gap-4">
+            <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
+              <BookOpen className="w-6 h-6 text-primary" />
+            </div>
+            <div className="text-center sm:text-left flex-1">
+              <h3 className="font-semibold text-foreground">Learning Recommendation</h3>
+              <p className="text-sm text-muted">Lihat skill gap kamu dan temukan sumber belajar yang direkomendasikan berdasarkan profilmu.</p>
+            </div>
+            <Link
+              href="/student/roadmap"
+              className="inline-flex items-center gap-2 px-5 py-2.5 bg-primary text-white font-medium rounded-xl hover:bg-primary-dark transition-colors text-sm whitespace-nowrap"
+            >
+              <Sparkles className="w-4 h-4" />
+              Lihat Rekomendasi
+            </Link>
+          </div>
         </Card>
-
-        <Card>
-          <DoughnutChart
-            labels={doughnut2Labels}
-            data={doughnut2Data}
-            title="Distribusi Kecocokan Karir"
-          />
-        </Card>
-      </div>
+      )}
 
       {/* Top Career Matches */}
       <div className="grid lg:grid-cols-2 gap-6">
@@ -153,14 +185,19 @@ export default function StudentDashboard() {
           </div>
           <div className="space-y-3">
             {careerMatches.slice(0, 3).map((match) => (
-              <div key={match.id} className="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-700/50 rounded-lg">
-                <div>
-                   <p className="font-medium text-foreground text-sm truncate">{match.title}</p>
-                  <p className="text-xs text-muted">{match.category}</p>
+              <div key={match.id} className="p-3 bg-gray-50 dark:bg-gray-700/50 rounded-lg">
+                <div className="flex items-center justify-between mb-1">
+                  <p className="font-medium text-foreground text-sm truncate">{match.title}</p>
+                  <span className={`text-sm font-bold ${getMatchColor(match.matchPercentage)}`}>
+                    {match.matchPercentage}%
+                  </span>
                 </div>
-                <span className={`text-sm font-bold ${getMatchColor(match.matchPercentage)}`}>
-                  {match.matchPercentage}%
-                </span>
+                <div className="flex items-center justify-between">
+                  <p className="text-xs text-muted">{match.category}</p>
+                  <span className={`text-xs font-medium ${getReadinessTier(match.readinessScore || 0).color}`}>
+                    Readiness: {match.readinessScore || 0}%
+                  </span>
+                </div>
               </div>
             ))}
           </div>
@@ -177,7 +214,7 @@ export default function StudentDashboard() {
             {projects.slice(0, 3).map((project) => (
               <div key={project.id} className="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-700/50 rounded-lg">
                 <div>
-                   <p className="font-medium text-foreground text-sm truncate">{project.title}</p>
+                  <p className="font-medium text-foreground text-sm truncate">{project.title}</p>
                   <div className="flex gap-1 mt-1">
                     {project.skills.slice(0, 2).map((skill) => (
                       <Badge key={skill} variant="primary" className="text-[10px]">
@@ -186,7 +223,7 @@ export default function StudentDashboard() {
                     ))}
                   </div>
                 </div>
-                <Clock className="w-4 h-4 text-muted" />
+                <Star className="w-4 h-4 text-muted" />
               </div>
             ))}
           </div>

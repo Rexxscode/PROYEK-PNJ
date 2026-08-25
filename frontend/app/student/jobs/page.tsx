@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { createPortal } from "react-dom";
 import {
   Briefcase,
   MapPin,
@@ -209,9 +210,9 @@ export default function JobsPage() {
       )}
 
       {/* Apply Modal */}
-      {selectedJob && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
-          <div className="bg-card rounded-2xl w-full max-w-md shadow-2xl animate-fade-in border border-border">
+      {selectedJob && typeof window !== "undefined" && createPortal(
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40">
+          <div className="bg-card rounded-2xl w-full max-w-md shadow-2xl border border-border max-h-[85vh] overflow-y-auto">
             {!applied ? (
               <>
                 <div className="flex items-center justify-between p-6 border-b border-border">
@@ -274,7 +275,8 @@ export default function JobsPage() {
               </div>
             )}
           </div>
-        </div>
+        </div>,
+        document.body
       )}
     </div>
   );

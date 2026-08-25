@@ -39,11 +39,34 @@ export function getGapStatusLabel(status: "mastered" | "improving" | "needed"): 
   }
 }
 
+export interface ReadinessTier {
+  level: number;
+  label: string;
+  status: string;
+  color: string;
+  bgColor: string;
+  borderColor: string;
+  icon: string;
+  description: string;
+}
+
+export function getReadinessTier(score: number): ReadinessTier {
+  if (score >= 85) return { level: 4, label: "Job Ready", status: "Siap Bekerja", color: "text-emerald-600 dark:text-emerald-400", bgColor: "bg-emerald-100 dark:bg-emerald-900/50", borderColor: "border-emerald-300 dark:border-emerald-700", icon: "🟢", description: "Skill kamu sudah memenuhi standar industri. Siap melamar pekerjaan!" };
+  if (score >= 70) return { level: 3, label: "Almost Ready", status: "Hampir Siap", color: "text-amber-600 dark:text-amber-400", bgColor: "bg-amber-100 dark:bg-amber-900/50", borderColor: "border-amber-300 dark:border-amber-700", icon: "🟡", description: "Kamu sudah memiliki dasar yang kuat. Tingkatkan skill gap yang tersisa." };
+  if (score >= 50) return { level: 2, label: "Developing", status: "Sedang Berkembang", color: "text-orange-600 dark:text-orange-400", bgColor: "bg-orange-100 dark:bg-orange-900/50", borderColor: "border-orange-300 dark:border-orange-700", icon: "🟠", description: "Kamu sedang dalam proses belajar. Fokus pada skill gap utama." };
+  return { level: 1, label: "Exploration", status: "Eksplorasi", color: "text-red-600 dark:text-red-400", bgColor: "bg-red-100 dark:bg-red-900/50", borderColor: "border-red-300 dark:border-red-700", icon: "🔴", description: "Mulai petualangan karier kamu! Ikuti assessment untuk mengetahui potensimu." };
+}
+
 export function getReadinessLabel(score: number): string {
-  if (score >= 85) return "Sangat Siap";
-  if (score >= 70) return "Siap";
-  if (score >= 50) return "Perlu Persiapan";
-  return "Mulai Belajar";
+  return getReadinessTier(score).status;
+}
+
+export function getReadinessColor(score: number): string {
+  return getReadinessTier(score).color;
+}
+
+export function getReadinessBg(score: number): string {
+  return getReadinessTier(score).bgColor;
 }
 
 export function formatDate(dateString: string): string {

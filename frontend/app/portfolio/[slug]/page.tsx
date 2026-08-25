@@ -1,17 +1,32 @@
 "use client";
 
-import { use } from "react";
+import { use, useEffect, useState } from "react";
 import Link from "next/link";
-import { getStudentBySlug } from "../../lib/mock-data";
+import { getStudentBySlug, getUserRole } from "../../lib/mock-data";
 import { getInitials } from "../../lib/utils";
 import { Briefcase, ArrowLeft } from "lucide-react";
 import Card from "../../components/ui/card";
 import Badge from "../../components/ui/badge";
 import SkillRadar from "../../components/charts/skillradar";
 
+function getBackLink(): string {
+  if (typeof window === "undefined") return "/";
+  const email = localStorage.getItem("studentEmail");
+  if (!email) return "/";
+  const role = getUserRole(email);
+  if (role === "admin") return "/admin";
+  if (role === "industry") return "/industry";
+  return "/student";
+}
+
 export default function PublicPortfolioPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = use(params);
   const student = getStudentBySlug(slug);
+  const [backLink, setBackLink] = useState("/");
+
+  useEffect(() => {
+    setBackLink(getBackLink());
+  }, []);
 
   if (!student) {
     return (
@@ -22,7 +37,7 @@ export default function PublicPortfolioPage({ params }: { params: Promise<{ slug
           </div>
           <h1 className="text-xl font-bold text-foreground mb-2">Portfolio Tidak Ditemukan</h1>
           <p className="text-sm text-muted mb-6">Portfolio dengan URL ini tidak tersedia atau sudah tidak aktif.</p>
-          <Link href="/" className="inline-flex items-center gap-2 px-4 py-2 bg-primary text-white text-sm font-medium rounded-xl hover:bg-primary-dark transition-colors">
+          <Link href={backLink} className="inline-flex items-center gap-2 px-4 py-2 bg-primary text-white text-sm font-medium rounded-xl hover:bg-primary-dark transition-colors">
             <ArrowLeft className="w-4 h-4" />
             Kembali ke Beranda
           </Link>

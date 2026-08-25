@@ -15,9 +15,10 @@ import {
   ChevronLeft,
   Menu,
   X,
+  UserPlus,
 } from "lucide-react";
 import { cn, getInitials } from "../../lib/utils";
-import { getCurrentStudent, adminUser, industryUser } from "../../lib/mock-data";
+import { getCurrentStudent } from "../../lib/mock-data";
 
 interface SidebarProps {
   role: "student" | "admin" | "industry";
@@ -38,6 +39,8 @@ const navItems = {
   admin: [
     { label: "Dashboard", href: "/admin", icon: LayoutDashboard },
     { label: "Data Siswa", href: "/admin/students", icon: Users },
+    { label: "Data Industry", href: "/admin/industries", icon: Building2 },
+    { label: "Kelola Admin", href: "/admin/accounts", icon: UserPlus },
     { label: "Statistik", href: "/admin/statistics", icon: BarChart3 },
   ],
   industry: [
@@ -97,7 +100,11 @@ export default function Sidebar({ role, currentPath, isCollapsed = false, onTogg
 
   const items = navItems[role];
   const studentData = mounted ? getCurrentStudent() : null;
-  const user = role === "student" && studentData ? studentData.profile : role === "admin" ? adminUser : industryUser;
+  const storedName = mounted ? localStorage.getItem("loggedUserName") : null;
+  const storedEmail = mounted ? localStorage.getItem("studentEmail") : null;
+  const user = role === "student" && studentData
+    ? studentData.profile
+    : { id: "", name: storedName || (role === "admin" ? "Admin" : "Industry"), email: storedEmail || "", role, major: "", grade: "", avatar: "", createdAt: "" };
 
   return (
     <>

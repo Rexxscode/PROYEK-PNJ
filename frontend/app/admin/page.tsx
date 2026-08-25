@@ -7,13 +7,14 @@ import {
   TrendingUp,
   GraduationCap,
   Eye,
+  Building2,
 } from "lucide-react";
 import Card from "../components/ui/card";
 import Badge from "../components/ui/badge";
 import ProgressBar from "../components/ui/progressbar";
 import dynamic from "next/dynamic";
 import DashboardHeader from "../components/layout/dashboardheader";
-import { studentStats } from "../lib/mock-data";
+import { studentStats, getAllIndustries } from "../lib/mock-data";
 import { useCountUp } from "../lib/use-count-up";
 
 const SkillBarChart = dynamic(() => import("../components/charts/barchart"), { ssr: false });
@@ -34,10 +35,13 @@ export default function AdminDashboard() {
   useEffect(() => { setMounted(true); }, []);
 
   const assessedPercentage = Math.round((studentStats.assessedStudents / studentStats.totalStudents) * 100);
+  const industries = getAllIndustries();
+  const pendingIndustries = industries.filter((i) => i.status === "pending").length;
   const animTotal = useCountUp(studentStats.totalStudents);
   const animAssessed = useCountUp(studentStats.assessedStudents);
   const animAvgScore = useCountUp(studentStats.avgReadinessScore);
   const animPercentage = useCountUp(assessedPercentage);
+  const animIndustries = useCountUp(industries.length);
 
   if (!mounted) return null;
 
@@ -50,8 +54,25 @@ export default function AdminDashboard() {
         showNotifications
       />
 
+      {/* Pending Industry Alert */}
+      {pendingIndustries > 0 && (
+        <a href="/admin/industries" className="block mb-6 p-4 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-xl hover:shadow-md transition-shadow">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-lg bg-amber-100 dark:bg-amber-900/30 flex items-center justify-center animate-pulse">
+              <Building2 className="w-5 h-5 text-amber-600 dark:text-amber-400" />
+            </div>
+            <div>
+              <p className="text-sm font-medium text-amber-700 dark:text-amber-300">
+                {pendingIndustries} akun industry menunggu persetujuan
+              </p>
+              <p className="text-xs text-amber-600/70 dark:text-amber-400/70">Klik untuk meninjau dan menyetujui</p>
+            </div>
+          </div>
+        </a>
+      )}
+
       {/* Stats Grid */}
-      <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8 stagger-in">
+      <div className="grid sm:grid-cols-2 lg:grid-cols-5 gap-4 mb-8 stagger-in">
         <Card>
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-lg bg-blue-100 dark:bg-blue-900/50 flex items-center justify-center">
@@ -93,6 +114,17 @@ export default function AdminDashboard() {
             <div>
               <p className="text-sm text-muted">% Dinilai</p>
               <p className="text-2xl font-bold text-foreground">{animPercentage}%</p>
+            </div>
+          </div>
+        </Card>
+        <Card>
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-lg bg-cyan-100 dark:bg-cyan-900/50 flex items-center justify-center">
+              <Building2 className="w-5 h-5 text-cyan-600 dark:text-cyan-400" />
+            </div>
+            <div>
+              <p className="text-sm text-muted">Total Industry</p>
+              <p className="text-2xl font-bold text-foreground">{animIndustries}</p>
             </div>
           </div>
         </Card>

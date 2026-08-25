@@ -8,29 +8,135 @@ import {
   Download,
   ExternalLink,
   Loader2,
+  Plus,
+  Pencil,
+  Trash2,
+  X,
+  Save,
+  FolderOpen,
 } from "lucide-react";
 import Card from "../../components/ui/card";
 import ProgressBar from "../../components/ui/progressbar";
 import dynamic from "next/dynamic";
 import DashboardHeader from "../../components/layout/dashboardheader";
 import { getCurrentStudent } from "../../lib/mock-data";
+import { loadCareerMatches } from "../../lib/career-match";
 import { getInitials } from "../../lib/utils";
+import type { CareerMatch, Project } from "../../lib/type";
 
 const SkillRadar = dynamic(() => import("../../components/charts/skillradar"), { ssr: false });
+
+function loadUserProjects(email: string): Project[] {
+  if (typeof window === "undefined") return [];
+  const raw = localStorage.getItem(`portfolio_projects_${email}`);
+  if (!raw) return [];
+  try { return JSON.parse(raw); } catch { return []; }
+}
+function saveUserProjects(email: string, projects: Project[]) {
+  localStorage.setItem(`portfolio_projects_${email}`, JSON.stringify(projects));
+}
+
+const emptyProject = { title: "", description: "", skills: "", projectUrl: "", completedAt: "" };
 
 export default function PortfolioPage() {
   const [mounted, setMounted] = useState(false);
   const [copied, setCopied] = useState(false);
   const [generatingPdf, setGeneratingPdf] = useState(false);
+  const [careerMatches, setCareerMatches] = useState<CareerMatch[]>([]);
+  const [userProjects, setUserProjects] = useState<Project[]>([]);
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [showAdd, setShowAdd] = useState(false);
+  const [form, setForm] = useState(emptyProject);
+  const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null);
   const portfolioRef = useRef<HTMLDivElement>(null);
+  const emailRef = useRef("");
   useEffect(() => { setMounted(true); }, []);
 
   const student = mounted ? getCurrentStudent() : null;
+
+  useEffect(() => {
+    if (!mounted || !student) return;
+    emailRef.current = student.profile.email;
+    const saved = loadCareerMatches();
+    const matches = saved && saved.length > 0 ? saved : student.careerMatches || [];
+    setCareerMatches(matches);
+    const email = student.profile.email;
+    const existing = loadUserProjects(email);
+    if (existing.length === 0) {
+      saveUserProjects(email, student.projects);
+      setUserProjects(student.projects);
+    } else {
+      setUserProjects(existing);
+    }
+  }, [mounted, student]);
 
   const handleCopy = () => {
     navigator.clipboard.writeText(portfolioUrl);
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
+  };
+
+  const startEdit = (p: Project) => {
+    setEditingId(p.id);
+    setForm({
+      title: p.title,
+      description: p.description,
+      skills: p.skills.join(", "),
+      projectUrl: p.projectUrl || "",
+      completedAt: p.completedAt,
+    });
+    setShowAdd(false);
+  };
+
+  const startAdd = () => {
+    setEditingId(null);
+    setForm(emptyProject);
+    setShowAdd(true);
+  };
+
+  const saveProject = () => {
+    if (!form.title.trim() || !student) return;
+    const email = emailRef.current;
+    const parsedSkills = form.skills.split(",").map((s) => s.trim()).filter(Boolean);
+    if (editingId) {
+      const updated = userProjects.map((p) =>
+        p.id === editingId
+          ? { ...p, title: form.title, description: form.description, skills: parsedSkills, projectUrl: form.projectUrl || undefined, completedAt: form.completedAt || p.completedAt }
+          : p
+      );
+      setUserProjects(updated);
+      saveUserProjects(email, updated);
+    } else {
+      const newProject: Project = {
+        id: `up-${Date.now()}`,
+        title: form.title,
+        description: form.description,
+        skills: parsedSkills,
+        projectUrl: form.projectUrl || undefined,
+        completedAt: form.completedAt || new Date().toISOString().slice(0, 10),
+      };
+      const updated = [...userProjects, newProject];
+      setUserProjects(updated);
+      saveUserProjects(email, updated);
+    }
+    setEditingId(null);
+    setShowAdd(false);
+    setForm(emptyProject);
+  };
+
+  const deleteProject = (id: string) => {
+    if (!student) return;
+    const email = emailRef.current;
+    const updated = userProjects.filter((p) => p.id !== id);
+    setUserProjects(updated);
+    saveUserProjects(email, updated);
+    setDeleteConfirmId(null);
+  };
+
+  const cancelForm = () => {
+    setEditingId(null);
+    setShowAdd(false);
+    setForm(emptyProject);
   };
 
   const handleDownloadPdf = async () => {
@@ -42,9 +148,11 @@ export default function PortfolioPage() {
       const { domToPng } = await import("modern-screenshot");
       const { jsPDF } = await import("jspdf");
 
-      const { profile, hardSkills, softSkills, projects, careerMatches } = s;
+      const { profile, hardSkills, softSkills } = s;
       const all = [...hardSkills, ...softSkills];
-      const score = Math.round(careerMatches.reduce((sum, c) => sum + c.matchPercentage, 0) / careerMatches.length);
+      const allProjects = loadUserProjects(s.profile.email);
+      const matches = loadCareerMatches() || careerMatches;
+      const score = matches.length > 0 ? Math.round(matches.reduce((sum, c) => sum + c.matchPercentage, 0) / matches.length) : 0;
 
       const html = `
         <div style="font-family:system-ui,-apple-system,sans-serif;background:#ffffff;color:#1e293b;padding:20px;width:700px;">
@@ -73,7 +181,7 @@ export default function PortfolioPage() {
           <div style="margin-bottom:14px;">
             <div style="font-size:11px;font-weight:700;color:#334155;text-transform:uppercase;letter-spacing:0.8px;margin-bottom:6px;">Projects</div>
             <div style="display:flex;flex-direction:column;gap:6px;">
-              ${projects.map(p => `
+              ${allProjects.map(p => `
                 <div style="padding:8px 12px;background:#f8fafc;border:1px solid #e2e8f0;border-radius:6px;">
                   <div style="font-size:12px;font-weight:600;color:#0f172a;margin-bottom:2px;">${p.title}</div>
                   <div style="font-size:10px;color:#64748b;margin-bottom:4px;">${p.description}</div>
@@ -88,7 +196,7 @@ export default function PortfolioPage() {
           <div>
             <div style="font-size:11px;font-weight:700;color:#334155;text-transform:uppercase;letter-spacing:0.8px;margin-bottom:6px;">Top Career Matches</div>
             <div style="display:flex;flex-direction:column;gap:5px;">
-              ${careerMatches.slice(0, 3).map(c => `
+              ${matches.slice(0, 3).map(c => `
                 <div style="display:flex;align-items:center;justify-content:space-between;padding:8px 12px;background:#f8fafc;border:1px solid #e2e8f0;border-radius:6px;">
                   <div>
                     <div style="font-size:12px;font-weight:600;color:#0f172a;">${c.title}</div>
@@ -149,9 +257,9 @@ export default function PortfolioPage() {
   };
 
   if (!mounted || !student) return null;
-  const { profile, hardSkills, softSkills, projects, careerMatches } = student;
+  const { profile, hardSkills, softSkills } = student;
   const allSkills = [...hardSkills, ...softSkills];
-  const readinessScore = Math.round(careerMatches.reduce((sum, c) => sum + c.matchPercentage, 0) / careerMatches.length);
+  const readinessScore = careerMatches.length > 0 ? Math.round(careerMatches.reduce((sum, c) => sum + c.matchPercentage, 0) / careerMatches.length) : 0;
   const portfolioUrl = mounted
     ? `${window.location.origin}/portfolio/${profile.name.toLowerCase().replace(/\s+/g, "-")}`
     : `/portfolio/${profile.name.toLowerCase().replace(/\s+/g, "-")}`;
@@ -229,21 +337,79 @@ export default function PortfolioPage() {
 
         {/* Projects */}
         <div className="mb-6">
-          <h3 className="text-sm font-bold text-foreground dark:text-gray-200 uppercase tracking-wider mb-3">Projects</h3>
+          <div className="flex items-center justify-between mb-3">
+            <h3 className="text-sm font-bold text-foreground dark:text-gray-200 uppercase tracking-wider">Projects</h3>
+          </div>
           <div className="space-y-3">
-            {projects.map((project) => (
+            {userProjects.map((project) => (
               <div key={project.id} className="p-3 bg-gray-50 dark:bg-gray-700/50 rounded-lg border border-gray-200 dark:border-gray-600">
-                <h4 className="font-medium text-foreground dark:text-white text-sm">{project.title}</h4>
-                <p className="text-xs text-muted dark:text-gray-400 mt-1">{project.description}</p>
-                <div className="flex flex-wrap gap-1 mt-2">
-                  {project.skills.map((skill) => (
-                    <span key={skill} className="px-2 py-0.5 bg-blue-100 dark:bg-blue-900/40 text-blue-700 dark:text-blue-300 rounded text-[10px] font-medium">
-                      {skill}
-                    </span>
-                  ))}
-                </div>
+                {editingId === project.id ? (
+                  <div className="space-y-3">
+                    <input value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })} placeholder="Judul projek" className="w-full px-3 py-2 text-sm bg-card border border-border rounded-lg text-foreground" />
+                    <textarea value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} placeholder="Deskripsi projek" rows={2} className="w-full px-3 py-2 text-sm bg-card border border-border rounded-lg text-foreground resize-none" />
+                    <input value={form.skills} onChange={(e) => setForm({ ...form, skills: e.target.value })} placeholder="Skill (pisahkan koma)" className="w-full px-3 py-2 text-sm bg-card border border-border rounded-lg text-foreground" />
+                    <input value={form.projectUrl} onChange={(e) => setForm({ ...form, projectUrl: e.target.value })} placeholder="URL projek (opsional)" className="w-full px-3 py-2 text-sm bg-card border border-border rounded-lg text-foreground" />
+                    <div className="flex gap-2 justify-end">
+                      <button onClick={cancelForm} className="flex items-center gap-1 px-3 py-1.5 text-xs text-muted hover:text-foreground border border-border rounded-lg transition-colors"><X className="w-3 h-3" /> Batal</button>
+                      <button onClick={saveProject} disabled={!form.title.trim()} className="flex items-center gap-1 px-3 py-1.5 text-xs text-white bg-primary rounded-lg hover:bg-primary-dark transition-colors disabled:opacity-50"><Save className="w-3 h-3" /> Simpan</button>
+                    </div>
+                  </div>
+                ) : (
+                  <>
+                    <div className="flex items-start justify-between">
+                      <div className="flex-1">
+                        <h4 className="font-medium text-foreground dark:text-white text-sm">{project.title}</h4>
+                        <p className="text-xs text-muted dark:text-gray-400 mt-1">{project.description}</p>
+                      </div>
+                      <div className="flex gap-1 ml-2 flex-shrink-0">
+                        <button onClick={() => startEdit(project)} className="p-1.5 rounded-lg text-muted hover:text-primary hover:bg-primary/10 transition-colors"><Pencil className="w-3.5 h-3.5" /></button>
+                        <button onClick={() => setDeleteConfirmId(project.id)} className="p-1.5 rounded-lg text-muted hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/30 transition-colors"><Trash2 className="w-3.5 h-3.5" /></button>
+                      </div>
+                    </div>
+                    <div className="flex flex-wrap gap-1 mt-2">
+                      {project.skills.map((skill) => (
+                        <span key={skill} className="px-2 py-0.5 bg-blue-100 dark:bg-blue-900/40 text-blue-700 dark:text-blue-300 rounded text-[10px] font-medium">
+                          {skill}
+                        </span>
+                      ))}
+                    </div>
+                    {project.projectUrl && (
+                      <a href={project.projectUrl} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 mt-2 text-[10px] text-primary hover:underline">
+                        <ExternalLink className="w-3 h-3" /> Lihat Projek
+                      </a>
+                    )}
+                    {deleteConfirmId === project.id && (
+                      <div className="mt-3 p-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg">
+                        <p className="text-xs text-red-600 dark:text-red-400 mb-2">Hapus projek &quot;{project.title}&quot;?</p>
+                        <div className="flex gap-2">
+                          <button onClick={() => setDeleteConfirmId(null)} className="px-3 py-1 text-xs text-muted border border-border rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors">Batal</button>
+                          <button onClick={() => deleteProject(project.id)} className="px-3 py-1 text-xs text-white bg-red-500 rounded-lg hover:bg-red-600 transition-colors">Hapus</button>
+                        </div>
+                      </div>
+                    )}
+                  </>
+                )}
               </div>
             ))}
+            {/* Add New Project */}
+            {showAdd ? (
+              <div className="p-3 bg-primary/5 border border-primary/20 rounded-lg space-y-3">
+                <p className="text-sm font-medium text-foreground">Tambah Projek Baru</p>
+                <input value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })} placeholder="Judul projek" className="w-full px-3 py-2 text-sm bg-card border border-border rounded-lg text-foreground" />
+                <textarea value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} placeholder="Deskripsi projek" rows={2} className="w-full px-3 py-2 text-sm bg-card border border-border rounded-lg text-foreground resize-none" />
+                <input value={form.skills} onChange={(e) => setForm({ ...form, skills: e.target.value })} placeholder="Skill (pisahkan koma, cth: React, Node.js)" className="w-full px-3 py-2 text-sm bg-card border border-border rounded-lg text-foreground" />
+                <input value={form.projectUrl} onChange={(e) => setForm({ ...form, projectUrl: e.target.value })} placeholder="URL projek (opsional)" className="w-full px-3 py-2 text-sm bg-card border border-border rounded-lg text-foreground" />
+                <input value={form.completedAt} onChange={(e) => setForm({ ...form, completedAt: e.target.value })} type="date" placeholder="Tanggal selesai" className="w-full px-3 py-2 text-sm bg-card border border-border rounded-lg text-foreground" />
+                <div className="flex gap-2 justify-end">
+                  <button onClick={cancelForm} className="flex items-center gap-1 px-3 py-1.5 text-xs text-muted hover:text-foreground border border-border rounded-lg transition-colors"><X className="w-3 h-3" /> Batal</button>
+                  <button onClick={saveProject} disabled={!form.title.trim()} className="flex items-center gap-1 px-3 py-1.5 text-xs text-white bg-primary rounded-lg hover:bg-primary-dark transition-colors disabled:opacity-50"><Save className="w-3 h-3" /> Simpan</button>
+                </div>
+              </div>
+            ) : (
+              <button onClick={startAdd} className="w-full flex items-center justify-center gap-2 p-3 border-2 border-dashed border-border rounded-lg text-muted hover:border-primary hover:text-primary transition-colors">
+                <Plus className="w-4 h-4" /> Tambah Projek Baru
+              </button>
+            )}
           </div>
         </div>
 
@@ -265,11 +431,10 @@ export default function PortfolioPage() {
       </div>
       </div>
 
-      {/* Interactive Preview Section (not in PDF) */}
+      {/* Interactive Preview Section */}
       <div className="mt-8">
         <h3 className="text-sm font-bold text-foreground uppercase tracking-wider mb-4">Interactive Preview</h3>
         <div className="grid lg:grid-cols-3 gap-6">
-          {/* Profile Card */}
           <Card className="text-center">
             <div className="w-20 h-20 rounded-full bg-gradient-to-br from-primary to-secondary flex items-center justify-center mx-auto mb-4">
               <span className="text-2xl font-bold text-white">{getInitials(profile.name)}</span>
@@ -289,7 +454,6 @@ export default function PortfolioPage() {
             />
           </Card>
 
-          {/* Skills Radar */}
           <Card className="lg:col-span-2">
             <SkillRadar skills={allSkills.slice(0, 8)} title="Skill Profile" />
           </Card>

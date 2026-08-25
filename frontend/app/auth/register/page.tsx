@@ -3,15 +3,17 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { Mail, Lock, User, BookOpen, Eye, EyeOff } from "lucide-react";
+import { Mail, Lock, User, BookOpen, Building2, Eye, EyeOff } from "lucide-react";
 import { registerUser } from "../../lib/mock-data";
 import { useToast } from "../../lib/toast-context";
 
 export default function RegisterPage() {
   const router = useRouter();
   const { toast } = useToast();
+  const [role, setRole] = useState<"student" | "industry">("student");
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
+  const [company, setCompany] = useState("");
   const [major, setMajor] = useState("");
   const [grade, setGrade] = useState("");
   const [password, setPassword] = useState("");
@@ -20,18 +22,40 @@ export default function RegisterPage() {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!name || !email || !major || !grade) {
-      setError("Semua field harus diisi");
+    if (!name || !email) {
+      setError("Nama dan email harus diisi");
+      return;
+    }
+    if (role === "student" && (!major || !grade)) {
+      setError("Jurusan dan kelas harus diisi");
+      return;
+    }
+    if (role === "industry" && !company) {
+      setError("Nama perusahaan harus diisi");
       return;
     }
     if (password.length < 8) {
       setError("Password minimal 8 karakter");
       return;
     }
-    const success = registerUser({ email, password, name, major, grade });
+    const success = registerUser({
+      email,
+      password,
+      name,
+      major: role === "industry" ? "Industry" : major,
+      grade: role === "industry" ? "-" : grade,
+      role,
+      company: role === "industry" ? company : undefined,
+      status: role === "industry" ? "pending" : undefined,
+    });
     if (!success) {
       setError("Email sudah terdaftar, gunakan email lain");
       toast("Email sudah terdaftar", "error");
+      return;
+    }
+    if (role === "industry") {
+      toast("Registrasi berhasil! Menunggu persetujuan admin.", "success");
+      router.push("/auth/pending");
       return;
     }
     toast("Registrasi berhasil! Silakan masuk.", "success");
@@ -53,23 +77,69 @@ export default function RegisterPage() {
         </div>
 
         <div className="bg-card rounded-2xl border border-border p-6 sm:p-8 shadow-sm">
+          {/* Role Toggle */}
+          <div className="flex gap-2 mb-6 p-1 bg-gray-100 dark:bg-gray-800 rounded-xl">
+            <button
+              type="button"
+              onClick={() => setRole("student")}
+              className={`flex-1 py-2 text-sm font-medium rounded-lg transition-colors ${
+                role === "student"
+                  ? "bg-primary text-white shadow"
+                  : "text-muted hover:text-foreground"
+              }`}
+            >
+              Siswa / SMK
+            </button>
+            <button
+              type="button"
+              onClick={() => setRole("industry")}
+              className={`flex-1 py-2 text-sm font-medium rounded-lg transition-colors ${
+                role === "industry"
+                  ? "bg-primary text-white shadow"
+                  : "text-muted hover:text-foreground"
+              }`}
+            >
+              Perusahaan / Industry
+            </button>
+          </div>
+
           <form onSubmit={handleSubmit} className="space-y-5" autoComplete="off">
             <div>
               <label htmlFor="name" className="block text-sm font-medium text-foreground mb-1.5">
-                Nama Lengkap
+                {role === "industry" ? "Nama PIC (Person In Charge)" : "Nama Lengkap"}
               </label>
               <div className="relative">
                 <User className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted" />
                 <input
                   id="name"
                   type="text"
-                  placeholder="Masukkan nama lengkap"
+                  placeholder={role === "industry" ? "Nama penanggung jawab" : "Masukkan nama lengkap"}
                   value={name}
                   onChange={(e) => setName(e.target.value)}
                   className="w-full pl-10 pr-4 py-2.5 border border-border rounded-xl text-sm bg-input-bg text-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-colors"
                 />
               </div>
             </div>
+
+            {role === "industry" && (
+              <div>
+                <label htmlFor="company" className="block text-sm font-medium text-foreground mb-1.5">
+                  Nama Perusahaan
+                </label>
+                <div className="relative">
+                  <Building2 className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted" />
+                  <input
+                    id="company"
+                    type="text"
+                    placeholder="PT Contoh Indonesia"
+                    value={company}
+                    onChange={(e) => setCompany(e.target.value)}
+                    className="w-full pl-10 pr-4 py-2.5 border border-border rounded-xl text-sm bg-input-bg text-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-colors"
+                  />
+                </div>
+              </div>
+            )}
+
             <div>
               <label htmlFor="email" className="block text-sm font-medium text-foreground mb-1.5">
                 Email
@@ -79,52 +149,56 @@ export default function RegisterPage() {
                 <input
                   id="email"
                   type="email"
-                  placeholder="Masukkan email"
+                  placeholder={role === "industry" ? "hrd@perusahaan.com" : "nama@siswa.smk.id"}
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   className="w-full pl-10 pr-4 py-2.5 border border-border rounded-xl text-sm bg-input-bg text-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-colors"
                 />
               </div>
             </div>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div>
-                <label htmlFor="major" className="block text-sm font-medium text-foreground mb-1.5">
-                  Jurusan
-                </label>
-                <div className="relative">
-                  <BookOpen className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted" />
+
+            {role === "student" && (
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <label htmlFor="major" className="block text-sm font-medium text-foreground mb-1.5">
+                    Jurusan
+                  </label>
+                  <div className="relative">
+                    <BookOpen className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted" />
+                    <select
+                      id="major"
+                      value={major}
+                      onChange={(e) => setMajor(e.target.value)}
+                      className="w-full pl-10 pr-4 py-2.5 border border-border rounded-xl text-sm bg-input-bg text-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-colors appearance-none"
+                    >
+                      <option value="">Pilih</option>
+                      <option value="rpl">Rekayasa Perangkat Lunak</option>
+                      <option value="dkv">Desain Komunikasi Visual</option>
+                      <option value="tt">Teknik Transmisi</option>
+                      <option value="tkj">Teknik Komputer dan Jaringan</option>
+                    </select>
+                  </div>
+                </div>
+                <div>
+                  <label htmlFor="grade" className="block text-sm font-medium text-foreground mb-1.5">
+                    Kelas
+                  </label>
                   <select
-                    id="major"
-                    value={major}
-                    onChange={(e) => setMajor(e.target.value)}
-                    className="w-full pl-10 pr-4 py-2.5 border border-border rounded-xl text-sm bg-input-bg text-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-colors appearance-none"
+                    id="grade"
+                    value={grade}
+                    onChange={(e) => setGrade(e.target.value)}
+                    className="w-full px-4 py-2.5 border border-border rounded-xl text-sm bg-input-bg text-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-colors appearance-none"
                   >
                     <option value="">Pilih</option>
-                    <option value="rpl">Rekayasa Perangkat Lunak</option>
-                    <option value="dkv">Desain Komunikasi Visual</option>
-                    <option value="tt">Teknik Transmisi</option>
-                    <option value="tkj">Teknik Komputer dan Jaringan</option>
+                    <option value="x">X</option>
+                    <option value="xi">XI</option>
+                    <option value="xii">XII</option>
+                    <option value="alumni">Alumni</option>
                   </select>
                 </div>
               </div>
-              <div>
-                <label htmlFor="grade" className="block text-sm font-medium text-foreground mb-1.5">
-                  Kelas
-                </label>
-                <select
-                  id="grade"
-                  value={grade}
-                  onChange={(e) => setGrade(e.target.value)}
-                  className="w-full px-4 py-2.5 border border-border rounded-xl text-sm bg-input-bg text-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-colors appearance-none"
-                >
-                  <option value="">Pilih</option>
-                  <option value="x">X</option>
-                  <option value="xi">XI</option>
-                  <option value="xii">XII</option>
-                  <option value="alumni">Alumni</option>
-                </select>
-              </div>
-            </div>
+            )}
+
             <div>
               <label htmlFor="password" className="block text-sm font-medium text-foreground mb-1.5">
                 Password

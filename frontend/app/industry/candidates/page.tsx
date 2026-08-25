@@ -21,9 +21,28 @@ const candidates = [
 
 const allSkillFilters = [...new Set(candidates.flatMap((c) => c.skills))].sort();
 
+const readinessFilters = [
+  { key: "all", label: "Semua" },
+  { key: "exploration", label: "Exploration (0-49%)" },
+  { key: "developing", label: "Developing (50-69%)" },
+  { key: "almost-ready", label: "Almost Ready (70-84%)" },
+  { key: "job-ready", label: "Job Ready (85-100%)" },
+];
+
+function matchReadiness(score: number, filter: string): boolean {
+  switch (filter) {
+    case "exploration": return score < 50;
+    case "developing": return score >= 50 && score < 70;
+    case "almost-ready": return score >= 70 && score < 85;
+    case "job-ready": return score >= 85;
+    default: return true;
+  }
+}
+
 export default function CandidatesPage() {
   const [search, setSearch] = useState("");
   const [selectedSkills, setSelectedSkills] = useState<string[]>([]);
+  const [readinessFilter, setReadinessFilter] = useState<string>("all");
 
   useEffect(() => {
     const handler = (e: Event) => setSearch((e as CustomEvent).detail || "");
@@ -40,7 +59,8 @@ export default function CandidatesPage() {
   const filtered = candidates.filter((c) => {
     const matchesSearch = c.name.toLowerCase().includes(search.toLowerCase());
     const matchesSkills = selectedSkills.length === 0 || selectedSkills.some((s) => c.skills.includes(s));
-    return matchesSearch && matchesSkills;
+    const matchesReadiness = matchReadiness(c.score, readinessFilter);
+    return matchesSearch && matchesSkills && matchesReadiness;
   });
 
   return (
@@ -89,6 +109,24 @@ export default function CandidatesPage() {
             Reset
           </button>
         )}
+      </div>
+
+      {/* Readiness Filter */}
+      <div className="flex flex-wrap gap-2 mb-6">
+        <span className="text-sm text-muted py-1">Filter kesiapan:</span>
+        {readinessFilters.map((f) => (
+          <button
+            key={f.key}
+            onClick={() => setReadinessFilter(f.key)}
+            className={`px-3 py-1 rounded-full text-xs font-medium transition-colors ${
+              readinessFilter === f.key
+                ? "bg-primary text-white"
+                : "bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-600"
+            }`}
+          >
+            {f.label}
+          </button>
+        ))}
       </div>
 
       <p className="text-sm text-muted mb-4">

@@ -44,6 +44,7 @@ export default function PostJobPage() {
   };
 
   const handleConfirmSubmit = () => {
+    const email = localStorage.getItem("studentEmail") || "";
     const newJob = {
       id: `job-${Date.now()}`,
       title,
@@ -53,11 +54,13 @@ export default function PostJobPage() {
       description,
       skills: selectedSkills,
       deadline: "2026-12-31",
+      postedBy: email,
     };
     try {
-      const stored = JSON.parse(localStorage.getItem("industryJobs") || "[]");
+      const key = `industryJobs_${email}`;
+      const stored = JSON.parse(localStorage.getItem(key) || "[]");
       stored.push(newJob);
-      localStorage.setItem("industryJobs", JSON.stringify(stored));
+      localStorage.setItem(key, JSON.stringify(stored));
     } catch {}
     setShowConfirm(false);
     setSubmitted(true);

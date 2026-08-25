@@ -4,7 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { Mail, Lock, Eye, EyeOff } from "lucide-react";
-import { validateLogin } from "../../lib/mock-data";
+import { validateLogin, getRegisteredUsers, userCredentials } from "../../lib/mock-data";
 import { useToast } from "../../lib/toast-context";
 
 export default function LoginPage() {
@@ -27,8 +27,29 @@ export default function LoginPage() {
     }
     const user = validateLogin(email, password);
     if (!user) {
-      setError("Email atau password salah");
-      toast("Email atau password salah", "error");
+      const lower = email.toLowerCase();
+      const registered = getRegisteredUsers().find((u) => u.email.toLowerCase() === lower);
+      if (registered && registered.role === "industry") {
+        if (registered.status === "pending") {
+          setError("Akun kamu masih menunggu persetujuan admin. Silakan tunggu atau hubungi admin.");
+          toast("Akun belum disetujui admin", "warning");
+        } else if (registered.status === "rejected") {
+          setError("Akun kamu ditolak oleh admin. Hubungi admin untuk informasi lebih lanjut.");
+          toast("Akun ditolak", "error");
+        } else {
+          setError("Email atau password salah");
+          toast("Email atau password salah", "error");
+        }
+      } else {
+        const builtIn = userCredentials.find((u) => u.email.toLowerCase() === lower);
+        if (builtIn && builtIn.role === "industry" && builtIn.status === "pending") {
+          setError("Akun kamu masih menunggu persetujuan admin.");
+          toast("Akun belum disetujui admin", "warning");
+        } else {
+          setError("Email atau password salah");
+          toast("Email atau password salah", "error");
+        }
+      }
       return;
     }
     setError("");
@@ -36,6 +57,9 @@ export default function LoginPage() {
     localStorage.setItem("studentEmail", email);
     localStorage.setItem("loggedUserName", user.name);
     localStorage.setItem("loggedUserRole", user.role);
+    if (user.company) {
+      localStorage.setItem("loggedUserCompany", user.company);
+    }
     if (user.role === "admin") {
       router.push("/admin");
     } else if (user.role === "industry") {
