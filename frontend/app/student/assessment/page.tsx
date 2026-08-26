@@ -7,6 +7,7 @@ import Link from "next/link";
 import dynamic from "next/dynamic";
 import Card from "../../components/ui/card";
 import Badge from "../../components/ui/badge";
+import { SkeletonDashboard } from "../../components/ui/skeleton";
 import DashboardHeader from "../../components/layout/dashboardheader";
 import { getCurrentStudent } from "../../lib/mock-data";
 import { addNotification } from "../../lib/notifications";
@@ -80,9 +81,9 @@ export default function AssessmentPage() {
     setQuizQuestions(getQuizForMajor(student.profile.major));
   }, [mounted]);
 
-  if (!mounted) return null;
+  if (!mounted) return <div className="p-6 lg:pl-72"><SkeletonDashboard /></div>;
   const student = getCurrentStudent();
-  if (!student) return null;
+  if (!student) return <div className="p-6 lg:pl-72"><SkeletonDashboard /></div>;
   const { profile: currentUser } = student;
   const quizProgress = Object.keys(quizAnswers).length;
   const quizComplete = quizProgress >= quizQuestions.length;

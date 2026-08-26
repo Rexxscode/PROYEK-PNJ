@@ -1,7 +1,6 @@
 import {
   UserProfile,
   Skill,
-  SkillProfile,
   CareerMatch,
   SkillGap,
   RoadmapMilestone,
@@ -354,10 +353,15 @@ export const userCredentials: UserCredential[] = [
   { email: "rina@student.smk.id", password: "Rina@2026!", role: "student", name: "Rina Wulandari" },
   { email: "hendra@student.smk.id", password: "Hendra@2026!", role: "student", name: "Hendra Susanto" },
   { email: "fajar@student.smk.id", password: "Fajar@2026!", role: "student", name: "Fajar Nugroho" },
+  { email: "andi@student.smk.id", password: "Andi@2026!", role: "student", name: "Andi Pratama" },
+  { email: "rizky@student.smk.id", password: "Rizky@2026!", role: "student", name: "Rizky Aditya" },
+  { email: "lestari@student.smk.id", password: "Lestari@2026!", role: "student", name: "Lestari Wijaya" },
+  { email: "dedi@student.smk.id", password: "Dedi@2026!", role: "student", name: "Dedi Kurniawan" },
   { email: "admin@smk.id", password: "Admin@2026!", role: "admin", name: "Admin SMK" },
   { email: "hrd@techcorp.com", password: "TechCorp@2026!", role: "industry", name: "Sari Dewi", company: "TechCorp Indonesia", status: "approved" },
   { email: "recruit@creativestudio.com", password: "Creative@2026!", role: "industry", name: "Rina Hartono", company: "Creative Studio", status: "approved" },
   { email: "info@telkom.co.id", password: "Telkom@2026!", role: "industry", name: "Bambang Sutrisno", company: "PT Telkom Indonesia", status: "approved" },
+  { email: "hrd@digitaloutsource.co.id", password: "Digital@2026!", role: "industry", name: "Maya Putri", company: "Digital Outsource", status: "pending" },
 ];
 
 export function validateLogin(email: string, password: string): UserCredential | null {
@@ -464,12 +468,20 @@ export function registerAdmin(user: { email: string; password: string; name: str
   return true;
 }
 
-export function getStudentByEmail(email: string): StudentData | null {
+function getStudentByEmail(email: string): StudentData | null {
   const lower = email.toLowerCase();
-  if (lower.includes("rpl") || lower.includes("budi")) return students.rpl;
-  if (lower.includes("dkv") || lower.includes("rina")) return students.dkv;
-  if (lower.includes("tt") || lower.includes("hendra")) return students.tt;
-  if (lower.includes("tkj") || lower.includes("fajar")) return students.tkj;
+  if (lower.includes("andi")) return students["rpl-andi"];
+  if (lower.includes("rizky")) return students["rpl-rizky"];
+  if (lower.includes("lestari")) return students["dkv-lestari"];
+  if (lower.includes("dedi")) return students["tkj-dedi"];
+  if (lower.includes("budi")) return students.rpl;
+  if (lower.includes("rina")) return students.dkv;
+  if (lower.includes("hendra")) return students.tt;
+  if (lower.includes("fajar")) return students.tkj;
+  if (lower.includes("rpl")) return students.rpl;
+  if (lower.includes("dkv")) return students.dkv;
+  if (lower.includes("tt")) return students.tt;
+  if (lower.includes("tkj")) return students.tkj;
   return null;
 }
 
@@ -490,22 +502,6 @@ export function getStudentBySlug(slug: string): StudentData | null {
     return sSlug === lower;
   }) || null;
 }
-
-// ===== Legacy exports for backward compatibility =====
-const defaultStudent = students.rpl;
-export const currentUser = defaultStudent.profile;
-export const hardSkills = defaultStudent.hardSkills;
-export const softSkills = defaultStudent.softSkills;
-export const allSkills = [...defaultStudent.hardSkills, ...defaultStudent.softSkills];
-export const skillProfile: SkillProfile = { userId: defaultStudent.profile.id, skills: allSkills, completedAt: "2026-01-15" };
-export const careerMatches = defaultStudent.careerMatches;
-export const skillGapsForBackend = defaultStudent.skillGaps;
-export const roadmapMilestones = defaultStudent.roadmapMilestones;
-export const projects = defaultStudent.projects;
-export const jobOpportunities = defaultStudent.jobOpportunities;
-
-export const adminUser: UserProfile = { id: "adm-001", name: "Pak Ahmad Hidayat", email: "ahmad@guru.smk.id", role: "admin", major: "BK", grade: "-", avatar: "", createdAt: "2024-01-15" };
-export const industryUser: UserProfile = { id: "ind-001", name: "Sari Dewi", email: "sari@hrd-techcorp.id", role: "industry", major: "HRD", grade: "-", avatar: "", createdAt: "2025-03-10" };
 
 export const studentStats: StudentStats = {
   totalStudents: 248,

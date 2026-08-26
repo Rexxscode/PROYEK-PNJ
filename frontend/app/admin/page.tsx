@@ -12,6 +12,7 @@ import {
 import Card from "../components/ui/card";
 import Badge from "../components/ui/badge";
 import ProgressBar from "../components/ui/progressbar";
+import { SkeletonDashboard } from "../components/ui/skeleton";
 import dynamic from "next/dynamic";
 import DashboardHeader from "../components/layout/dashboardheader";
 import { studentStats, getAllIndustries } from "../lib/mock-data";
@@ -43,7 +44,7 @@ export default function AdminDashboard() {
   const animPercentage = useCountUp(assessedPercentage);
   const animIndustries = useCountUp(industries.length);
 
-  if (!mounted) return null;
+  if (!mounted) return <div className="p-6 lg:pl-72"><SkeletonDashboard /></div>;
 
   return (
     <div>

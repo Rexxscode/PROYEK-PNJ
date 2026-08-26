@@ -14,6 +14,7 @@ import {
 import Card from "../../components/ui/card";
 import Badge from "../../components/ui/badge";
 import ProgressBar from "../../components/ui/progressbar";
+import { SkeletonDashboard } from "../../components/ui/skeleton";
 import dynamic from "next/dynamic";
 import Link from "next/link";
 import DashboardHeader from "../../components/layout/dashboardheader";
@@ -50,10 +51,10 @@ export default function CareerMatchPage() {
     }
   }, [mounted]);
 
-  if (!mounted || !student) return null;
+  if (!mounted || !student) return <div className="p-6 lg:pl-72"><SkeletonDashboard /></div>;
 
   const activeCareer = selectedCareer || careerMatches[0];
-  if (!activeCareer) return null;
+  if (!activeCareer) return <div className="p-6 lg:pl-72"><SkeletonDashboard /></div>;
 
   const readinessTier = getReadinessTier(activeCareer.readinessScore || 0);
 
@@ -281,13 +282,15 @@ export default function CareerMatchPage() {
               <BookOpen className="w-4 h-4" />
               Lihat Rekomendasi Belajar
             </Link>
-            <Link
-              href="/student/jobs"
-              className="flex items-center justify-center gap-2 px-6 py-3 border border-border text-foreground font-medium rounded-xl hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
-            >
-              Lihat Lowongan
-              <ArrowRight className="w-4 h-4" />
-            </Link>
+            {student.profile.grade === "XII" && (
+              <Link
+                href="/student/jobs"
+                className="flex items-center justify-center gap-2 px-6 py-3 border border-border text-foreground font-medium rounded-xl hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
+              >
+                Lihat Lowongan
+                <ArrowRight className="w-4 h-4" />
+              </Link>
+            )}
           </div>
         </div>
       </div>

@@ -14,6 +14,7 @@ import {
 } from "lucide-react";
 import Card from "../../components/ui/card";
 import Badge from "../../components/ui/badge";
+import { SkeletonTable } from "../../components/ui/skeleton";
 import DashboardHeader from "../../components/layout/dashboardheader";
 import { getCurrentStudent } from "../../lib/mock-data";
 import { getMatchBg, formatDate } from "../../lib/utils";
@@ -64,7 +65,28 @@ export default function JobsPage() {
   const jobOpportunities = student?.jobOpportunities || [];
   const profile = student?.profile;
 
-  if (!mounted || !student) return null;
+  if (!mounted || !student) return <div className="p-6 lg:pl-72"><SkeletonTable /></div>;
+
+  if (student.profile.grade !== "XII") {
+    return (
+      <div>
+        <DashboardHeader title="Lowongan" subtitle="Peluang kerja untuk siswa" />
+        <div className="p-6">
+          <div className="flex justify-center items-center min-h-[60vh]">
+            <Card className="max-w-lg w-full">
+              <div className="text-center py-12">
+                <Briefcase className="w-12 h-12 text-muted mx-auto mb-4" />
+                <h3 className="text-lg font-semibold text-foreground mb-2">Akses Terbatas</h3>
+                <p className="text-muted text-sm">
+                  Lowongan pekerjaan hanya tersedia untuk siswa kelas XII yang akan lulus. Saat ini kamu masih kelas {student.profile.grade}. Silakan fokus pada asesmen dan roadmap belajar terlebih dahulu.
+                </p>
+              </div>
+            </Card>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   const filteredJobs = jobOpportunities
     .filter((job) => {

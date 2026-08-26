@@ -15,6 +15,7 @@ import {
 import Link from "next/link";
 import Card from "../../components/ui/card";
 import Badge from "../../components/ui/badge";
+import { SkeletonDashboard } from "../../components/ui/skeleton";
 import DashboardHeader from "../../components/layout/dashboardheader";
 import { getCurrentStudent } from "../../lib/mock-data";
 import { cn } from "../../lib/utils";
@@ -74,9 +75,9 @@ export default function RoadmapPage() {
     }
   }, [mounted]);
 
-  if (!mounted) return null;
+  if (!mounted) return <div className="p-6 lg:pl-72"><SkeletonDashboard /></div>;
   const student = getCurrentStudent();
-  if (!student) return null;
+  if (!student) return <div className="p-6 lg:pl-72"><SkeletonDashboard /></div>;
 
   const gapSkillNames = (selectedCareer?.skillGaps || []).map((g) => g.name.toLowerCase());
   const unlockedMilestones = gapSkillNames.length > 0

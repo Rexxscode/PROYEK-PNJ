@@ -328,12 +328,8 @@ export default function DashboardHeader({ title, subtitle, actions, role = "stud
                       </div>
                       <button
                         onClick={() => {
-                          if (editPassword.length >= 8) {
-                            toast("Password berhasil diubah!", "success");
-                            setEditPassword("");
-                          } else {
-                            toast("Password minimal 8 karakter!", "warning");
-                          }
+                          toast("Ubah password memerlukan backend authentication", "warning");
+                          setEditPassword("");
                         }}
                         className="px-3 py-2 bg-primary text-white rounded-lg text-sm font-medium hover:bg-primary-dark transition-colors flex-shrink-0"
                       >

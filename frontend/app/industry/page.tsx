@@ -20,6 +20,7 @@ import {
 import Link from "next/link";
 import Card from "../components/ui/card";
 import Badge from "../components/ui/badge";
+import { SkeletonDashboard } from "../components/ui/skeleton";
 import DashboardHeader from "../components/layout/dashboardheader";
 import { getMatchBg, getInitials } from "../lib/utils";
 import { getIndustryCompany, students } from "../lib/mock-data";
@@ -181,7 +182,7 @@ export default function IndustryDashboard() {
     toast("Profil perusahaan berhasil diperbarui", "success");
   };
 
-  if (!mounted) return null;
+  if (!mounted) return <div className="p-6 lg:pl-72"><SkeletonDashboard /></div>;
   return (
     <div>
       <DashboardHeader

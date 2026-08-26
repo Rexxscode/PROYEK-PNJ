@@ -7,6 +7,7 @@ import Link from "next/link";
 import DashboardHeader from "../../components/layout/dashboardheader";
 import Card from "../../components/ui/card";
 import Badge from "../../components/ui/badge";
+import { SkeletonTable } from "../../components/ui/skeleton";
 import ConfirmDialog from "../../components/ui/confirm-dialog";
 import { useToast } from "../../lib/toast-context";
 
@@ -132,7 +133,7 @@ export default function MyJobsPage() {
     setEditJob(null);
   };
 
-  if (!mounted) return null;
+  if (!mounted) return <div className="p-6 lg:pl-72"><SkeletonTable /></div>;
 
   return (
     <div>

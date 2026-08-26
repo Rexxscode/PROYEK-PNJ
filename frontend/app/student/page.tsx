@@ -15,6 +15,7 @@ import {
 import Card from "../components/ui/card";
 import Badge from "../components/ui/badge";
 import DashboardHeader from "../components/layout/dashboardheader";
+import { SkeletonDashboard } from "../components/ui/skeleton";
 import dynamic from "next/dynamic";
 import { getCurrentStudent } from "../lib/mock-data";
 import { getMatchColor, getReadinessTier } from "../lib/utils";
@@ -24,7 +25,7 @@ import { loadCareerMatches, generateCareerMatches, saveCareerMatches } from "../
 import type { CareerMatch } from "../lib/type";
 import Link from "next/link";
 
-const DoughnutChart = dynamic(() => import("../components/charts/doughnutchart"), { ssr: false });
+const SkillBarChart = dynamic(() => import("../components/charts/barchart"), { ssr: false });
 
 export default function StudentDashboard() {
   const [mounted, setMounted] = useState(false);
@@ -65,7 +66,7 @@ export default function StudentDashboard() {
   const doughnutLabels = useMemo(() => careerMatches.map((c) => c.title), [careerMatches]);
   const doughnutData = useMemo(() => careerMatches.map((c) => c.matchPercentage), [careerMatches]);
 
-  if (!student || !profile) return null;
+  if (!student || !profile) return <div className="p-6 lg:pl-72"><SkeletonDashboard /></div>;
 
   return (
     <div>
@@ -122,10 +123,12 @@ export default function StudentDashboard() {
           </Card>
 
           <Card>
-            <DoughnutChart
+            <SkillBarChart
               labels={doughnutLabels}
               data={doughnutData}
-              title="Distribusi Kecocokan Karir"
+              title="Kecocokan Karier (%)"
+              color="rgba(37, 99, 235, 0.8)"
+              max={100}
             />
           </Card>
         </div>

@@ -17,28 +17,6 @@ export function getMatchBg(percentage: number): string {
   return "bg-red-100 text-red-600";
 }
 
-export function getGapStatusColor(status: "mastered" | "improving" | "needed"): string {
-  switch (status) {
-    case "mastered":
-      return "bg-emerald-500";
-    case "improving":
-      return "bg-amber-400";
-    case "needed":
-      return "bg-red-500";
-  }
-}
-
-export function getGapStatusLabel(status: "mastered" | "improving" | "needed"): string {
-  switch (status) {
-    case "mastered":
-      return "Dikuasai";
-    case "improving":
-      return "Perlu Ditingkatkan";
-    case "needed":
-      return "Belum Dikuasai";
-  }
-}
-
 export interface ReadinessTier {
   level: number;
   label: string;
@@ -55,18 +33,6 @@ export function getReadinessTier(score: number): ReadinessTier {
   if (score >= 70) return { level: 3, label: "Almost Ready", status: "Hampir Siap", color: "text-amber-600 dark:text-amber-400", bgColor: "bg-amber-100 dark:bg-amber-900/50", borderColor: "border-amber-300 dark:border-amber-700", icon: "🟡", description: "Kamu sudah memiliki dasar yang kuat. Tingkatkan skill gap yang tersisa." };
   if (score >= 50) return { level: 2, label: "Developing", status: "Sedang Berkembang", color: "text-orange-600 dark:text-orange-400", bgColor: "bg-orange-100 dark:bg-orange-900/50", borderColor: "border-orange-300 dark:border-orange-700", icon: "🟠", description: "Kamu sedang dalam proses belajar. Fokus pada skill gap utama." };
   return { level: 1, label: "Exploration", status: "Eksplorasi", color: "text-red-600 dark:text-red-400", bgColor: "bg-red-100 dark:bg-red-900/50", borderColor: "border-red-300 dark:border-red-700", icon: "🔴", description: "Mulai petualangan karier kamu! Ikuti assessment untuk mengetahui potensimu." };
-}
-
-export function getReadinessLabel(score: number): string {
-  return getReadinessTier(score).status;
-}
-
-export function getReadinessColor(score: number): string {
-  return getReadinessTier(score).color;
-}
-
-export function getReadinessBg(score: number): string {
-  return getReadinessTier(score).bgColor;
 }
 
 export function formatDate(dateString: string): string {

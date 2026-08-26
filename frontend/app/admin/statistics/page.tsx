@@ -4,12 +4,10 @@ import { BarChart3, TrendingUp, Users } from "lucide-react";
 import Card from "../../components/ui/card";
 import dynamic from "next/dynamic";
 import DashboardHeader from "../../components/layout/dashboardheader";
-import { studentStats } from "../../lib/mock-data";
+import { studentStats, students } from "../../lib/mock-data";
 
 const SkillBarChart = dynamic(() => import("../../components/charts/barchart"), { ssr: false });
-const DoughnutChart = dynamic(() => import("../../components/charts/doughnutchart"), { ssr: false });
 const LineChart = dynamic(() => import("../../components/charts/linechart"), { ssr: false });
-const SkillRadar = dynamic(() => import("../../components/charts/skillradar"), { ssr: false });
 
 const monthlyData = [
   { month: "Jan", students: 12 },
@@ -20,7 +18,25 @@ const monthlyData = [
   { month: "Jun", students: 35 },
 ];
 
+function getReadinessDistribution() {
+  const allStudents = Object.values(students);
+  const tierCounts = { "Siap Kerja (85-100%)": 0, "Hampir Siap (70-84%)": 0, "Berkembang (50-69%)": 0, "Eksplorasi (0-49%)": 0 };
+  allStudents.forEach((s) => {
+    if (!s.careerMatches.length) return;
+    const avg = Math.round(s.careerMatches.reduce((sum, cm) => sum + cm.readinessScore, 0) / s.careerMatches.length);
+    if (avg >= 85) tierCounts["Siap Kerja (85-100%)"]++;
+    else if (avg >= 70) tierCounts["Hampir Siap (70-84%)"]++;
+    else if (avg >= 50) tierCounts["Berkembang (50-69%)"]++;
+    else tierCounts["Eksplorasi (0-49%)"]++;
+  });
+  return tierCounts;
+}
+
 export default function StatisticsPage() {
+  const distribution = getReadinessDistribution();
+  const distLabels = Object.keys(distribution);
+  const distData = Object.values(distribution);
+
   return (
     <div>
       <DashboardHeader
@@ -104,25 +120,19 @@ export default function StatisticsPage() {
           />
         </Card>
         <Card>
-          <DoughnutChart
-            labels={["Sangat Siap", "Siap", "Perlu Persiapan", "Mulai Belajar"]}
-            data={[15, 35, 30, 20]}
-            title="Distribusi Readiness"
-            colors={["#10b981", "#3b82f6", "#f59e0b", "#ef4444"]}
-            centerLabel="100%"
+          <SkillBarChart
+            labels={distLabels}
+            data={distData}
+            title="Distribusi Readiness Siswa"
+            color="rgba(245, 158, 11, 0.8)"
           />
         </Card>
         <Card>
-          <SkillRadar
-            skills={studentStats.readinessByMajor.map((m) => ({
-              id: m.major,
-              name: m.major.split(" ").slice(0, 2).join(" "),
-              category: "hard" as const,
-              level: m.score,
-            }))}
+          <SkillBarChart
+            labels={studentStats.readinessByMajor.map((m) => m.major)}
+            data={studentStats.readinessByMajor.map((m) => m.score)}
             title="Readiness per Jurusan"
-            max={100}
-            color="rgba(16, 185, 129, 0.8)"
+            color="rgba(37, 99, 235, 0.8)"
           />
         </Card>
       </div>
