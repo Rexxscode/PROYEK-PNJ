@@ -60,8 +60,6 @@ export default function DashboardHeader({ title, subtitle, actions, role = "stud
 
   useEffect(() => {
     setMounted(true);
-    localStorage.removeItem("app_notifications");
-    localStorage.removeItem("notifications_seeded");
     const storedName = localStorage.getItem("loggedUserName");
     if (storedName) setEditName(storedName);
     const storedPhoto = localStorage.getItem(PROFILE_PHOTO_KEY);
@@ -359,7 +357,7 @@ export default function DashboardHeader({ title, subtitle, actions, role = "stud
         </div>
       </div>
       {subtitle && (
-        <p className="text-xs sm:text-sm text-muted mt-1 truncate pl-14 lg:pl-0">{subtitle}</p>
+        <p className="text-xs sm:text-sm text-muted mt-1 pl-14 lg:pl-0 pr-4 leading-relaxed break-words">{subtitle}</p>
       )}
     </div>
   );

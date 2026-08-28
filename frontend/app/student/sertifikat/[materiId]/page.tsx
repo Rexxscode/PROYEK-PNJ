@@ -232,14 +232,14 @@ export default function MateriTesPage() {
             aria-hidden
             style={{ position: "fixed", left: -9999, top: 0, opacity: 0, pointerEvents: "none" }}
           >
-            <CertificateView
-              ref={certRef}
-              studentName={studentName}
-              materiTitle={materi.title}
-              majorName={materi.major}
-              date={result.date}
-              scale={3}
-            />
+<CertificateView
+                ref={certRef}
+                studentName={studentName}
+                materiTitle={materi.title}
+                majorName={materi.major}
+                date={result.date}
+                scale={2}
+              />
           </div>
 
           <div className="mt-6 flex flex-wrap gap-3">

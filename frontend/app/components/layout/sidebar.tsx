@@ -83,6 +83,10 @@ export default function Sidebar({ role, currentPath, isCollapsed = false, onTogg
 
   useEffect(() => {
     window.dispatchEvent(new CustomEvent("sidebar-toggle", { detail: { open: mobileOpen } }));
+    document.body.style.overflow = mobileOpen ? "hidden" : "";
+    return () => {
+      if (typeof document !== "undefined") document.body.style.overflow = "";
+    };
   }, [mobileOpen]);
   const [profilePhoto, setProfilePhoto] = useState("");
   useEffect(() => {
