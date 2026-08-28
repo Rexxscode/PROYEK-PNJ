@@ -17,6 +17,7 @@ import {
   X,
   UserPlus,
   Lock,
+  Award,
 } from "lucide-react";
 import { cn, getInitials } from "../../lib/utils";
 import { getCurrentStudent } from "../../lib/mock-data";
@@ -35,6 +36,7 @@ const navItems = {
     { label: "Know Your Path", href: "/student/career-match", icon: Target },
     { label: "Roadmap Belajar", href: "/student/roadmap", icon: Map },
     { label: "Portfolio", href: "/student/portofolio", icon: GraduationCap },
+    { label: "Sertifikat", href: "/student/sertifikat", icon: Award },
     { label: "Lowongan", href: "/student/jobs", icon: Briefcase },
   ],
   admin: [

@@ -174,7 +174,7 @@ const dkvRoadmap: MajorRoadmap = {
       { title: "Design a Simple Logo", url: "https://helpx.adobe.com/illustrator/get-started.html", type: "practice" },
     ]},
     { id: "dkv-f4", title: "Layout & Composition Principles", description: "Pelajari prinsip desain: alignment, contrast, repetition, proximity, hierarchy, dan balance.", status: "locked", skills: ["Layout", "Design Principles"], estimatedHours: 12, level: "fundamental", resources: [
-      { title: "Non-Designer's Design Book", url: "https://www.williamsdesign.com/designdairy/", type: "article" },
+      { title: "The Principles of Design", url: "https://www.interaction-design.org/literature/article/the-principles-of-design", type: "article" },
       { title: "Design Principles Crash Course", url: "https://www.youtube.com/watch?v=KkQX6VmT7bY", type: "video", embedUrl: "https://www.youtube.com/embed/KkQX6VmT7bY" },
       { title: "Coursera: Fundamentals of Graphic Design", url: "https://www.coursera.org/learn/fundamentals-of-graphic-design", type: "course" },
       { title: "Recreate a Magazine Layout", url: "https://www.canva.com/", type: "practice" },
@@ -251,7 +251,7 @@ const tkjRoadmap: MajorRoadmap = {
     { id: "tkj-f4", title: "MikroTik RouterOS Basic", description: "Pelajari konfigurasi MikroTik: IP, firewall, NAT, DHCP server, dan wireless.", status: "locked", skills: ["MikroTik"], estimatedHours: 18, level: "fundamental", resources: [
       { title: "MikroTik Wiki", url: "https://wiki.mikrotik.com/wiki/Manual:Table_of_contents", type: "article" },
       { title: "MikroTik Beginner Tutorial", url: "https://www.youtube.com/watch?v=aQMxZmVGDqQ", type: "video", embedUrl: "https://www.youtube.com/embed/aQMxZmVGDqQ" },
-      { title: "MikroTik Academy", url: "https://mikrotik.com/academy", type: "course" },
+      { title: "MikroTik Training", url: "https://mikrotik.com/training", type: "course" },
       { title: "Setup Hotspot with MikroTik", url: "https://mikrotik.com/products", type: "practice" },
     ]},
   ],
@@ -277,7 +277,7 @@ const tkjRoadmap: MajorRoadmap = {
     { id: "tkj-i4", title: "Docker & Containerization", description: "Pelajari containerization dengan Docker: image, container, compose, dan deployment.", status: "locked", skills: ["Docker"], estimatedHours: 15, level: "intermediate", resources: [
       { title: "Docker Docs", url: "https://docs.docker.com/get-started/", type: "article" },
       { title: "Docker Crash Course", url: "https://www.youtube.com/watch?v=fqMOX6JJhGo", type: "video", embedUrl: "https://www.youtube.com/embed/fqMOX6JJhGo" },
-      { title: "Docker for Beginners", url: "https://docker-training.mirantis.com/", type: "course" },
+      { title: "Docker 101 Tutorial (Resmi)", url: "https://www.docker.com/101-tutorial/", type: "course" },
       { title: "Dockerize a Web App", url: "https://docs.docker.com/get-started/", type: "practice" },
     ]},
   ],
@@ -306,10 +306,10 @@ const tkjRoadmap: MajorRoadmap = {
 const transmisiRoadmap: MajorRoadmap = {
   fundamental: [
     { id: "tt-f1", title: "Telecom Fundamental & Signal Theory", description: "Pelajari konsep dasar sinyal analog/digital, frekuensi, bandwidth, dan modulasi.", status: "available", skills: ["Networking Basics"], estimatedHours: 20, level: "fundamental", resources: [
-      { title: "Telecom Basics", url: "https://www.tutorialspoint.com/communication_systems/", type: "article" },
+      { title: "Data Communication Basics", url: "https://www.tutorialspoint.com/data_communication_computer_network/", type: "article" },
       { title: "Communication Systems Course", url: "https://www.youtube.com/watch?v=8e4Sf6rL3zk", type: "video", embedUrl: "https://www.youtube.com/embed/8e4Sf6rL3zk" },
-      { title: "Coursera: Communication Systems", url: "https://www.coursera.org/learn/communication-systems", type: "course" },
-      { title: "Lab: Analisis Spektrum Sinyal", url: "https://www.octave-online.net/", type: "practice" },
+      { title: "MIT OCW: Signals & Systems", url: "https://ocw.mit.edu/courses/res-6-007-signals-and-systems-spring-2011/", type: "course" },
+      { title: "Lab: Analisis Spektrum Sinyal", url: "https://octave-online.net/", type: "practice" },
     ]},
     { id: "tt-f2", title: "Fiber Optic Fundamentals", description: "Pelajari struktur kabel fiber, jenis (SMF/MMF), princip kerja, dan keuntungan vs kabel tembaga.", status: "locked", skills: ["Fiber Optics"], estimatedHours: 18, level: "fundamental", resources: [
       { title: "Fiber Optic Basics (Corning)", url: "https://www.corning.com/worldwide/en/products/communications/cables/fundamentals-of-fiber-optics.html", type: "article" },
@@ -320,11 +320,11 @@ const transmisiRoadmap: MajorRoadmap = {
     { id: "tt-f3", title: "Radio Frequency (RF) Basic", description: "Pelajari konsep RF: frekuensi, gelombang, antena, dan propagasi sinyal radio.", status: "locked", skills: ["Radio Frequency"], estimatedHours: 18, level: "fundamental", resources: [
       { title: "RF Basics", url: "https://www.everythingrf.com/community/radio-frequency-rf-basics", type: "article" },
       { title: "RF Engineering Crash Course", url: "https://www.youtube.com/watch?v=Rvti1TYI5NE", type: "video", embedUrl: "https://www.youtube.com/embed/Rvti1TYI5NE" },
-      { title: "Coursera: RF Design", url: "https://www.coursera.org/learn/rf-design", type: "course" },
+      { title: "MIT OCW: Circuits & Electronics", url: "https://ocw.mit.edu/courses/6-002-circuits-and-electronics-spring-2007/", type: "course" },
       { title: "Analisis Spesifikasi Antena", url: "https://www.everythingrf.com/", type: "practice" },
     ]},
     { id: "tt-f4", title: "Network Engineering Basic", description: "Pelajari konsep jaringan transmisi: OSI model, TCP/IP, dan protokol dasar telekomunikasi.", status: "locked", skills: ["Networking Basics"], estimatedHours: 15, level: "fundamental", resources: [
-      { title: "Telecom Network Overview", url: "https://www.techtarget.com/searchnetworking/definition/telecommunications-network", type: "article" },
+      { title: "Telecom Network Overview", url: "https://en.wikipedia.org/wiki/Telecommunications_network", type: "article" },
       { title: "Telecom Networking 101", url: "https://www.youtube.com/watch?v=qiQR5rda7zk", type: "video", embedUrl: "https://www.youtube.com/embed/qiQR5rda7zk" },
       { title: "Cisco Networking Academy", url: "https://www.netacad.com/", type: "course" },
       { title: "Build a Simple Network Diagram", url: "https://app.diagrams.net/", type: "practice" },
@@ -332,19 +332,19 @@ const transmisiRoadmap: MajorRoadmap = {
   ],
   intermediate: [
     { id: "tt-i1", title: "Fiber Optic Splicing & Testing", description: "Pelajari fusion splicing, connector termination, penggunaan OTDR, dan Power Meter.", status: "available", skills: ["Fiber Optics"], estimatedHours: 20, level: "intermediate", resources: [
-      { title: "Fiber Splicing Guide (Fujikura)", url: "https://fujikura.com/products/fusion-splicers/", type: "article" },
+      { title: "Fiber Optic Communication (Wikipedia)", url: "https://en.wikipedia.org/wiki/Fiber-optic_communication", type: "article" },
       { title: "OTDR Tutorial", url: "https://www.youtube.com/watch?v=qZU6fPnoEvg", type: "video", embedUrl: "https://www.youtube.com/embed/qZU6fPnoEvg" },
-      { title: "AFL Fiber Training", url: "https://www.aflglobal.com/training", type: "course" },
-      { title: "Hands-on Splicing & OTDR Test", url: "https://www.fujikura.com/", type: "practice" },
+      { title: "FOA Fiber Optics Guide", url: "https://www.thefoa.org/tech/", type: "course" },
+      { title: "Hands-on Splicing & OTDR Test", url: "https://www.thefoa.org/tech/", type: "practice" },
     ]},
     { id: "tt-i2", title: "RF Link Planning & Calculations", description: "Hitung link budget, fade margin, rain fade, dan perencanaan radio link point-to-point.", status: "locked", skills: ["Radio Frequency"], estimatedHours: 20, level: "intermediate", resources: [
       { title: "RF Link Budget Calculator", url: "https://www.pasternack.com/tutorials/rf-link-budget.aspx", type: "article" },
       { title: "Radio Link Planning", url: "https://www.youtube.com/watch?v=EzFh8OTVBjQ", type: "video", embedUrl: "https://www.youtube.com/embed/EzFh8OTVBjQ" },
-      { title: "MikroTik Wireless Course", url: "https://mikrotik.com/academy", type: "course" },
+      { title: "MikroTik Wireless Training", url: "https://mikrotik.com/training", type: "course" },
       { title: "Rencanakan Link 5km di RouterOS", url: "https://mikrotik.com/products", type: "practice" },
     ]},
     { id: "tt-i3", title: "Tower Installation & Mekanik Radio", description: "Pelajari instalasi tower, guy wire, grounding, wind load calculation, dan antenna alignment.", status: "locked", skills: ["Teknik Mekanik Radio"], estimatedHours: 18, level: "intermediate", resources: [
-      { title: "Tower Installation Guide", url: "https://www.ursa.com/resources/technical-bulletins/", type: "article" },
+      { title: "Radio Masts & Towers (Wikipedia)", url: "https://en.wikipedia.org/wiki/Radio_masts_and_towers", type: "article" },
       { title: "Tower Climbing Safety", url: "https://www.youtube.com/watch?v=qCOLcE9iR2I", type: "video", embedUrl: "https://www.youtube.com/embed/qCOLcE9iR2I" },
       { title: "Tower Safety Certification", url: "https://www.comtrain.org/", type: "course" },
       { title: "Tower Site Survey Report", url: "https://www.comtrain.org/", type: "practice" },
@@ -352,7 +352,7 @@ const transmisiRoadmap: MajorRoadmap = {
     { id: "tt-i4", title: "MikroTik Advanced & RouterOS", description: "Konfigurasi advanced: routing, VPN, QoS, hotspot, bandwidth management dengan MikroTik.", status: "locked", skills: ["Networking Basics"], estimatedHours: 18, level: "intermediate", resources: [
       { title: "MikroTik Advanced Guide", url: "https://wiki.mikrotik.com/wiki/Manual:TOC", type: "article" },
       { title: "MikroTik Advanced Tutorial", url: "https://www.youtube.com/watch?v=aQMxZmVGDqQ", type: "video", embedUrl: "https://www.youtube.com/embed/aQMxZmVGDqQ" },
-      { title: "MikroTik MTCNA Certification", url: "https://mikrotik.com/academy/mtcna", type: "course" },
+      { title: "MikroTik MTCNA Training", url: "https://mikrotik.com/training", type: "course" },
       { title: "Setup VPN & QoS on RouterOS", url: "https://mikrotik.com/products", type: "practice" },
     ]},
   ],
@@ -370,7 +370,7 @@ const transmisiRoadmap: MajorRoadmap = {
       { title: "5G Network Design Simulator", url: "https://www.3gpp.org/", type: "practice" },
     ]},
     { id: "tt-a3", title: "Network Monitoring & SLA Management", description: "Setup monitoring (SNMP, Zabbix/PRTG), SLA measurement (latency, jitter, availability), dan reporting.", status: "locked", skills: ["Networking Basics"], estimatedHours: 18, level: "advanced", resources: [
-      { title: "SNMP Monitoring Guide", url: "https://www.paessler.com/info/snmp", type: "article" },
+      { title: "SNMP Monitoring Guide", url: "https://www.manageengine.com/network-monitoring/what-is-snmp.html", type: "article" },
       { title: "Zabbix Full Course", url: "https://www.youtube.com/watch?v=W_HIIvuZFUg", type: "video", embedUrl: "https://www.youtube.com/embed/W_HIIvuZFUg" },
       { title: "Zabbix Official Training", url: "https://www.zabbix.com/documentation/current/en/manual", type: "course" },
       { title: "Setup Monitoring untuk 3 Link", url: "https://www.zabbix.com/", type: "practice" },

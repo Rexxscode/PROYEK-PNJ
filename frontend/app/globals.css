@@ -3,6 +3,15 @@
 
 @custom-variant dark (&:where(.dark, .dark *));
 
+/* Libre Baskerville — font badan sertifikat (sesuai template PDF asli) */
+@font-face {
+  font-family: "Libre Baskerville";
+  src: url("/fonts/librebaskerville/LibreBaskerville.ttf") format("truetype");
+  font-weight: 400 700;
+  font-style: normal;
+  font-display: block;
+}
+
 :root {
   --background: #f8fafc;
   --foreground: #0f172a;
