@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import {
   LayoutDashboard,
@@ -78,7 +78,8 @@ export function MobileMenuButton({ onClick }: { onClick: () => void }) {
 }
 
 export default function Sidebar({ role, currentPath, isCollapsed = false, onToggle }: SidebarProps) {
-  const [mounted, setMounted] = useState(false);
+  const [mounted] = useState(true);
+  const photoRef = useRef<string | null>(null);
   const [mobileOpen, setMobileOpen] = useState(false);
 
   useEffect(() => {
@@ -90,20 +91,16 @@ export default function Sidebar({ role, currentPath, isCollapsed = false, onTogg
   }, [mobileOpen]);
   const [profilePhoto, setProfilePhoto] = useState("");
   useEffect(() => {
-    setMounted(true);
-    const photo = localStorage.getItem("profilePhoto");
+    photoRef.current = localStorage.getItem("profilePhoto");
+    const photo = photoRef.current;
     if (photo) setProfilePhoto(photo);
     const handlePhotoUpdate = () => {
-      const photo = localStorage.getItem("profilePhoto");
-      setProfilePhoto(photo || "");
+      photoRef.current = localStorage.getItem("profilePhoto");
+      setProfilePhoto(photoRef.current || "");
     };
     window.addEventListener("profile-photo-updated", handlePhotoUpdate as EventListener);
     return () => window.removeEventListener("profile-photo-updated", handlePhotoUpdate as EventListener);
   }, []);
-
-  useEffect(() => {
-    setMobileOpen(false);
-  }, [currentPath]);
 
   const studentData = mounted ? getCurrentStudent() : null;
   const storedName = mounted ? localStorage.getItem("loggedUserName") : null;
