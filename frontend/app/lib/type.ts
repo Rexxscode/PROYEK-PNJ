@@ -28,8 +28,10 @@ export interface CareerMatch {
   title: string;
   description: string;
   matchPercentage: number;
+  readinessScore: number;
   requiredSkills: Skill[];
   category: string;
+  skillGaps: { name: string; current: number; required: number }[];
 }
 
 export interface SkillGap {

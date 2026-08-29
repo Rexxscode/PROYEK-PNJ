@@ -20,9 +20,10 @@ interface BarChartProps {
   data: number[];
   title?: string;
   color?: string;
+  max?: number;
 }
 
-const SkillBarChart = memo(function SkillBarChart({ labels, data, title, color = "rgba(37, 99, 235, 0.8)" }: BarChartProps) {
+const SkillBarChart = memo(function SkillBarChart({ labels, data, title, color = "rgba(37, 99, 235, 0.8)", max: propMax }: BarChartProps) {
   const [ready, setReady] = useState(false);
   useEffect(() => { const t = setTimeout(() => setReady(true), 0); return () => clearTimeout(t); }, []);
   const { theme } = useTheme();
@@ -32,6 +33,7 @@ const SkillBarChart = memo(function SkillBarChart({ labels, data, title, color =
 
   const truncatedLabels = useMemo(() => labels.map((l) => l.length > 16 ? l.slice(0, 14) + "…" : l), [labels]);
   const dataMax = useMemo(() => Math.max(...data, 1), [data]);
+  const chartMax = propMax ?? Math.ceil(dataMax * 1.15);
 
   const chartData = useMemo(
     () => ({
@@ -63,7 +65,7 @@ const SkillBarChart = memo(function SkillBarChart({ labels, data, title, color =
       scales: {
         x: {
           beginAtZero: true,
-          max: Math.ceil(dataMax * 1.15),
+          max: chartMax,
           ticks: { stepSize: 1, font: { size: 11 }, color: tickColor },
           grid: { color: gridColor },
         },
@@ -80,7 +82,7 @@ const SkillBarChart = memo(function SkillBarChart({ labels, data, title, color =
         },
       },
     }),
-    [truncatedLabels, dataMax, tickColor, gridColor]
+    [truncatedLabels, chartMax, tickColor, gridColor]
   );
 
   if (!ready) return <div className="h-64" />;

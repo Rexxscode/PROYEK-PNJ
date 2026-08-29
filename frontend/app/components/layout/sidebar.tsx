@@ -15,8 +15,12 @@ import {
   ChevronLeft,
   Menu,
   X,
+  UserPlus,
+  Lock,
+  Award,
 } from "lucide-react";
 import { cn, getInitials } from "../../lib/utils";
+import { getCurrentStudent } from "../../lib/mock-data";
 
 interface SidebarProps {
   role: "student" | "admin" | "industry";
@@ -32,11 +36,14 @@ const navItems = {
     { label: "Know Your Path", href: "/student/career-match", icon: Target },
     { label: "Roadmap Belajar", href: "/student/roadmap", icon: Map },
     { label: "Portfolio", href: "/student/portofolio", icon: GraduationCap },
+    { label: "Sertifikat", href: "/student/sertifikat", icon: Award },
     { label: "Lowongan", href: "/student/jobs", icon: Briefcase },
   ],
   admin: [
     { label: "Dashboard", href: "/admin", icon: LayoutDashboard },
     { label: "Data Siswa", href: "/admin/students", icon: Users },
+    { label: "Data Industry", href: "/admin/industries", icon: Building2 },
+    { label: "Kelola Admin", href: "/admin/accounts", icon: UserPlus },
     { label: "Statistik", href: "/admin/statistics", icon: BarChart3 },
   ],
   industry: [
@@ -76,11 +83,13 @@ export default function Sidebar({ role, currentPath, isCollapsed = false, onTogg
 
   useEffect(() => {
     window.dispatchEvent(new CustomEvent("sidebar-toggle", { detail: { open: mobileOpen } }));
+    document.body.style.overflow = mobileOpen ? "hidden" : "";
+    return () => {
+      if (typeof document !== "undefined") document.body.style.overflow = "";
+    };
   }, [mobileOpen]);
   const [profilePhoto, setProfilePhoto] = useState("");
   useEffect(() => {
-    // Hydration guard: sinkronisasi state dari localStorage setelah mount.
-    // eslint-disable-next-line react-hooks/set-state-in-effect
     setMounted(true);
     const photo = localStorage.getItem("profilePhoto");
     if (photo) setProfilePhoto(photo);
@@ -93,13 +102,17 @@ export default function Sidebar({ role, currentPath, isCollapsed = false, onTogg
   }, []);
 
   useEffect(() => {
-    // eslint-disable-next-line react-hooks/set-state-in-effect
     setMobileOpen(false);
   }, [currentPath]);
 
+  const studentData = mounted ? getCurrentStudent() : null;
+  const storedName = mounted ? localStorage.getItem("loggedUserName") : null;
+  const storedEmail = mounted ? localStorage.getItem("studentEmail") : null;
+  const user = role === "student" && studentData
+    ? studentData.profile
+    : { id: "", name: storedName || (role === "admin" ? "Admin" : "Industry"), email: storedEmail || "", role, major: "", grade: "", avatar: "", createdAt: "" };
+
   const items = navItems[role];
-  const localName = mounted ? localStorage.getItem("loggedUserName") || "" : "";
-  const user = { name: localName || roleLabels[role] };
 
   return (
     <>
@@ -139,6 +152,7 @@ export default function Sidebar({ role, currentPath, isCollapsed = false, onTogg
         <nav className="flex-1 py-4 px-3 space-y-1 overflow-y-auto">
           {items.map((item) => {
             const isActive = currentPath === item.href;
+            const isJobsLocked = role === "student" && item.href === "/student/jobs" && user.grade !== "XII";
             return (
               <Link
                 key={item.href}
@@ -151,7 +165,15 @@ export default function Sidebar({ role, currentPath, isCollapsed = false, onTogg
                 )}
               >
                 <item.icon className={cn("w-5 h-5 flex-shrink-0", isActive && "text-primary")} />
-                {!isCollapsed && <span>{item.label}</span>}
+                {!isCollapsed && (
+                  <span className="flex-1">{item.label}</span>
+                )}
+                {!isCollapsed && isJobsLocked && (
+                  <span className="flex items-center gap-1 text-[10px] font-medium px-1.5 py-0.5 rounded-full bg-amber-100 dark:bg-amber-900/40 text-amber-700 dark:text-amber-400 whitespace-nowrap">
+                    <Lock className="w-2.5 h-2.5" />
+                    XII
+                  </span>
+                )}
               </Link>
             );
           })}
@@ -203,6 +225,7 @@ export default function Sidebar({ role, currentPath, isCollapsed = false, onTogg
         <nav className="flex-1 py-4 px-3 space-y-1 overflow-y-auto">
           {items.map((item) => {
             const isActive = currentPath === item.href;
+            const isJobsLocked = role === "student" && item.href === "/student/jobs" && user.grade !== "XII";
             return (
               <Link
                 key={item.href}
@@ -215,7 +238,13 @@ export default function Sidebar({ role, currentPath, isCollapsed = false, onTogg
                 )}
               >
                 <item.icon className={cn("w-5 h-5 flex-shrink-0", isActive && "text-primary")} />
-                <span>{item.label}</span>
+                <span className="flex-1">{item.label}</span>
+                {isJobsLocked && (
+                  <span className="flex items-center gap-1 text-[10px] font-medium px-1.5 py-0.5 rounded-full bg-amber-100 dark:bg-amber-900/40 text-amber-700 dark:text-amber-400 whitespace-nowrap">
+                    <Lock className="w-2.5 h-2.5" />
+                    XII
+                  </span>
+                )}
               </Link>
             );
           })}

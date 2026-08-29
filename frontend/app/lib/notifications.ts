@@ -17,7 +17,7 @@ function generateId(): string {
   return `notif-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
 }
 
-export function getAllNotifications(): AppNotification[] {
+function getAllNotifications(): AppNotification[] {
   if (typeof window === "undefined") return [];
   try {
     return JSON.parse(localStorage.getItem(STORAGE_KEY) || "[]");
@@ -73,9 +73,4 @@ export function markAllAsRead(role: string, email?: string) {
     return { ...n, read: true };
   });
   saveAll(updated);
-}
-
-export function clearAllFor(role: string) {
-  const all = getAllNotifications();
-  saveAll(all.filter((n) => n.targetRole !== role));
 }

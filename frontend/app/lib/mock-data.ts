@@ -1,7 +1,6 @@
 import {
   UserProfile,
   Skill,
-  SkillProfile,
   CareerMatch,
   SkillGap,
   RoadmapMilestone,
@@ -89,10 +88,10 @@ export const students: Record<string, StudentData> = {
     hardSkills: rplHardSkills,
     softSkills: commonSoftSkills,
     careerMatches: [
-      { id: "cm-01", title: "Backend Developer", description: "Mengembangkan server-side application, API, dan database.", matchPercentage: 82, requiredSkills: [{ id: "hs-05", name: "Node.js", category: "hard", level: 4 }, { id: "hs-10", name: "REST API", category: "hard", level: 4 }, { id: "hs-07", name: "SQL/Database", category: "hard", level: 4 }, { id: "hs-08", name: "Git", category: "hard", level: 4 }], category: "Software Engineering" },
-      { id: "cm-02", title: "Fullstack Developer", description: "Mengembangkan aplikasi web end-to-end frontend hingga backend.", matchPercentage: 75, requiredSkills: [{ id: "hs-01", name: "HTML/CSS", category: "hard", level: 5 }, { id: "hs-04", name: "React/Next.js", category: "hard", level: 4 }, { id: "hs-05", name: "Node.js", category: "hard", level: 4 }, { id: "hs-02", name: "JavaScript", category: "hard", level: 4 }], category: "Software Engineering" },
-      { id: "cm-03", title: "Frontend Developer", description: "Membangun antarmuka pengguna responsif dan interaktif.", matchPercentage: 70, requiredSkills: [{ id: "hs-01", name: "HTML/CSS", category: "hard", level: 5 }, { id: "hs-02", name: "JavaScript", category: "hard", level: 5 }, { id: "hs-04", name: "React/Next.js", category: "hard", level: 5 }], category: "Software Engineering" },
-      { id: "cm-04", title: "DevOps Engineer", description: "Mengelola infrastruktur, CI/CD, dan deployment.", matchPercentage: 52, requiredSkills: [{ id: "hs-09", name: "Docker", category: "hard", level: 5 }, { id: "hs-08", name: "Git", category: "hard", level: 5 }, { id: "hs-05", name: "Node.js", category: "hard", level: 3 }], category: "Infrastructure" },
+      { id: "cm-01", title: "Backend Developer", description: "Mengembangkan server-side application, API, dan database.", matchPercentage: 82, readinessScore: 82, requiredSkills: [{ id: "hs-05", name: "Node.js", category: "hard", level: 4 }, { id: "hs-10", name: "REST API", category: "hard", level: 4 }, { id: "hs-07", name: "SQL/Database", category: "hard", level: 4 }, { id: "hs-08", name: "Git", category: "hard", level: 4 }], skillGaps: [], category: "Software Engineering" },
+      { id: "cm-02", title: "Fullstack Developer", description: "Mengembangkan aplikasi web end-to-end frontend hingga backend.", matchPercentage: 75, readinessScore: 75, requiredSkills: [{ id: "hs-01", name: "HTML/CSS", category: "hard", level: 5 }, { id: "hs-04", name: "React/Next.js", category: "hard", level: 4 }, { id: "hs-05", name: "Node.js", category: "hard", level: 4 }, { id: "hs-02", name: "JavaScript", category: "hard", level: 4 }], skillGaps: [], category: "Software Engineering" },
+      { id: "cm-03", title: "Frontend Developer", description: "Membangun antarmuka pengguna responsif dan interaktif.", matchPercentage: 70, readinessScore: 70, requiredSkills: [{ id: "hs-01", name: "HTML/CSS", category: "hard", level: 5 }, { id: "hs-02", name: "JavaScript", category: "hard", level: 5 }, { id: "hs-04", name: "React/Next.js", category: "hard", level: 5 }], skillGaps: [], category: "Software Engineering" },
+      { id: "cm-04", title: "DevOps Engineer", description: "Mengelola infrastruktur, CI/CD, dan deployment.", matchPercentage: 52, readinessScore: 52, requiredSkills: [{ id: "hs-09", name: "Docker", category: "hard", level: 5 }, { id: "hs-08", name: "Git", category: "hard", level: 5 }, { id: "hs-05", name: "Node.js", category: "hard", level: 3 }], skillGaps: [], category: "Infrastructure" },
     ],
     skillGaps: [
       { skillName: "Node.js", currentLevel: 3, requiredLevel: 4, status: "improving" },
@@ -114,9 +113,9 @@ export const students: Record<string, StudentData> = {
       { id: "pj-03", title: "Blog Personal", description: "Blog CRUD dengan Node.js dan MongoDB.", skills: ["Node.js", "JavaScript"], completedAt: "2026-01-10" },
     ],
     jobOpportunities: [
-      { id: "job-01", company: "PT TechCorp Digital", companyLogo: "", title: "Backend Developer Intern", type: "magang", location: "Jakarta Selatan (Hybrid)", description: "Magang pengembangan REST API dan microservices.", requiredSkills: ["Node.js", "REST API", "SQL/Database"], matchPercentage: 85, postedAt: "2026-02-01", deadline: "2026-03-15" },
-      { id: "job-02", company: "PT WebSolusi Nusantara", companyLogo: "", title: "Junior Fullstack Developer", type: "fulltime", location: "Bandung (On-site)", description: "Pengembangan aplikasi web React dan Node.js.", requiredSkills: ["React/Next.js", "Node.js", "JavaScript"], matchPercentage: 78, postedAt: "2026-01-25", deadline: "2026-03-01" },
-      { id: "job-03", company: "PT Aplikasi Kreatif", companyLogo: "", title: "Frontend Developer (Part-time)", type: "parttime", location: "Yogyakarta (Hybrid)", description: "Developer frontend dengan React dan Tailwind.", requiredSkills: ["HTML/CSS", "React/Next.js", "JavaScript"], matchPercentage: 72, postedAt: "2026-02-12", deadline: "2026-03-25" },
+      { id: "job-01", company: "TechCorp Indonesia", companyLogo: "", title: "Backend Developer Intern", type: "magang", location: "Jakarta Selatan (Hybrid)", description: "Magang pengembangan REST API dan microservices.", requiredSkills: ["Node.js", "REST API", "SQL/Database"], matchPercentage: 85, postedAt: "2026-02-01", deadline: "2026-03-15" },
+      { id: "job-02", company: "PT Telkom Indonesia", companyLogo: "", title: "Junior Fullstack Developer", type: "fulltime", location: "Bandung (On-site)", description: "Pengembangan aplikasi web React dan Node.js.", requiredSkills: ["React/Next.js", "Node.js", "JavaScript"], matchPercentage: 78, postedAt: "2026-01-25", deadline: "2026-03-01" },
+      { id: "job-03", company: "Creative Studio", companyLogo: "", title: "Frontend Developer (Part-time)", type: "parttime", location: "Yogyakarta (Hybrid)", description: "Developer frontend dengan React dan Tailwind.", requiredSkills: ["HTML/CSS", "React/Next.js", "JavaScript"], matchPercentage: 72, postedAt: "2026-02-12", deadline: "2026-03-25" },
     ],
   },
 
@@ -125,10 +124,10 @@ export const students: Record<string, StudentData> = {
     hardSkills: dkvHardSkills,
     softSkills: commonSoftSkills,
     careerMatches: [
-      { id: "cm-d1", title: "UI/UX Designer", description: "Merancang antarmuka pengguna yang intuitif dan user-friendly.", matchPercentage: 88, requiredSkills: [{ id: "dk-04", name: "UI/UX Design", category: "hard", level: 5 }, { id: "dk-01", name: "Figma", category: "hard", level: 5 }, { id: "dk-05", name: "Typography", category: "hard", level: 4 }], category: "Design" },
-      { id: "cm-d2", title: "Graphic Designer", description: "Membuat visual branding, marketing material, dan ilustrasi.", matchPercentage: 82, requiredSkills: [{ id: "dk-02", name: "Adobe Photoshop", category: "hard", level: 5 }, { id: "dk-03", name: "Adobe Illustrator", category: "hard", level: 5 }, { id: "dk-06", name: "Color Theory", category: "hard", level: 4 }], category: "Design" },
-      { id: "cm-d3", title: "Motion Designer", description: "Membuat animasi dan video motion graphics.", matchPercentage: 65, requiredSkills: [{ id: "dk-08", name: "Motion Graphics", category: "hard", level: 5 }, { id: "dk-10", name: "Video Editing", category: "hard", level: 4 }], category: "Design" },
-      { id: "cm-d4", title: "Brand Identity Designer", description: "Merancang identitas visual merek dan guidelines.", matchPercentage: 72, requiredSkills: [{ id: "dk-07", name: "Brand Identity", category: "hard", level: 5 }, { id: "dk-03", name: "Adobe Illustrator", category: "hard", level: 4 }, { id: "dk-06", name: "Color Theory", category: "hard", level: 4 }], category: "Design" },
+      { id: "cm-d1", title: "UI/UX Designer", description: "Merancang antarmuka pengguna yang intuitif dan user-friendly.", matchPercentage: 88, readinessScore: 88, requiredSkills: [{ id: "dk-04", name: "UI/UX Design", category: "hard", level: 5 }, { id: "dk-01", name: "Figma", category: "hard", level: 5 }, { id: "dk-05", name: "Typography", category: "hard", level: 4 }], skillGaps: [], category: "Design" },
+      { id: "cm-d2", title: "Graphic Designer", description: "Membuat visual branding, marketing material, dan ilustrasi.", matchPercentage: 82, readinessScore: 82, requiredSkills: [{ id: "dk-02", name: "Adobe Photoshop", category: "hard", level: 5 }, { id: "dk-03", name: "Adobe Illustrator", category: "hard", level: 5 }, { id: "dk-06", name: "Color Theory", category: "hard", level: 4 }], skillGaps: [], category: "Design" },
+      { id: "cm-d3", title: "Motion Designer", description: "Membuat animasi dan video motion graphics.", matchPercentage: 65, readinessScore: 65, requiredSkills: [{ id: "dk-08", name: "Motion Graphics", category: "hard", level: 5 }, { id: "dk-10", name: "Video Editing", category: "hard", level: 4 }], skillGaps: [], category: "Design" },
+      { id: "cm-d4", title: "Brand Identity Designer", description: "Merancang identitas visual merek dan guidelines.", matchPercentage: 72, readinessScore: 72, requiredSkills: [{ id: "dk-07", name: "Brand Identity", category: "hard", level: 5 }, { id: "dk-03", name: "Adobe Illustrator", category: "hard", level: 4 }, { id: "dk-06", name: "Color Theory", category: "hard", level: 4 }], skillGaps: [], category: "Design" },
     ],
     skillGaps: [
       { skillName: "Figma", currentLevel: 4, requiredLevel: 5, status: "improving" },
@@ -149,9 +148,9 @@ export const students: Record<string, StudentData> = {
       { id: "pj-d3", title: "Poster Event Musik", description: "Serangkaian poster promosi untuk event musik sekolah.", skills: ["Adobe Photoshop", "Typography"], completedAt: "2026-01-15" },
     ],
     jobOpportunities: [
-      { id: "job-d1", company: "PT Kreatif Digital", companyLogo: "", title: "UI/UX Design Intern", type: "magang", location: "Jakarta (Hybrid)", description: "Magang desain antarmuka aplikasi mobile dan web.", requiredSkills: ["Figma", "UI/UX Design"], matchPercentage: 90, postedAt: "2026-02-05", deadline: "2026-03-20" },
-      { id: "job-d2", company: "PT Media Kreatif", companyLogo: "", title: "Graphic Designer (Part-time)", type: "parttime", location: "Remote", description: "Desain material marketing dan social media.", requiredSkills: ["Adobe Photoshop", "Adobe Illustrator"], matchPercentage: 82, postedAt: "2026-02-10", deadline: "2026-03-25" },
-      { id: "job-d3", company: "PT Animasi Studio", companyLogo: "", title: "Motion Graphics Junior", type: "fulltime", location: "Bandung (On-site)", description: "Buat animasi untuk iklan dan konten digital.", requiredSkills: ["Motion Graphics", "Video Editing"], matchPercentage: 65, postedAt: "2026-02-08", deadline: "2026-03-15" },
+      { id: "job-d1", company: "Creative Studio", companyLogo: "", title: "UI/UX Design Intern", type: "magang", location: "Jakarta (Hybrid)", description: "Magang desain antarmuka aplikasi mobile dan web.", requiredSkills: ["Figma", "UI/UX Design"], matchPercentage: 90, postedAt: "2026-02-05", deadline: "2026-03-20" },
+      { id: "job-d2", company: "TechCorp Indonesia", companyLogo: "", title: "Graphic Designer (Part-time)", type: "parttime", location: "Remote", description: "Desain material marketing dan social media.", requiredSkills: ["Adobe Photoshop", "Adobe Illustrator"], matchPercentage: 82, postedAt: "2026-02-10", deadline: "2026-03-25" },
+      { id: "job-d3", company: "PT Telkom Indonesia", companyLogo: "", title: "Motion Graphics Junior", type: "fulltime", location: "Bandung (On-site)", description: "Buat animasi untuk iklan dan konten digital.", requiredSkills: ["Motion Graphics", "Video Editing"], matchPercentage: 65, postedAt: "2026-02-08", deadline: "2026-03-15" },
     ],
   },
 
@@ -160,9 +159,9 @@ export const students: Record<string, StudentData> = {
     hardSkills: ttHardSkills,
     softSkills: commonSoftSkills,
     careerMatches: [
-      { id: "cm-t1", title: "Network Engineer", description: "Mengelola dan memelihara infrastruktur jaringan perusahaan.", matchPercentage: 80, requiredSkills: [{ id: "tt-01", name: "Networking Basics", category: "hard", level: 5 }, { id: "tt-02", name: "Cisco IOS", category: "hard", level: 4 }, { id: "tt-06", name: "TCP/IP", category: "hard", level: 5 }], category: "Networking" },
-      { id: "cm-t2", title: "Telecom Technician", description: "Instalasi dan maintenance sistem telekomunikasi.", matchPercentage: 75, requiredSkills: [{ id: "tt-03", name: "Fiber Optics", category: "hard", level: 4 }, { id: "tt-05", name: "Wireless Technology", category: "hard", level: 4 }, { id: "tt-09", name: "VoIP", category: "hard", level: 3 }], category: "Telecom" },
-      { id: "cm-t3", title: "NOC Analyst", description: "Monitoring dan troubleshooting jaringan 24/7.", matchPercentage: 70, requiredSkills: [{ id: "tt-01", name: "Networking Basics", category: "hard", level: 4 }, { id: "tt-07", name: "Network Security", category: "hard", level: 3 }, { id: "tt-08", name: "Linux", category: "hard", level: 3 }], category: "Networking" },
+      { id: "cm-t1", title: "Network Engineer", description: "Mengelola dan memelihara infrastruktur jaringan perusahaan.", matchPercentage: 80, readinessScore: 80, requiredSkills: [{ id: "tt-01", name: "Networking Basics", category: "hard", level: 5 }, { id: "tt-02", name: "Cisco IOS", category: "hard", level: 4 }, { id: "tt-06", name: "TCP/IP", category: "hard", level: 5 }], skillGaps: [], category: "Networking" },
+      { id: "cm-t2", title: "Telecom Technician", description: "Instalasi dan maintenance sistem telekomunikasi.", matchPercentage: 75, readinessScore: 75, requiredSkills: [{ id: "tt-03", name: "Fiber Optics", category: "hard", level: 4 }, { id: "tt-05", name: "Wireless Technology", category: "hard", level: 4 }, { id: "tt-09", name: "VoIP", category: "hard", level: 3 }], skillGaps: [], category: "Telecom" },
+      { id: "cm-t3", title: "NOC Analyst", description: "Monitoring dan troubleshooting jaringan 24/7.", matchPercentage: 70, readinessScore: 70, requiredSkills: [{ id: "tt-01", name: "Networking Basics", category: "hard", level: 4 }, { id: "tt-07", name: "Network Security", category: "hard", level: 3 }, { id: "tt-08", name: "Linux", category: "hard", level: 3 }], skillGaps: [], category: "Networking" },
     ],
     skillGaps: [
       { skillName: "Cisco IOS", currentLevel: 3, requiredLevel: 5, status: "improving" },
@@ -184,19 +183,102 @@ export const students: Record<string, StudentData> = {
     ],
     jobOpportunities: [
       { id: "job-t1", company: "PT Telkom Indonesia", companyLogo: "", title: "Network Technician Intern", type: "magang", location: "Surabaya (On-site)", description: "Magang instalasi dan maintenance jaringan telekomunikasi.", requiredSkills: ["Networking Basics", "Fiber Optics", "Cisco IOS"], matchPercentage: 82, postedAt: "2026-02-01", deadline: "2026-03-15" },
-      { id: "job-t2", company: "PT InfraNet Solutions", companyLogo: "", title: "Junior Network Engineer", type: "fulltime", location: "Jakarta (On-site)", description: "Konfigurasi dan monitoring infrastruktur jaringan klien.", requiredSkills: ["Cisco IOS", "TCP/IP", "Network Security"], matchPercentage: 75, postedAt: "2026-02-05", deadline: "2026-03-20" },
-      { id: "job-t3", company: "PT SmartCom", companyLogo: "", title: "Telecom Field Technician", type: "magang", location: "Bandung", description: "Field technician untuk instalasi fiber optic.", requiredSkills: ["Fiber Optics", "Wireless Technology"], matchPercentage: 70, postedAt: "2026-02-10", deadline: "2026-03-25" },
+      { id: "job-t2", company: "TechCorp Indonesia", companyLogo: "", title: "Junior Network Engineer", type: "fulltime", location: "Jakarta (On-site)", description: "Konfigurasi dan monitoring infrastruktur jaringan klien.", requiredSkills: ["Cisco IOS", "TCP/IP", "Network Security"], matchPercentage: 75, postedAt: "2026-02-05", deadline: "2026-03-20" },
+      { id: "job-t3", company: "Creative Studio", companyLogo: "", title: "Telecom Field Technician", type: "magang", location: "Bandung", description: "Field technician untuk instalasi fiber optic.", requiredSkills: ["Fiber Optics", "Wireless Technology"], matchPercentage: 70, postedAt: "2026-02-10", deadline: "2026-03-25" },
     ],
   },
 
+  "rpl-andi": {
+    profile: { id: "usr-005", name: "Andi Pratama", email: "andi@student.smk.id", role: "student", major: "Rekayasa Perangkat Lunak", grade: "XI", avatar: "", createdAt: "2025-08-01" },
+    hardSkills: [
+      { id: "hs-a01", name: "HTML/CSS", category: "hard", level: 4 },
+      { id: "hs-a02", name: "JavaScript", category: "hard", level: 3 },
+      { id: "hs-a03", name: "React/Next.js", category: "hard", level: 2 },
+      { id: "hs-a04", name: "Git", category: "hard", level: 3 },
+      { id: "hs-a05", name: "Node.js", category: "hard", level: 2 },
+    ],
+    softSkills: commonSoftSkills,
+    careerMatches: [
+      { id: "cm-a1", title: "Frontend Developer", description: "Membangun antarmuka pengguna responsif.", matchPercentage: 78, readinessScore: 78, requiredSkills: [{ id: "hs-01", name: "HTML/CSS", category: "hard", level: 5 }, { id: "hs-02", name: "JavaScript", category: "hard", level: 5 }, { id: "hs-04", name: "React/Next.js", category: "hard", level: 5 }], skillGaps: [{ name: "React/Next.js", current: 2, required: 5 }], category: "Software Engineering" },
+    ],
+    skillGaps: [{ skillName: "React/Next.js", currentLevel: 2, requiredLevel: 5, status: "needed" }],
+    roadmapMilestones: [],
+    projects: [
+      { id: "pj-a01", title: "Blog Pribadi", description: "Blog personal dengan HTML/CSS dan JavaScript.", skills: ["HTML/CSS", "JavaScript"], completedAt: "2025-12-01" },
+      { id: "pj-a02", title: "Todo App", description: "Aplikasi todo list sederhana dengan React.", skills: ["React/Next.js", "JavaScript"], completedAt: "2026-01-15" },
+    ],
+    jobOpportunities: [],
+  },
+  "rpl-rizky": {
+    profile: { id: "usr-006", name: "Rizky Aditya", email: "rizky@student.smk.id", role: "student", major: "Rekayasa Perangkat Lunak", grade: "XII", avatar: "", createdAt: "2025-08-01" },
+    hardSkills: [
+      { id: "hs-r01", name: "JavaScript", category: "hard", level: 3 },
+      { id: "hs-r02", name: "Python", category: "hard", level: 3 },
+      { id: "hs-r03", name: "Git", category: "hard", level: 3 },
+      { id: "hs-r04", name: "Node.js", category: "hard", level: 2 },
+      { id: "hs-r05", name: "React/Next.js", category: "hard", level: 2 },
+    ],
+    softSkills: commonSoftSkills,
+    careerMatches: [
+      { id: "cm-r1", title: "Fullstack Developer", description: "Mengembangkan aplikasi web end-to-end.", matchPercentage: 71, readinessScore: 71, requiredSkills: [{ id: "hs-01", name: "HTML/CSS", category: "hard", level: 5 }, { id: "hs-04", name: "React/Next.js", category: "hard", level: 4 }, { id: "hs-05", name: "Node.js", category: "hard", level: 4 }], skillGaps: [{ name: "Node.js", current: 2, required: 4 }], category: "Software Engineering" },
+    ],
+    skillGaps: [{ skillName: "Node.js", currentLevel: 2, requiredLevel: 4, status: "needed" }],
+    roadmapMilestones: [],
+    projects: [
+      { id: "pj-r01", title: "Chat Application", description: "Aplikasi chat real-time dengan WebSocket.", skills: ["JavaScript", "Node.js"], completedAt: "2025-11-20" },
+      { id: "pj-r02", title: "Weather API", description: "REST API cuaca dengan Python Flask.", skills: ["Python", "REST API"], completedAt: "2026-01-10" },
+    ],
+    jobOpportunities: [],
+  },
+  "dkv-lestari": {
+    profile: { id: "usr-007", name: "Lestari Wijaya", email: "lestari@student.smk.id", role: "student", major: "Desain Komunikasi Visual", grade: "XI", avatar: "", createdAt: "2025-08-01" },
+    hardSkills: [
+      { id: "dk-l01", name: "Adobe Illustrator", category: "hard", level: 4 },
+      { id: "dk-l02", name: "Adobe Photoshop", category: "hard", level: 4 },
+      { id: "dk-l03", name: "Video Editing", category: "hard", level: 3 },
+      { id: "dk-l04", name: "Copywriting", category: "hard", level: 3 },
+      { id: "dk-l05", name: "UI/UX Design", category: "hard", level: 2 },
+    ],
+    softSkills: commonSoftSkills,
+    careerMatches: [
+      { id: "cm-l1", title: "Graphic Designer", description: "Membuat visual branding dan marketing material.", matchPercentage: 83, readinessScore: 83, requiredSkills: [{ id: "dk-02", name: "Adobe Photoshop", category: "hard", level: 5 }, { id: "dk-03", name: "Adobe Illustrator", category: "hard", level: 5 }, { id: "dk-06", name: "Color Theory", category: "hard", level: 4 }], skillGaps: [], category: "Design" },
+    ],
+    skillGaps: [],
+    roadmapMilestones: [],
+    projects: [
+      { id: "pj-l01", title: "Dashboard Admin", description: "Desain UI dashboard admin panel.", skills: ["UI/UX Design", "Adobe Photoshop"], completedAt: "2025-12-15" },
+      { id: "pj-l02", title: "Landing Page Company", description: "Desain landing page untuk perusahaan startup.", skills: ["Adobe Illustrator", "Copywriting"], completedAt: "2026-01-20" },
+    ],
+    jobOpportunities: [],
+  },
+  "tkj-dedi": {
+    profile: { id: "usr-008", name: "Dedi Kurniawan", email: "dedi@student.smk.id", role: "student", major: "Teknik Komputer dan Jaringan", grade: "XI", avatar: "", createdAt: "2025-08-01" },
+    hardSkills: [
+      { id: "tk-d01", name: "Linux Administration", category: "hard", level: 3 },
+      { id: "tk-d02", name: "Python", category: "hard", level: 2 },
+      { id: "tk-d03", name: "SQL/Database", category: "hard", level: 2 },
+      { id: "tk-d04", name: "Networking", category: "hard", level: 2 },
+    ],
+    softSkills: commonSoftSkills,
+    careerMatches: [
+      { id: "cm-dk1", title: "System Administrator", description: "Mengelola server dan infrastruktur IT.", matchPercentage: 58, readinessScore: 58, requiredSkills: [{ id: "tk-01", name: "Windows Server", category: "hard", level: 4 }, { id: "tk-02", name: "Linux Administration", category: "hard", level: 4 }], skillGaps: [{ name: "Windows Server", current: 0, required: 4 }], category: "IT Infrastructure" },
+    ],
+    skillGaps: [{ skillName: "Windows Server", currentLevel: 0, requiredLevel: 4, status: "needed" }],
+    roadmapMilestones: [],
+    projects: [
+      { id: "pj-dk01", title: "Scraper Data", description: "Python script untuk scraping data produk.", skills: ["Python"], completedAt: "2025-12-05" },
+      { id: "pj-dk02", title: "Report Generator", description: "Otomasi pembuatan laporan dari database.", skills: ["Python", "SQL/Database"], completedAt: "2026-01-18" },
+    ],
+    jobOpportunities: [],
+  },
   tkj: {
     profile: { id: "usr-004", name: "Fajar Nugroho", email: "fajar@student.smk.id", role: "student", major: "Teknik Komputer dan Jaringan", grade: "XII", avatar: "", createdAt: "2025-08-01" },
     hardSkills: tkjHardSkills,
     softSkills: commonSoftSkills,
     careerMatches: [
-      { id: "cm-k1", title: "System Administrator", description: "Mengelola server, sistem operasi, dan infrastruktur IT.", matchPercentage: 78, requiredSkills: [{ id: "tk-01", name: "Windows Server", category: "hard", level: 4 }, { id: "tk-02", name: "Linux Administration", category: "hard", level: 4 }, { id: "tk-03", name: "Active Directory", category: "hard", level: 3 }], category: "IT Infrastructure" },
-      { id: "cm-k2", title: "Network Administrator", description: "Mengelola dan mengamankan jaringan perusahaan.", matchPercentage: 75, requiredSkills: [{ id: "tk-04", name: "Networking", category: "hard", level: 5 }, { id: "tk-05", name: "Cybersecurity Basics", category: "hard", level: 4 }, { id: "tk-02", name: "Linux Administration", category: "hard", level: 3 }], category: "IT Infrastructure" },
-      { id: "cm-k3", title: "IT Support Specialist", description: "Troubleshooting hardware, software, dan user support.", matchPercentage: 85, requiredSkills: [{ id: "tk-08", name: "Hardware Troubleshooting", category: "hard", level: 5 }, { id: "tk-01", name: "Windows Server", category: "hard", level: 3 }, { id: "tk-04", name: "Networking", category: "hard", level: 3 }], category: "IT Support" },
+      { id: "cm-k1", title: "System Administrator", description: "Mengelola server, sistem operasi, dan infrastruktur IT.", matchPercentage: 78, readinessScore: 78, requiredSkills: [{ id: "tk-01", name: "Windows Server", category: "hard", level: 4 }, { id: "tk-02", name: "Linux Administration", category: "hard", level: 4 }, { id: "tk-03", name: "Active Directory", category: "hard", level: 3 }], skillGaps: [], category: "IT Infrastructure" },
+      { id: "cm-k2", title: "Network Administrator", description: "Mengelola dan mengamankan jaringan perusahaan.", matchPercentage: 75, readinessScore: 75, requiredSkills: [{ id: "tk-04", name: "Networking", category: "hard", level: 5 }, { id: "tk-05", name: "Cybersecurity Basics", category: "hard", level: 4 }, { id: "tk-02", name: "Linux Administration", category: "hard", level: 3 }], skillGaps: [], category: "IT Infrastructure" },
+      { id: "cm-k3", title: "IT Support Specialist", description: "Troubleshooting hardware, software, dan user support.", matchPercentage: 85, readinessScore: 85, requiredSkills: [{ id: "tk-08", name: "Hardware Troubleshooting", category: "hard", level: 5 }, { id: "tk-01", name: "Windows Server", category: "hard", level: 3 }, { id: "tk-04", name: "Networking", category: "hard", level: 3 }], skillGaps: [], category: "IT Support" },
     ],
     skillGaps: [
       { skillName: "Windows Server", currentLevel: 3, requiredLevel: 4, status: "improving" },
@@ -217,9 +299,9 @@ export const students: Record<string, StudentData> = {
       { id: "pj-k3", title: "Helpdesk Ticketing System", description: "Sistem tiket support berbasis web untuk lab IT.", skills: ["Hardware Troubleshooting", "Windows Server"], completedAt: "2026-01-12" },
     ],
     jobOpportunities: [
-      { id: "job-k1", company: "PT DataCenter Indonesia", companyLogo: "", title: "System Admin Intern", type: "magang", location: "Jakarta (On-site)", description: "Magang administrasi server dan monitoring.", requiredSkills: ["Windows Server", "Linux Administration"], matchPercentage: 80, postedAt: "2026-02-01", deadline: "2026-03-15" },
-      { id: "job-k2", company: "PT SecureNet", companyLogo: "", title: "IT Support Specialist", type: "fulltime", location: "Bandung (On-site)", description: "Helpdesk dan troubleshooting IT karyawan.", requiredSkills: ["Hardware Troubleshooting", "Networking", "Windows Server"], matchPercentage: 85, postedAt: "2026-02-05", deadline: "2026-03-20" },
-      { id: "job-k3", company: "PT CloudHost Indonesia", companyLogo: "", title: "Junior Cloud Engineer", type: "magang", location: "Remote", description: "Magang setup dan maintenance cloud server.", requiredSkills: ["Linux Administration", "Cloud Basics", "Networking"], matchPercentage: 60, postedAt: "2026-02-10", deadline: "2026-03-25" },
+      { id: "job-k1", company: "PT Telkom Indonesia", companyLogo: "", title: "System Admin Intern", type: "magang", location: "Jakarta (On-site)", description: "Magang administrasi server dan monitoring.", requiredSkills: ["Windows Server", "Linux Administration"], matchPercentage: 80, postedAt: "2026-02-01", deadline: "2026-03-15" },
+      { id: "job-k2", company: "TechCorp Indonesia", companyLogo: "", title: "IT Support Specialist", type: "fulltime", location: "Bandung (On-site)", description: "Helpdesk dan troubleshooting IT karyawan.", requiredSkills: ["Hardware Troubleshooting", "Networking", "Windows Server"], matchPercentage: 85, postedAt: "2026-02-05", deadline: "2026-03-20" },
+      { id: "job-k3", company: "Creative Studio", companyLogo: "", title: "Junior Cloud Engineer", type: "magang", location: "Remote", description: "Magang setup dan maintenance cloud server.", requiredSkills: ["Linux Administration", "Cloud Basics", "Networking"], matchPercentage: 60, postedAt: "2026-02-10", deadline: "2026-03-25" },
     ],
   },
 };
@@ -231,6 +313,8 @@ export interface UserCredential {
   password: string;
   role: "student" | "admin" | "industry";
   name: string;
+  company?: string;
+  status?: "approved" | "pending" | "rejected";
 }
 
 export interface RegisteredUser {
@@ -239,6 +323,9 @@ export interface RegisteredUser {
   name: string;
   major: string;
   grade: string;
+  role?: "student" | "industry" | "admin";
+  company?: string;
+  status?: "approved" | "pending" | "rejected";
 }
 
 const REGISTERED_USERS_KEY = "registeredUsers";
@@ -266,20 +353,31 @@ export const userCredentials: UserCredential[] = [
   { email: "rina@student.smk.id", password: "Rina@2026!", role: "student", name: "Rina Wulandari" },
   { email: "hendra@student.smk.id", password: "Hendra@2026!", role: "student", name: "Hendra Susanto" },
   { email: "fajar@student.smk.id", password: "Fajar@2026!", role: "student", name: "Fajar Nugroho" },
+  { email: "andi@student.smk.id", password: "Andi@2026!", role: "student", name: "Andi Pratama" },
+  { email: "rizky@student.smk.id", password: "Rizky@2026!", role: "student", name: "Rizky Aditya" },
+  { email: "lestari@student.smk.id", password: "Lestari@2026!", role: "student", name: "Lestari Wijaya" },
+  { email: "dedi@student.smk.id", password: "Dedi@2026!", role: "student", name: "Dedi Kurniawan" },
   { email: "admin@smk.id", password: "Admin@2026!", role: "admin", name: "Admin SMK" },
-  { email: "industry@hrd.com", password: "Industry@2026!", role: "industry", name: "HRD Industry" },
+  { email: "hrd@techcorp.com", password: "TechCorp@2026!", role: "industry", name: "Sari Dewi", company: "TechCorp Indonesia", status: "approved" },
+  { email: "recruit@creativestudio.com", password: "Creative@2026!", role: "industry", name: "Rina Hartono", company: "Creative Studio", status: "approved" },
+  { email: "info@telkom.co.id", password: "Telkom@2026!", role: "industry", name: "Bambang Sutrisno", company: "PT Telkom Indonesia", status: "approved" },
+  { email: "hrd@digitaloutsource.co.id", password: "Digital@2026!", role: "industry", name: "Maya Putri", company: "Digital Outsource", status: "pending" },
 ];
 
 export function validateLogin(email: string, password: string): UserCredential | null {
   const user = userCredentials.find(
     (u) => u.email.toLowerCase() === email.toLowerCase() && u.password === password
   );
-  if (user) return user;
+  if (user) {
+    if (user.role === "industry" && user.status && user.status !== "approved") return null;
+    return user;
+  }
   const registered = getRegisteredUsers().find(
     (u) => u.email.toLowerCase() === email.toLowerCase() && u.password === password
   );
   if (registered) {
-    return { email: registered.email, password: registered.password, role: "student", name: registered.name };
+    if (registered.role === "industry" && registered.status && registered.status !== "approved") return null;
+    return { email: registered.email, password: registered.password, role: (registered.role as "student" | "industry" | "admin") || "student", name: registered.name, company: registered.company, status: registered.status };
   }
   return null;
 }
@@ -288,15 +386,102 @@ export function getUserRole(email: string): "student" | "admin" | "industry" {
   const lower = email.toLowerCase();
   if (lower.includes("admin") || lower.includes("guru")) return "admin";
   if (lower.includes("industry") || lower.includes("hrd")) return "industry";
+  const cred = userCredentials.find((u) => u.email.toLowerCase() === lower);
+  if (cred) return cred.role;
+  const registered = getRegisteredUsers().find((u) => u.email.toLowerCase() === lower);
+  if (registered?.role === "industry") return "industry";
   return "student";
 }
 
-export function getStudentByEmail(email: string): StudentData | null {
+export function getIndustryCompany(email: string): string {
   const lower = email.toLowerCase();
-  if (lower.includes("rpl") || lower.includes("budi")) return students.rpl;
-  if (lower.includes("dkv") || lower.includes("rina")) return students.dkv;
-  if (lower.includes("tt") || lower.includes("hendra")) return students.tt;
-  if (lower.includes("tkj") || lower.includes("fajar")) return students.tkj;
+  const cred = userCredentials.find((u) => u.email.toLowerCase() === lower);
+  if (cred?.company) return cred.company;
+  const registered = getRegisteredUsers().find((u) => u.email.toLowerCase() === lower);
+  if (registered?.company) return registered.company;
+  return "Perusahaan";
+}
+
+// ===== Admin Management Functions =====
+
+export function getAllIndustries(): UserCredential[] {
+  const builtIn = userCredentials.filter((u) => u.role === "industry");
+  const registered = getRegisteredUsers().filter((u) => u.role === "industry").map((u) => ({
+    email: u.email,
+    password: u.password,
+    role: "industry" as const,
+    name: u.name,
+    company: u.company,
+    status: (u.status as "approved" | "pending" | "rejected") || "pending",
+  }));
+  return [...builtIn, ...registered];
+}
+
+export function approveIndustry(email: string): void {
+  const lower = email.toLowerCase();
+  const idx = userCredentials.findIndex((u) => u.email.toLowerCase() === lower && u.role === "industry");
+  if (idx !== -1) {
+    userCredentials[idx].status = "approved";
+    return;
+  }
+  const users = getRegisteredUsers();
+  const rIdx = users.findIndex((u) => u.email.toLowerCase() === lower && u.role === "industry");
+  if (rIdx !== -1) {
+    users[rIdx].status = "approved";
+    localStorage.setItem(REGISTERED_USERS_KEY, JSON.stringify(users));
+  }
+}
+
+export function rejectIndustry(email: string): void {
+  const lower = email.toLowerCase();
+  const idx = userCredentials.findIndex((u) => u.email.toLowerCase() === lower && u.role === "industry");
+  if (idx !== -1) {
+    userCredentials[idx].status = "rejected";
+    return;
+  }
+  const users = getRegisteredUsers();
+  const rIdx = users.findIndex((u) => u.email.toLowerCase() === lower && u.role === "industry");
+  if (rIdx !== -1) {
+    users[rIdx].status = "rejected";
+    localStorage.setItem(REGISTERED_USERS_KEY, JSON.stringify(users));
+  }
+}
+
+export function getAllAdmins(): UserCredential[] {
+  const builtIn = userCredentials.filter((u) => u.role === "admin");
+  const registered = getRegisteredUsers().filter((u) => u.role === "admin").map((u) => ({
+    email: u.email,
+    password: u.password,
+    role: "admin" as const,
+    name: u.name,
+  }));
+  return [...builtIn, ...registered];
+}
+
+export function registerAdmin(user: { email: string; password: string; name: string }): boolean {
+  const users = getRegisteredUsers();
+  const exists = users.some((u) => u.email.toLowerCase() === user.email.toLowerCase()) ||
+    userCredentials.some((u) => u.email.toLowerCase() === user.email.toLowerCase());
+  if (exists) return false;
+  users.push({ email: user.email, password: user.password, name: user.name, major: "Admin", grade: "-", role: "admin" });
+  localStorage.setItem(REGISTERED_USERS_KEY, JSON.stringify(users));
+  return true;
+}
+
+function getStudentByEmail(email: string): StudentData | null {
+  const lower = email.toLowerCase();
+  if (lower.includes("andi")) return students["rpl-andi"];
+  if (lower.includes("rizky")) return students["rpl-rizky"];
+  if (lower.includes("lestari")) return students["dkv-lestari"];
+  if (lower.includes("dedi")) return students["tkj-dedi"];
+  if (lower.includes("budi")) return students.rpl;
+  if (lower.includes("rina")) return students.dkv;
+  if (lower.includes("hendra")) return students.tt;
+  if (lower.includes("fajar")) return students.tkj;
+  if (lower.includes("rpl")) return students.rpl;
+  if (lower.includes("dkv")) return students.dkv;
+  if (lower.includes("tt")) return students.tt;
+  if (lower.includes("tkj")) return students.tkj;
   return null;
 }
 
@@ -317,22 +502,6 @@ export function getStudentBySlug(slug: string): StudentData | null {
     return sSlug === lower;
   }) || null;
 }
-
-// ===== Legacy exports for backward compatibility =====
-const defaultStudent = students.rpl;
-export const currentUser = defaultStudent.profile;
-export const hardSkills = defaultStudent.hardSkills;
-export const softSkills = defaultStudent.softSkills;
-export const allSkills = [...defaultStudent.hardSkills, ...defaultStudent.softSkills];
-export const skillProfile: SkillProfile = { userId: defaultStudent.profile.id, skills: allSkills, completedAt: "2026-01-15" };
-export const careerMatches = defaultStudent.careerMatches;
-export const skillGapsForBackend = defaultStudent.skillGaps;
-export const roadmapMilestones = defaultStudent.roadmapMilestones;
-export const projects = defaultStudent.projects;
-export const jobOpportunities = defaultStudent.jobOpportunities;
-
-export const adminUser: UserProfile = { id: "adm-001", name: "Pak Ahmad Hidayat", email: "ahmad@guru.smk.id", role: "admin", major: "BK", grade: "-", avatar: "", createdAt: "2024-01-15" };
-export const industryUser: UserProfile = { id: "ind-001", name: "Sari Dewi", email: "sari@hrd-techcorp.id", role: "industry", major: "HRD", grade: "-", avatar: "", createdAt: "2025-03-10" };
 
 export const studentStats: StudentStats = {
   totalStudents: 248,
