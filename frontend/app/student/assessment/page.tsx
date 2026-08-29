@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useSearchParams } from "next/navigation";
-import { ClipboardCheck, ChevronRight, ChevronLeft, CheckCircle2, Sparkles, Brain } from "lucide-react";
+import { ClipboardCheck, ChevronRight, ChevronLeft, CheckCircle2, Brain } from "lucide-react";
 import Link from "next/link";
 import dynamic from "next/dynamic";
 import Card from "../../components/ui/card";
@@ -14,11 +14,17 @@ import { addNotification } from "../../lib/notifications";
 import { getQuizForMajor, gradeQuiz, type QuizQuestion, type QuizResult } from "../../lib/major-quiz";
 import { generateCareerMatches, saveCareerMatches } from "../../lib/career-match";
 import type { Skill } from "../../lib/type";
+import { MAJORS } from "../../lib/materi-catalog";
 
 const SkillRadar = dynamic(() => import("../../components/charts/skillradar"), { ssr: false });
 
 const totalSteps = 3;
 const stepLabels = ["Selamat Datang", "Tes Jurusan", "Hasil"];
+
+const MAJOR_TABS = [
+  { label: "Semua", key: "all" },
+  ...MAJORS.map((m) => ({ label: m.short, key: m.short.toLowerCase() })),
+];
 
 const difficultyColor: Record<string, "success" | "primary" | "warning" | "danger"> = {
   basic: "success",
@@ -64,7 +70,9 @@ export default function AssessmentPage() {
   const [quizAnswers, setQuizAnswers] = useState<Record<string, number>>({});
   const [quizCurrent, setQuizCurrent] = useState(0);
   const [quizResult, setQuizResult] = useState<QuizResult | null>(null);
-  const [quizQuestions, setQuizQuestions] = useState<QuizQuestion[]>([]);
+  const [quizBucket, setQuizBucket] = useState<Record<string, QuizQuestion[]>>({});
+  const [allQuestions, setAllQuestions] = useState<QuizQuestion[]>([]);
+  const [selectedTab, setSelectedTab] = useState("all");
   const [resultSkills, setResultSkills] = useState<Skill[]>([]);
 
   useEffect(() => { setMounted(true); }, []);
@@ -78,18 +86,37 @@ export default function AssessmentPage() {
     if (!mounted) return;
     const student = getCurrentStudent();
     if (!student) return;
-    setQuizQuestions(getQuizForMajor(student.profile.major));
+    const bucket: Record<string, QuizQuestion[]> = {};
+    let all: QuizQuestion[] = [];
+    MAJORS.forEach((m) => {
+      const qs = getQuizForMajor(m.name) || [];
+      bucket[m.short.toLowerCase()] = qs;
+      all = all.concat(qs);
+    });
+    setQuizBucket(bucket);
+    setAllQuestions(all);
+    const ownShort = MAJORS.find((m) => m.name === student.profile.major)?.short;
+    setSelectedTab(ownShort ? ownShort.toLowerCase() : "all");
   }, [mounted]);
 
   if (!mounted) return <div className="p-6 lg:pl-72"><SkeletonDashboard /></div>;
   const student = getCurrentStudent();
   if (!student) return <div className="p-6 lg:pl-72"><SkeletonDashboard /></div>;
   const { profile: currentUser } = student;
-  const quizProgress = Object.keys(quizAnswers).length;
-  const quizComplete = quizProgress >= quizQuestions.length;
+  const quizQuestions = selectedTab === "all" ? allQuestions : quizBucket[selectedTab] || [];
+  const quizProgress = quizQuestions.filter((q) => quizAnswers[q.id] !== undefined).length;
+  const quizComplete = quizQuestions.length > 0 && quizQuestions.every((q) => quizAnswers[q.id] !== undefined);
+  const quizLoaded = allQuestions.length > 0;
+  const quizTitle = selectedTab === "all" ? "Semua Jurusan" : (MAJOR_TABS.find((t) => t.key === selectedTab)?.label || selectedTab);
 
   const handleQuizAnswer = (questionId: string, optionIndex: number) => {
     setQuizAnswers((prev) => ({ ...prev, [questionId]: optionIndex }));
+  };
+
+  const switchTab = (key: string) => {
+    if (key === selectedTab) return;
+    setSelectedTab(key);
+    setQuizCurrent(0);
   };
 
   const goToStep = (step: number) => {
@@ -165,7 +192,7 @@ export default function AssessmentPage() {
             Asesmen ini akan memetakan kemampuan skill kamu melalui tes pengetahuan jurusan.
             Hasil tes akan menentukan level skill hard skill kamu secara objektif.
           </p>
-          <div className="flex flex-col sm:flex-row gap-3 justify-center items-center mb-8">
+          <div className="flex flex-col sm:flex-row gap-3 justify-center items-center mb-4">
             <div className="bg-amber-50 dark:bg-amber-900/30 rounded-lg px-4 py-2 text-center">
               <p className="text-sm font-medium text-amber-700 dark:text-amber-300">100 Soal Tes Jurusan</p>
               <p className="text-xs text-amber-600 dark:text-amber-400">{currentUser.major}</p>
@@ -174,6 +201,9 @@ export default function AssessmentPage() {
               <p className="text-sm font-medium text-blue-700 dark:text-blue-300">10 Soal per Hard Skill</p>
             </div>
           </div>
+          <p className="text-xs text-muted text-center mb-8">
+            Gunakan tab jurusan (RPL, DKV, TKJ, Transmisi) untuk menampilkan soal per bidang, atau pilih {"Semua"} untuk seluruh bank soal (400 soal).
+          </p>
           <button
             onClick={() => goToStep(2)}
             className="inline-flex items-center gap-2 px-6 py-3 bg-primary text-white font-medium rounded-xl hover:bg-primary-dark transition-colors"
@@ -184,14 +214,31 @@ export default function AssessmentPage() {
       )}
 
       {/* Step 2: Major Quiz */}
-      {currentStep === 2 && (
+      {currentStep === 2 && quizLoaded && (
         <div className="animate-fade-in">
-          <div className="flex items-center justify-between mb-6">
+          <div className="flex flex-wrap items-center justify-between gap-3 mb-6">
             <div>
               <h2 className="text-lg font-semibold text-foreground">Tes Pengetahuan Jurusan</h2>
-              <p className="text-sm text-muted">{currentUser.major} — {quizQuestions.length} soal dari dasar hingga ahli</p>
+              <p className="text-sm text-muted">{quizTitle} — {quizQuestions.length} soal dari dasar hingga ahli</p>
             </div>
             <Badge variant="primary">{quizProgress}/{quizQuestions.length} soal</Badge>
+          </div>
+
+          {/* Major filter tabs */}
+          <div className="flex flex-wrap gap-2 mb-4">
+            {MAJOR_TABS.map((t) => (
+              <button
+                key={t.key}
+                onClick={() => switchTab(t.key)}
+                className={`px-4 py-2 rounded-xl text-sm font-medium transition-colors ${
+                  selectedTab === t.key
+                    ? "bg-primary text-white shadow"
+                    : "bg-card border border-border text-muted hover:text-foreground"
+                }`}
+              >
+                {t.label}
+              </button>
+            ))}
           </div>
 
           {/* Skill nav pills */}
@@ -348,7 +395,7 @@ export default function AssessmentPage() {
             </Card>
           )}
 
-          <div className="grid lg:grid-cols-2 gap-6">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             <Card>
               <SkillRadar skills={resultSkills} title="Skill Profile Kamu" />
             </Card>

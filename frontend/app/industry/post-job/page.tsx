@@ -82,7 +82,7 @@ export default function PostJobPage() {
           <div className="text-center py-12">
             <CheckCircle2 className="w-16 h-16 text-emerald-500 mx-auto mb-4" />
             <h2 className="text-2xl font-bold text-foreground mb-2">Lowongan Berhasil Diposting!</h2>
-            <p className="text-muted mb-6">Lowongan &quot;{title}&quot; telah berhasil dibuat dan akan terlihat oleh kandidat.</p>
+            <p className="text-muted mb-6">Lowongan "{title}" telah berhasil dibuat dan akan terlihat oleh kandidat.</p>
             <div className="flex flex-col sm:flex-row gap-3 justify-center">
               <button
                 onClick={() => {
@@ -118,7 +118,7 @@ export default function PostJobPage() {
       <form onSubmit={handleSubmit}>
         <Card className="mb-6">
           <h3 className="font-semibold text-foreground mb-4">Informasi Lowongan</h3>
-          <div className="grid sm:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
               <label className="block text-sm font-medium text-foreground mb-1.5">Judul Lowongan *</label>
               <input

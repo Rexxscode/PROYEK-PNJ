@@ -174,7 +174,7 @@ export default function DashboardHeader({ title, subtitle, actions, role = "stud
                   </div>
                   {searchQuery && (
                     <div className="mt-3 pt-3 border-t border-border text-sm text-muted">
-                      Hasil pencarian untuk &quot;{searchQuery}&quot;...
+                      Hasil pencarian untuk "{searchQuery}"...
                     </div>
                   )}
                 </div>

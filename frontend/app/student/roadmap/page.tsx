@@ -2,9 +2,7 @@
 
 import { useState, useEffect } from "react";
 import {
-  Map,
   CheckCircle2,
-  Lock,
   ExternalLink,
   BarChart3,
   ClipboardCheck,
@@ -83,7 +81,6 @@ export default function RoadmapPage() {
   const unlockedMilestones = gapSkillNames.length > 0
     ? milestones.filter((m) => m.skills.some((s) => gapSkillNames.includes(s.toLowerCase())))
     : milestones.filter((m) => m.status !== "locked");
-  const completedCount = milestones.filter((m) => m.status === "completed").length;
 
   return (
     <div>
@@ -142,7 +139,7 @@ export default function RoadmapPage() {
       )}
 
       {quizResult && (
-        <div className="grid lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* Left: Career + Skill Gap */}
           <div className="lg:col-span-1 space-y-4">
             <h3 className="text-sm font-semibold text-foreground">Skill Gap per Karier</h3>

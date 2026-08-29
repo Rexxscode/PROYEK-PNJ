@@ -17,6 +17,7 @@ import ProgressBar from "../../components/ui/progressbar";
 import { SkeletonDashboard } from "../../components/ui/skeleton";
 import DashboardHeader from "../../components/layout/dashboardheader";
 import { MAJORS, materiList } from "../../lib/materi-catalog";
+import { getQuizForMateri } from "../../lib/materi-quiz";
 import { getCurrentStudent } from "../../lib/mock-data";
 import { getCertificateResults } from "../../lib/certificates";
 import type { CertificateResult } from "../../lib/certificates";
@@ -48,23 +49,24 @@ export default function SertifikatPage() {
   if (!mounted) return <div className="p-6 lg:pl-72"><SkeletonDashboard /></div>;
 
   const student = getCurrentStudent();
+  const studentGrade = student?.profile.grade || "";
   const studentMajor = MAJORS.find((m) => m.name === student?.profile.major) ?? MAJORS[0];
   const majorEntries = [studentMajor];
-  const majorMateri = materiList.filter((m) => m.major === studentMajor.name);
+  const majorMateri = materiList.filter((m) => m.major === studentMajor.name && m.grade === studentGrade);
 
   const totalMateri = majorMateri.length;
   const passedCount = majorMateri.filter((m) => statusMap[m.id]?.status === "passed").length;
-  const passedPercent = Math.round((passedCount / totalMateri) * 100);
+  const passedPercent = totalMateri > 0 ? Math.round((passedCount / totalMateri) * 100) : 0;
 
   return (
     <div>
       <DashboardHeader
         title="Sertifikat Materi"
-        subtitle="Kerjakan tes 20 soal, lulus minimal 80% (16 benar) dan dapatkan sertifikat"
+        subtitle="Kerjakan tes setiap materi, lulus minimal 80% (16 benar) dan dapatkan sertifikat"
       />
 
       {/* Ringkasan */}
-      <div className="grid sm:grid-cols-3 gap-4 mb-8">
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8">
         <Card className="bg-gradient-to-br from-primary/5 to-secondary/5 border-primary/20">
           <div className="flex items-center gap-4">
             <div className="w-12 h-12 rounded-xl bg-primary/10 text-primary flex items-center justify-center">
@@ -98,7 +100,7 @@ export default function SertifikatPage() {
 
       {/* Daftar materi per jurusan siswa */}
       {majorEntries.map((major) => {
-        const items = materiList.filter((m) => m.major === major.name);
+        const items = materiList.filter((m) => m.major === major.name && m.grade === studentGrade);
         if (items.length === 0) return null;
         return (
           <div key={major.name} className="mb-8">
@@ -107,11 +109,13 @@ export default function SertifikatPage() {
                 {major.short}
               </span>
               <h3 className="text-lg font-bold text-foreground">{major.name}</h3>
+              <span className="text-xs text-muted">Kelas {studentGrade}</span>
             </div>
-            <div className="grid sm:grid-cols-2 xl:grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4">
               {items.map((materi) => {
                 const st = statusMap[materi.id];
                 const { result } = st;
+                const qCount = getQuizForMateri(materi.id)?.length ?? 20;
                 return (
                   <Card key={materi.id} className="flex flex-col">
                     <div className="flex items-start justify-between mb-3">
@@ -161,7 +165,7 @@ export default function SertifikatPage() {
                         <>
                           <span className="flex items-center gap-1.5 text-xs text-muted">
                             <CircleDot className="w-4 h-4" />
-                            20 soal · min 80%
+                            {qCount} soal · min 80%
                           </span>
                           <Link
                             href={`/student/sertifikat/${materi.id}`}

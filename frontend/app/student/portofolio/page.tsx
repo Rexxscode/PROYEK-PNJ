@@ -13,10 +13,8 @@ import {
   Trash2,
   X,
   Save,
-  FolderOpen,
 } from "lucide-react";
 import Card from "../../components/ui/card";
-import Badge from "../../components/ui/badge";
 import ProgressBar from "../../components/ui/progressbar";
 import { SkeletonDashboard } from "../../components/ui/skeleton";
 import DashboardHeader from "../../components/layout/dashboardheader";
@@ -384,7 +382,7 @@ export default function PortfolioPage() {
                     )}
                     {deleteConfirmId === project.id && (
                       <div className="mt-3 p-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg">
-                        <p className="text-xs text-red-600 dark:text-red-400 mb-2">Hapus projek &quot;{project.title}&quot;?</p>
+                        <p className="text-xs text-red-600 dark:text-red-400 mb-2">Hapus projek "{project.title}"?</p>
                         <div className="flex gap-2">
                           <button onClick={() => setDeleteConfirmId(null)} className="px-3 py-1 text-xs text-muted border border-border rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors">Batal</button>
                           <button onClick={() => deleteProject(project.id)} className="px-3 py-1 text-xs text-white bg-red-500 rounded-lg hover:bg-red-600 transition-colors">Hapus</button>
@@ -438,7 +436,7 @@ export default function PortfolioPage() {
       {/* Interactive Preview Section */}
       <div className="mt-8">
         <h3 className="text-sm font-bold text-foreground uppercase tracking-wider mb-4">Interactive Preview</h3>
-        <div className="grid lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           <Card className="text-center">
             <div className="w-20 h-20 rounded-full bg-gradient-to-br from-primary to-secondary flex items-center justify-center mx-auto mb-4">
               <span className="text-2xl font-bold text-white">{getInitials(profile.name)}</span>

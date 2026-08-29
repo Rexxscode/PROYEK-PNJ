@@ -5,7 +5,6 @@ import {
   Target,
   TrendingUp,
   ArrowRight,
-  Sparkles,
   BookOpen,
   AlertTriangle,
   CheckCircle2,
@@ -65,7 +64,7 @@ export default function CareerMatchPage() {
         subtitle="Temukan kecocokan karier berdasarkan skill kamu"
       />
 
-      <div className="grid lg:grid-cols-3 gap-6 mb-8">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
         {/* Career List */}
         <div className="lg:col-span-1 space-y-3">
           <h3 className="text-sm font-semibold text-foreground mb-2">Rekomendasi Karier</h3>
@@ -118,7 +117,7 @@ export default function CareerMatchPage() {
           </Card>
 
           {/* Match vs Readiness */}
-          <div className="grid sm:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <Card>
               <div className="flex items-center gap-3 mb-3">
                 <div className="w-10 h-10 rounded-lg bg-purple-100 dark:bg-purple-900/50 flex items-center justify-center">

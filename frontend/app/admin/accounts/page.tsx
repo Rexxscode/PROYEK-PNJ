@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { UserPlus, Trash2, Eye, EyeOff, Shield } from "lucide-react";
+import { UserPlus, Eye, EyeOff, Shield } from "lucide-react";
 import Card from "../../components/ui/card";
 import DashboardHeader from "../../components/layout/dashboardheader";
 import { getAllAdmins, registerAdmin } from "../../lib/mock-data";

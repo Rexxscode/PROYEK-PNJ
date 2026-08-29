@@ -4817,7 +4817,61 @@ export const majorQuizMap: Record<string, QuizQuestion[]> = {
   "Teknik Transmisi": transmisiQuiz,
 };
 
+const MAJOR_QUIZ_OVERRIDE_PREFIX = "quiz_overrides_";
+
+function getMajorQuizStorageKey(major: string): string {
+  return `${MAJOR_QUIZ_OVERRIDE_PREFIX}${major.toLowerCase().trim().replace(/\s+/g, "-")}`;
+}
+
+function readMajorQuizOverride(major: string): QuizQuestion[] | null {
+  if (typeof window === "undefined") return null;
+  try {
+    const raw = window.localStorage.getItem(getMajorQuizStorageKey(major));
+    if (!raw) return null;
+    const arr = JSON.parse(raw);
+    return Array.isArray(arr) ? (arr as QuizQuestion[]) : null;
+  } catch {
+    return null;
+  }
+}
+
+export function hasMajorQuizOverride(major: string): boolean {
+  if (typeof window === "undefined") return false;
+  return window.localStorage.getItem(getMajorQuizStorageKey(major)) !== null;
+}
+
+function invalidateAssessment() {
+  if (typeof window === "undefined") return;
+  window.localStorage.removeItem("major_quiz_result");
+  window.localStorage.removeItem("major_quiz_answers");
+  const stale: string[] = [];
+  for (let i = 0; i < window.localStorage.length; i++) {
+    const key = window.localStorage.key(i);
+    if (key && key.startsWith("career_matches_")) stale.push(key);
+  }
+  stale.forEach((key) => window.localStorage.removeItem(key));
+}
+
+export function saveMajorQuiz(major: string, questions: QuizQuestion[]): void {
+  window.localStorage.setItem(getMajorQuizStorageKey(major), JSON.stringify(questions));
+  invalidateAssessment();
+}
+
+export function resetMajorQuiz(major: string): void {
+  window.localStorage.removeItem(getMajorQuizStorageKey(major));
+  invalidateAssessment();
+}
+
+export function getMajorQuizForAdmin(major: string): QuizQuestion[] {
+  const over = readMajorQuizOverride(major);
+  if (over && over.length > 0) return over;
+  const base = majorQuizMap[major] || rplQuiz;
+  return base.map((q) => ({ ...q, options: [...q.options] }));
+}
+
 export function getQuizForMajor(major: string): QuizQuestion[] {
+  const over = readMajorQuizOverride(major);
+  if (over && over.length > 0) return over;
   const questions = majorQuizMap[major] || rplQuiz;
   return shuffleQuiz(questions);
 }
