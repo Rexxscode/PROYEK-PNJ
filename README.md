@@ -9,7 +9,7 @@
 
 **Submission for ITECHNO CUP 2026 - Web Development**
 
-**By [Nama Tim]**
+**By APA AJA ASAL JANGAN ERROR**
 
 </div>
 
@@ -35,10 +35,9 @@
 
 | Nama | Peran | GitHub |
 |------|-------|--------|
-| **[Nama Lengkap 1]** | Project Lead & Full Stack Developer | [GitHub](https://github.com/[username1]) |
-| **[Nama Lengkap 2]** | Frontend Developer | [GitHub](https://github.com/[username2]) |
-| **[Nama Lengkap 3]** | Backend Developer | [GitHub](https://github.com/[username3]) |
-| **[Nama Lengkap 4]** | UI/UX Designer | [GitHub](https://github.com/[username4]) |
+| **Sofian Bahtiar** | Frontend Developer | [@Sayayyan](https://github.com/Sayayyan) |
+| **Muhamad Adzka Lainufa** | Full Stack Developer | [@Rexxscode](https://github.com/Rexxscode) |
+| **[Nama Lengkap 3]** | [Peran] | [@username3](https://github.com/[username3]) |
 
 ---
 
@@ -477,6 +476,6 @@ Proyek ini dilisensikan di bawah [MIT License](LICENSE) - lihat file LICENSE unt
 
 <div align="center">
 
-**Made with ❤️ by [Nama Tim] for ITECHNO CUP 2026**
+**Made with ❤️ by APA AJA ASAL JANGAN ERROR for ITECHNO CUP 2026**
 
 </div>
