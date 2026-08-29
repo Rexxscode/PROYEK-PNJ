@@ -2,7 +2,7 @@
 
 import { use, useEffect, useState } from "react";
 import Link from "next/link";
-import { getStudentBySlug, getUserRole } from "../../lib/mock-data";
+import { getPublicStudentBySlug, getUserRole } from "../../lib/mock-data";
 import { getInitials } from "../../lib/utils";
 import { Briefcase, ArrowLeft } from "lucide-react";
 import Card from "../../components/ui/card";
@@ -21,7 +21,7 @@ function getBackLink(): string {
 
 export default function PublicPortfolioPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = use(params);
-  const student = getStudentBySlug(slug);
+  const student = getPublicStudentBySlug(slug);
   const [backLink, setBackLink] = useState("/");
 
   useEffect(() => {
@@ -48,7 +48,7 @@ export default function PublicPortfolioPage({ params }: { params: Promise<{ slug
 
   const { profile, hardSkills, softSkills, projects, careerMatches } = student;
   const allSkills = [...hardSkills, ...softSkills];
-  const avgScore = Math.round(careerMatches.reduce((sum, c) => sum + c.matchPercentage, 0) / careerMatches.length);
+  const avgScore = careerMatches.length > 0 ? Math.round(careerMatches.reduce((sum, c) => sum + c.matchPercentage, 0) / careerMatches.length) : 0;
 
   return (
     <div className="min-h-screen bg-background">

@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { createPortal } from "react-dom";
 import { Search, Check, X, IdCard, Users, Eye, BadgeCheck } from "lucide-react";
 import Card from "../../components/ui/card";
 import Badge from "../../components/ui/badge";
@@ -14,6 +15,7 @@ import {
   type RegisteredUser,
 } from "../../lib/mock-data";
 import { useToast } from "../../lib/toast-context";
+import { addNotification } from "../../lib/notifications";
 
 export default function CardVerificationPage() {
   const { toast } = useToast();
@@ -57,6 +59,13 @@ export default function CardVerificationPage() {
     approveStudentCard(email);
     refresh();
     window.dispatchEvent(new CustomEvent("students-updated"));
+    addNotification({
+      text: "Kartu pelajarmu telah disetujui — semua fitur siswa kini terbuka.",
+      type: "card_approval",
+      targetRole: "student",
+      targetEmail: email,
+    });
+    window.dispatchEvent(new CustomEvent("notifications-updated"));
     toast("Kartu pelajar disetujui — fitur siswa terbuka");
   };
 
@@ -64,6 +73,13 @@ export default function CardVerificationPage() {
     removeStudentCard(email);
     refresh();
     window.dispatchEvent(new CustomEvent("students-updated"));
+    addNotification({
+      text: "Kartu pelajarmu ditolak saat verifikasi. Silakan unggah ulang kartu yang jelas di halaman Profil.",
+      type: "card_approval",
+      targetRole: "student",
+      targetEmail: email,
+    });
+    window.dispatchEvent(new CustomEvent("notifications-updated"));
     toast("Kartu pelajar ditolak — siswa dapat mengunggah ulang", "warning");
   };
 
@@ -174,26 +190,28 @@ export default function CardVerificationPage() {
       )}
 
       {/* Kartu Pelajar Preview Modal */}
-      {preview && (
-        <div
-          className="fixed inset-0 bg-black/50 backdrop-blur-lg flex items-center justify-center z-50 p-4"
-          onClick={() => setPreview(null)}
-        >
-          <div className="bg-white dark:bg-gray-800 rounded-2xl p-6 max-w-md w-full shadow-xl" onClick={(e) => e.stopPropagation()}>
-            <div className="flex items-center justify-between mb-4">
-              <h3 className="font-semibold text-foreground">Kartu Pelajar — {preview.name}</h3>
-              <button
-                onClick={() => setPreview(null)}
-                className="p-1.5 text-muted hover:text-foreground transition-colors"
-                aria-label="Tutup"
-              >
-                <X className="w-5 h-5" />
-              </button>
+      {preview &&
+        createPortal(
+          <div
+            className="fixed inset-0 bg-black/50 backdrop-blur-lg flex items-center justify-center z-50 p-4"
+            onClick={() => setPreview(null)}
+          >
+            <div className="bg-white dark:bg-gray-800 rounded-2xl p-6 max-w-md w-full shadow-xl" onClick={(e) => e.stopPropagation()}>
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="font-semibold text-foreground">Kartu Pelajar — {preview.name}</h3>
+                <button
+                  onClick={() => setPreview(null)}
+                  className="p-1.5 text-muted hover:text-foreground transition-colors"
+                  aria-label="Tutup"
+                >
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+              <img src={preview.img} alt={`Kartu pelajar ${preview.name}`} className="w-full rounded-xl border border-border object-contain" />
             </div>
-            <img src={preview.img} alt={`Kartu pelajar ${preview.name}`} className="w-full rounded-xl border border-border object-contain" />
-          </div>
-        </div>
-      )}
+          </div>,
+          document.body
+        )}
     </div>
   );
 }

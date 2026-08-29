@@ -436,6 +436,84 @@ export function getPendingCardStudents(): RegisteredUser[] {
   );
 }
 
+// ===== Industry posted jobs (shared across all industry accounts) =====
+
+export interface PostedJob {
+  id: string;
+  title: string;
+  company: string;
+  location: string;
+  type: string;
+  description: string;
+  skills: string[];
+  deadline: string;
+  salary?: string;
+  postedBy: string;
+  postedAt: string;
+}
+
+export function getAllPostedJobs(): PostedJob[] {
+  if (typeof window === "undefined") return [];
+  const jobs: PostedJob[] = [];
+  try {
+    for (let i = 0; i < window.localStorage.length; i++) {
+      const key = window.localStorage.key(i);
+      if (!key || !key.startsWith("industryJobs_")) continue;
+      const raw = window.localStorage.getItem(key);
+      if (!raw) continue;
+      const arr = JSON.parse(raw);
+      if (Array.isArray(arr)) {
+        arr.forEach((j) => {
+          if (j && j.title && j.company) jobs.push({ ...j });
+        });
+      }
+    }
+  } catch {}
+  return jobs;
+}
+
+// ===== Job applications (student -> industry, per lowongan) =====
+
+const JOB_APPLICATIONS_KEY = "job_applications";
+
+export interface JobApplication {
+  id: string;
+  jobId: string;
+  jobTitle: string;
+  company: string;
+  studentName: string;
+  studentEmail: string;
+  appliedAt: string;
+}
+
+export function getJobApplications(): JobApplication[] {
+  if (typeof window === "undefined") return [];
+  try {
+    const arr = JSON.parse(localStorage.getItem(JOB_APPLICATIONS_KEY) || "[]");
+    return Array.isArray(arr) ? arr : [];
+  } catch {
+    return [];
+  }
+}
+
+export function addJobApplication(
+  application: Omit<JobApplication, "id" | "appliedAt">
+): JobApplication {
+  const app: JobApplication = {
+    ...application,
+    id: `app-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
+    appliedAt: new Date().toISOString(),
+  };
+  const all = getJobApplications();
+  all.unshift(app);
+  localStorage.setItem(JOB_APPLICATIONS_KEY, JSON.stringify(all));
+  return app;
+}
+
+export function getApplicationsForJob(jobId: string): JobApplication[] {
+  return getJobApplications().filter((a) => a.jobId === jobId);
+}
+
 export const userCredentials: UserCredential[] = [
   { email: "budi@student.smk.id", password: "Budi@2026!", role: "student", name: "Budi Santoso" },
   { email: "rina@student.smk.id", password: "Rina@2026!", role: "student", name: "Rina Wulandari" },
@@ -453,16 +531,16 @@ export const userCredentials: UserCredential[] = [
 ];
 
 export function validateLogin(email: string, password: string): UserCredential | null {
-  const user = userCredentials.find(
-    (u) => u.email.toLowerCase() === email.toLowerCase() && u.password === password
-  );
+  const lower = email.toLowerCase();
+  const override = getPasswordOverride(lower);
+  const user = userCredentials.find((u) => u.email.toLowerCase() === lower);
+  const registered = getRegisteredUsers().find((u) => u.email.toLowerCase() === lower);
+  const storedPassword = override ?? user?.password ?? registered?.password;
+  if (!storedPassword || storedPassword !== password) return null;
   if (user) {
     if (user.role === "industry" && user.status && user.status !== "approved") return null;
-    return user;
+    return override !== null ? { ...user, password } : user;
   }
-  const registered = getRegisteredUsers().find(
-    (u) => u.email.toLowerCase() === email.toLowerCase() && u.password === password
-  );
   if (registered) {
     if (registered.role === "industry" && registered.status && registered.status !== "approved") return null;
     if (registered.role === "student" && registered.status && registered.status !== "approved") return null;
@@ -561,6 +639,10 @@ export function getPendingStudentRegistrations(): RegisteredUser[] {
   return getRegisteredUsers().filter((u) => u.role === "student");
 }
 
+export function getPendingStudentApprovals(): RegisteredUser[] {
+  return getRegisteredUsers().filter((u) => u.role === "student" && u.status !== "approved");
+}
+
 export function setRegistrationStatus(email: string, status: "approved" | "rejected" | "pending"): void {
   const lower = email.toLowerCase();
   const users = getRegisteredUsers();
@@ -575,6 +657,34 @@ export function setRegistrationStatus(email: string, status: "approved" | "rejec
 }
 
 const GRADE_OVERRIDE_KEY = "student_grade_overrides";
+
+const PASSWORD_OVERRIDE_KEY = "password_overrides";
+
+export function getPasswordOverride(email: string): string | null {
+  if (typeof window === "undefined") return null;
+  try {
+    const map = JSON.parse(localStorage.getItem(PASSWORD_OVERRIDE_KEY) || "{}");
+    const p = map[email.toLowerCase()];
+    return typeof p === "string" ? p : null;
+  } catch {
+    return null;
+  }
+}
+
+export function changePassword(email: string, newPassword: string): boolean {
+  if (typeof window === "undefined") return false;
+  const lower = email.toLowerCase();
+  const map = JSON.parse(localStorage.getItem(PASSWORD_OVERRIDE_KEY) || "{}");
+  map[lower] = newPassword;
+  localStorage.setItem(PASSWORD_OVERRIDE_KEY, JSON.stringify(map));
+  const users = getRegisteredUsers();
+  const idx = users.findIndex((u) => u.email.toLowerCase() === lower);
+  if (idx !== -1) {
+    users[idx].password = newPassword;
+    localStorage.setItem(REGISTERED_USERS_KEY, JSON.stringify(users));
+  }
+  return true;
+}
 
 export function getGradeOverride(email: string): string | null {
   if (typeof window === "undefined") return null;
@@ -594,13 +704,7 @@ export function setGradeOverride(email: string, grade: string): void {
   localStorage.setItem(GRADE_OVERRIDE_KEY, JSON.stringify(map));
 }
 
-export function getAllStudentsList(): {
-  name: string;
-  email: string;
-  major: string;
-  grade: string;
-  source: "seed" | "registered";
-}[] {
+function mapStudentRows(filterFn: (u: RegisteredUser) => boolean) {
   const seeds = Object.values(students).map((s) => ({
     name: s.profile.name,
     email: s.profile.email,
@@ -609,7 +713,7 @@ export function getAllStudentsList(): {
     source: "seed" as const,
   }));
   const regs = getRegisteredUsers()
-    .filter((u) => u.role === "student")
+    .filter((u) => u.role === "student" && filterFn(u))
     .map((u) => ({
       name: u.name,
       email: u.email,
@@ -618,6 +722,26 @@ export function getAllStudentsList(): {
       source: "registered" as const,
     }));
   return [...seeds, ...regs];
+}
+
+export function getAllStudentsList(): {
+  name: string;
+  email: string;
+  major: string;
+  grade: string;
+  source: "seed" | "registered";
+}[] {
+  return mapStudentRows(() => true);
+}
+
+export function getAllApprovedStudentsList(): {
+  name: string;
+  email: string;
+  major: string;
+  grade: string;
+  source: "seed" | "registered";
+}[] {
+  return mapStudentRows((u) => u.status === "approved");
 }
 
 export function getAllAdmins(): UserCredential[] {
@@ -697,6 +821,51 @@ export function getStudentBySlug(slug: string): StudentData | null {
   }) || null;
 }
 
+export function getPublicStudentBySlug(slug: string): StudentData | null {
+  const seed = getStudentBySlug(slug);
+  if (seed) return seed;
+  if (typeof window === "undefined") return null;
+  const want = slug.toLowerCase();
+  const u = getRegisteredUsers().find(
+    (x) =>
+      x.role === "student" &&
+      x.status === "approved" &&
+      x.name.toLowerCase().replace(/\s+/g, "-") === want
+  );
+  if (!u) return null;
+  const lower = u.email.toLowerCase();
+  const matches = readStoredCareerMatches(lower) || [];
+  let projects: Project[] = [];
+  try {
+    const raw = JSON.parse(localStorage.getItem(`portfolio_projects_${lower}`) || "[]");
+    if (Array.isArray(raw)) projects = raw as Project[];
+  } catch {}
+  const hardSkills = [
+    ...new Map(
+      matches.flatMap((m) => m.requiredSkills || []).map((s) => [s.name, s])
+    ).values(),
+  ];
+  return {
+    profile: {
+      id: `usr-${lower}`,
+      name: u.name,
+      email: u.email,
+      role: "student",
+      major: majorCodeToName(u.major || "") || u.major || "Rekayasa Perangkat Lunak",
+      grade: getGradeOverride(lower) || normalizeGrade(u.grade || "XI"),
+      avatar: "",
+      createdAt: "",
+    },
+    hardSkills,
+    softSkills: [],
+    careerMatches: matches,
+    skillGaps: [],
+    roadmapMilestones: [],
+    projects,
+    jobOpportunities: [],
+  };
+}
+
 // ===== Computed student statistics (real data: seeds + approved registrations) =====
 
 function readStoredCareerMatches(email: string): CareerMatch[] | null {
@@ -725,9 +894,74 @@ export function getStudentAssessmentStatus(email: string): "assessed" | "pending
   return getStudentReadiness(email) === null ? "pending" : "assessed";
 }
 
+export interface StudentCandidate {
+  name: string;
+  email: string;
+  major: string;
+  grade: string;
+  score: number;
+  skills: string[];
+  topCareer: string;
+  hasPublicPortfolio: boolean;
+}
+
+export function getStudentCandidates(): StudentCandidate[] {
+  const results: StudentCandidate[] = [];
+  const seeds = Object.values(students);
+  const seedEmails = new Set(seeds.map((s) => s.profile.email.toLowerCase()));
+
+  seeds.forEach((s) => {
+    const score = getStudentReadiness(s.profile.email) ?? 0;
+    const skills = [...s.hardSkills]
+      .sort((a, b) => b.level - a.level)
+      .slice(0, 5)
+      .map((x) => x.name);
+    const top = [...s.careerMatches].sort((a, b) => b.readinessScore - a.readinessScore)[0];
+    results.push({
+      name: s.profile.name,
+      email: s.profile.email,
+      major: s.profile.major,
+      grade: getGradeOverride(s.profile.email) || s.profile.grade,
+      score,
+      skills,
+      topCareer: top ? top.title : "Belum memilih karier",
+      hasPublicPortfolio: true,
+    });
+  });
+
+  getRegisteredUsers()
+    .filter(
+      (u) => u.role === "student" && u.status === "approved" && !seedEmails.has(u.email.toLowerCase())
+    )
+    .forEach((u) => {
+      const lower = u.email.toLowerCase();
+      const matches = readStoredCareerMatches(lower) || [];
+      if (matches.length === 0) return;
+      const score = getStudentReadiness(lower) ?? 0;
+      const skills = [
+        ...new Set(
+          matches.flatMap((m) => m.requiredSkills?.map((s) => s.name) || [])
+        ),
+      ].slice(0, 5);
+      const top = [...matches].sort((a, b) => (b.readinessScore || 0) - (a.readinessScore || 0))[0];
+      results.push({
+        name: u.name,
+        email: u.email,
+        major: majorCodeToName(u.major || "") || u.major,
+        grade: getGradeOverride(lower) || normalizeGrade(u.grade || "XI"),
+        score,
+        skills,
+        topCareer: top ? top.title : "Belum memilih karier",
+        hasPublicPortfolio: true,
+      });
+    });
+
+  return results;
+}
+
 export function getStudentStats(): StudentStats {
   const seeds = Object.values(students);
-  const all = getAllStudentsList();
+  const all = getAllApprovedStudentsList();
 
   const assessed = all.filter((s) => getStudentReadiness(s.email) !== null);
   const avgReadinessScore =

@@ -5,7 +5,7 @@ import { BarChart3, TrendingUp, Users } from "lucide-react";
 import Card from "../../components/ui/card";
 import dynamic from "next/dynamic";
 import DashboardHeader from "../../components/layout/dashboardheader";
-import { getStudentStats, getAllStudentsList, getStudentReadiness } from "../../lib/mock-data";
+import { getStudentStats, getAllApprovedStudentsList, getStudentReadiness } from "../../lib/mock-data";
 
 const SkillBarChart = dynamic(() => import("../../components/charts/barchart"), { ssr: false });
 const LineChart = dynamic(() => import("../../components/charts/linechart"), { ssr: false });
@@ -20,7 +20,7 @@ const monthlyData = [
 ];
 
 function getReadinessDistribution() {
-  const allStudents = getAllStudentsList();
+  const allStudents = getAllApprovedStudentsList();
   const tierKeys = ["Siap Kerja (85-100%)", "Hampir Siap (70-84%)", "Berkembang (50-69%)", "Eksplorasi (0-49%)"] as const;
   const tierCounts: Record<(typeof tierKeys)[number], number> = { "Siap Kerja (85-100%)": 0, "Hampir Siap (70-84%)": 0, "Berkembang (50-69%)": 0, "Eksplorasi (0-49%)": 0 };
   allStudents.forEach((s) => {

@@ -21,13 +21,13 @@ function PendingContent() {
           <h1 className="text-xl font-bold text-foreground mb-2">Menunggu Persetujuan</h1>
           <p className="text-sm text-muted mb-6">
             {isStudent
-              ? "Akun siswa kamu sudah berhasil dibuat. Silakan masuk dan lengkapi kartu pelajar di halaman Profil untuk membuka semua fitur."
+              ? "Akun siswa kamu sudah berhasil dibuat dan sedang menunggu persetujuan dari admin sebelum kamu bisa masuk."
               : "Akun perusahaan kamu sudah berhasil dibuat. Saat ini sedang menunggu persetujuan dari admin untuk dapat mengakses platform."}
           </p>
           <div className="bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-xl p-4 mb-6">
             <p className="text-sm text-amber-700 dark:text-amber-300">
               {isStudent
-                ? "Setelah login, unggah kartu pelajar kamu di halaman Profil agar fitur asesmen, sertifikat, dan lowongan terbuka."
+                ? "Admin akan meninjau dan menyetujui akun kamu. Setelah disetujui, masuk dan unggah kartu pelajar di halaman Profil agar fitur asesmen, sertifikat, dan lowongan terbuka."
                 : "Admin akan meninjau dan menyetujui akun kamu. Setelah disetujui, kamu bisa masuk menggunakan email dan password yang sudah didaftarkan."}
             </p>
           </div>

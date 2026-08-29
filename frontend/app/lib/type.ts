@@ -79,6 +79,7 @@ export interface JobOpportunity {
   matchPercentage: number;
   postedAt: string;
   deadline: string;
+  salary?: string;
 }
 
 export interface Portfolio {

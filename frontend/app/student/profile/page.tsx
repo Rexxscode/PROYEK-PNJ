@@ -15,6 +15,7 @@ import {
   removeStudentCard,
 } from "../../lib/mock-data";
 import { useToast } from "../../lib/toast-context";
+import { addNotification } from "../../lib/notifications";
 
 export default function StudentProfilePage() {
   const { toast } = useToast();
@@ -82,6 +83,8 @@ export default function StudentProfilePage() {
       setCard(cardPending.dataUrl);
       setCardStatus("pending");
       setCardPending(null);
+      addNotification({ text: `${profile.name} mengunggah kartu pelajar untuk verifikasi.`, type: "card_approval", targetRole: "admin" });
+      window.dispatchEvent(new CustomEvent("notifications-updated"));
       toast("Kartu pelajar dikirim untuk verifikasi admin.");
     } else {
       toast("Gagal menyimpan kartu pelajar", "error");

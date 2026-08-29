@@ -1,13 +1,16 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
-import { Search, ChevronDown, ChevronUp, Check, X, Users, Eye } from "lucide-react";
+import { createPortal } from "react-dom";
+import { Search, ChevronDown, ChevronUp, Check, X, Users, Eye, Clock } from "lucide-react";
 import Card from "../../components/ui/card";
 import Badge from "../../components/ui/badge";
 import DashboardHeader from "../../components/layout/dashboardheader";
 import {
   getAllStudentsList,
   getPendingStudentRegistrations,
+  getPendingStudentApprovals,
+  setRegistrationStatus,
   setGradeOverride,
   normalizeGrade,
   getStudentCardDataUrl,
@@ -15,6 +18,7 @@ import {
   approveStudentCard,
   type RegisteredUser,
 } from "../../lib/mock-data";
+import { addNotification } from "../../lib/notifications";
 import { useToast } from "../../lib/toast-context";
 
 const GRADE_CHOICES = ["X", "XI", "XII", "Alumni"];
@@ -38,11 +42,13 @@ export default function StudentsPage() {
   const statusTimer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
   const [rows, setRows] = useState<StudentRow[]>([]);
   const [pending, setPending] = useState<RegisteredUser[]>([]);
+  const [approvals, setApprovals] = useState<RegisteredUser[]>([]);
   const [preview, setPreview] = useState<{ name: string; img: string } | null>(null);
 
   const refresh = () => {
     setRows(getAllStudentsList());
     setPending(getPendingStudentRegistrations());
+    setApprovals(getPendingStudentApprovals());
   };
 
   useEffect(() => {
@@ -87,6 +93,13 @@ export default function StudentsPage() {
     approveStudentCard(email);
     refresh();
     window.dispatchEvent(new CustomEvent("students-updated"));
+    addNotification({
+      text: "Kartu pelajarmu telah disetujui — semua fitur siswa kini terbuka.",
+      type: "card_approval",
+      targetRole: "student",
+      targetEmail: email,
+    });
+    window.dispatchEvent(new CustomEvent("notifications-updated"));
     toast("Kartu pelajar disetujui — fitur siswa terbuka");
   };
 
@@ -97,6 +110,34 @@ export default function StudentsPage() {
     toast(`Kelas ${email} diubah menjadi ${normalizeGrade(grade)}`);
   };
 
+  const handleApproveRegistration = (email: string, name: string) => {
+    setRegistrationStatus(email, "approved");
+    refresh();
+    window.dispatchEvent(new CustomEvent("students-updated"));
+    addNotification({
+      text: `Akun kamu telah disetujui! Silakan masuk dan unggah kartu pelajar agar semua fitur terbuka. Selamat datang, ${name}!`,
+      type: "registration",
+      targetRole: "student",
+      targetEmail: email,
+    });
+    window.dispatchEvent(new CustomEvent("notifications-updated"));
+    toast(`Akun ${email} disetujui — siswa dapat masuk`);
+  };
+
+  const handleRejectRegistration = (email: string) => {
+    setRegistrationStatus(email, "rejected");
+    refresh();
+    window.dispatchEvent(new CustomEvent("students-updated"));
+    addNotification({
+      text: "Pendaftaran akun kamu ditolak oleh admin. Hubungi sekolah untuk informasi lebih lanjut.",
+      type: "registration",
+      targetRole: "student",
+      targetEmail: email,
+    });
+    window.dispatchEvent(new CustomEvent("notifications-updated"));
+    toast("Akun siswa ditolak", "warning");
+  };
+
   return (
     <div>
       <DashboardHeader
@@ -104,6 +145,51 @@ export default function StudentsPage() {
         subtitle="Kelola data siswa dan atur tingkatan kelas"
         role="admin"
       />
+
+      {/* Persetujuan Akun Siswa */}
+      {approvals.length > 0 && (
+        <div className="mb-6">
+          <h2 className="text-sm font-semibold text-amber-600 dark:text-amber-400 mb-3 flex items-center gap-2">
+            <Clock className="w-4 h-4" />
+            Persetujuan Akun Siswa ({approvals.length})
+          </h2>
+          <div className="space-y-3">
+            {approvals.map((a) => (
+              <Card key={a.email}>
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                  <div>
+                    <p className="font-medium text-foreground">{a.name}</p>
+                    <p className="text-xs text-muted break-all">{a.email}</p>
+                    <div className="flex flex-wrap gap-2 mt-2">
+                      <Badge variant="secondary">{a.major || "-"}</Badge>
+                      <Badge variant="secondary">Kelas {normalizeGrade(a.grade || "XI")}</Badge>
+                      <Badge variant={a.status === "pending" ? "warning" : "danger"}>
+                        {a.status === "pending" ? "Menunggu Persetujuan" : "Ditolak"}
+                      </Badge>
+                    </div>
+                  </div>
+                  <div className="flex gap-2 ml-auto">
+                    <button
+                      onClick={() => handleApproveRegistration(a.email, a.name)}
+                      className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl text-sm font-medium bg-emerald-600 text-white hover:bg-emerald-700 transition-colors"
+                    >
+                      <Check className="w-4 h-4" /> Setujui
+                    </button>
+                    {a.status !== "rejected" && (
+                      <button
+                        onClick={() => handleRejectRegistration(a.email)}
+                        className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl text-sm font-medium bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400 hover:bg-red-200 dark:hover:bg-red-900/50 transition-colors"
+                      >
+                        <X className="w-4 h-4" /> Tolak
+                      </button>
+                    )}
+                  </div>
+                </div>
+              </Card>
+            ))}
+          </div>
+        </div>
+      )}
 
       {/* Filters */}
       <div className="flex flex-col sm:flex-row gap-3 mb-6">
@@ -302,26 +388,28 @@ export default function StudentsPage() {
       )}
 
       {/* Kartu Pelajar Preview Modal */}
-      {preview && (
-        <div
-          className="fixed inset-0 bg-black/50 backdrop-blur-lg flex items-center justify-center z-50 p-4"
-          onClick={() => setPreview(null)}
-        >
-          <div className="bg-white dark:bg-gray-800 rounded-2xl p-6 max-w-md w-full shadow-xl" onClick={(e) => e.stopPropagation()}>
-            <div className="flex items-center justify-between mb-4">
-              <h3 className="font-semibold text-foreground">Kartu Pelajar — {preview.name}</h3>
-              <button
-                onClick={() => setPreview(null)}
-                className="p-1.5 text-muted hover:text-foreground transition-colors"
-                aria-label="Tutup"
-              >
-                <X className="w-5 h-5" />
-              </button>
+      {preview &&
+        createPortal(
+          <div
+            className="fixed inset-0 bg-black/50 backdrop-blur-lg flex items-center justify-center z-50 p-4"
+            onClick={() => setPreview(null)}
+          >
+            <div className="bg-white dark:bg-gray-800 rounded-2xl p-6 max-w-md w-full shadow-xl" onClick={(e) => e.stopPropagation()}>
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="font-semibold text-foreground">Kartu Pelajar — {preview.name}</h3>
+                <button
+                  onClick={() => setPreview(null)}
+                  className="p-1.5 text-muted hover:text-foreground transition-colors"
+                  aria-label="Tutup"
+                >
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+              <img src={preview.img} alt={`Kartu pelajar ${preview.name}`} className="w-full rounded-xl border border-border object-contain" />
             </div>
-            <img src={preview.img} alt={`Kartu pelajar ${preview.name}`} className="w-full rounded-xl border border-border object-contain" />
-          </div>
-        </div>
-      )}
+          </div>,
+          document.body
+        )}
     </div>
   );
 }

@@ -6,6 +6,7 @@ import Link from "next/link";
 import { Mail, Lock, User, BookOpen, Building2, Eye, EyeOff, IdCard } from "lucide-react";
 import { registerUser, majorCodeToName, normalizeGrade } from "../../lib/mock-data";
 import { useToast } from "../../lib/toast-context";
+import { addNotification } from "../../lib/notifications";
 
 export default function RegisterPage() {
   const router = useRouter();
@@ -46,20 +47,23 @@ export default function RegisterPage() {
       grade: role === "industry" ? "-" : normalizeGrade(grade),
       role,
       company: role === "industry" ? company : undefined,
-      status: role === "student" ? "approved" : "pending",
+      status: "pending",
     });
     if (!success) {
       setError("Email sudah terdaftar, gunakan email lain");
       toast("Email sudah terdaftar", "error");
       return;
     }
-    if (role === "industry") {
-      toast("Registrasi berhasil! Menunggu persetujuan admin.", "success");
-      router.push("/auth/pending?role=industry");
-      return;
-    }
-    toast("Registrasi berhasil! Silakan masuk.", "success");
-    router.push("/auth/login");
+    const roleLabel = role === "industry" ? "Perusahaan" : "Siswa";
+    addNotification({
+      text: `${roleLabel} baru mendaftar dan menunggu persetujuan: ${name}${role === "industry" ? ` (${company})` : ""}`,
+      type: "registration",
+      targetRole: "admin",
+    });
+    window.dispatchEvent(new CustomEvent("notifications-updated"));
+    toast("Registrasi berhasil! Menunggu persetujuan admin.", "success");
+    router.push(`/auth/pending?role=${role}`);
+    return;
   };
 
   return (
@@ -206,8 +210,8 @@ export default function RegisterPage() {
                   Kartu Pelajar
                 </div>
                 <p className="text-xs text-blue-600/80 dark:text-blue-400/80">
-                  Kamu bisa langsung masuk setelah mendaftar. Setelah mengunggah kartu pelajar di
-                  halaman Profil, admin akan memverifikasinya — fitur terbuka setelah disetujui.
+                  Setelah mendaftar, admin akan menyetujui akun kamu sebelum bisa masuk. Setelah
+                  masuk, unggah kartu pelajar di halaman Profil agar fitur terbuka setelah diverifikasi.
                 </p>
               </div>
             )}
