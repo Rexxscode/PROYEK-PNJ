@@ -51,3 +51,34 @@ export function getInitials(name: string): string {
     .toUpperCase()
     .slice(0, 2);
 }
+
+export function getGapStatusColor(percentageOrStatus: number | string): string {
+  if (typeof percentageOrStatus === "number") {
+    if (percentageOrStatus >= 80) return "text-emerald-600";
+    if (percentageOrStatus >= 60) return "text-amber-600";
+    return "text-red-500";
+  }
+  const status = percentageOrStatus as string;
+  if (status === "mastered") return "text-emerald-600";
+  if (status === "improving") return "text-amber-600";
+  return "text-red-500";
+}
+
+export function getGapStatusLabel(percentageOrStatus: number | string): string {
+  if (typeof percentageOrStatus === "number") {
+    if (percentageOrStatus >= 80) return "Lulus";
+    if (percentageOrStatus >= 60) return "Cukup";
+    return "Belum";
+  }
+  const status = percentageOrStatus as string;
+  if (status === "mastered") return "Lulus";
+  if (status === "improving") return "Cukup";
+  return "Belum";
+}
+
+export function getReadinessLabel(score: number): string {
+  if (score >= 80) return "Sangat Siap";
+  if (score >= 60) return "Siap";
+  if (score >= 50) return "Perlu Persiapan";
+  return "Mulai Belajar";
+}

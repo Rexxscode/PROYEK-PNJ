@@ -18,8 +18,8 @@ import { useStudentData } from "../lib/use-student-data";
 import { getMatchColor, getReadinessLabel } from "../lib/utils";
 import { useCountUp } from "../lib/use-count-up";
 
-const DoughnutChart = dynamic(() => import("../components/charts/doughnutchart"), { ssr: false });
 const LineChart = dynamic(() => import("../components/charts/linechart"), { ssr: false });
+import SkillBarChart from "../components/charts/barchart";
 
 export default function StudentDashboard() {
   const { data: student, loading } = useStudentData();
@@ -37,6 +37,15 @@ export default function StudentDashboard() {
   const inProgressMilestones = roadmapMilestones.filter((m) => m.status === "in_progress").length;
   const availableMilestones = roadmapMilestones.filter((m) => m.status === "available").length;
   const lockedMilestones = roadmapMilestones.filter((m) => m.status === "locked").length;
+
+  const studentStats = useMemo(() => {
+    const readinessByMajor = roadmapMilestones.length > 0
+      ? [{ major: profile?.major || "Semua Jurusan", score: Math.round((completedMilestones / Math.max(roadmapMilestones.length, 1)) * 100) }]
+      : [];
+    return {
+      readinessByMajor,
+    };
+  }, [roadmapMilestones, profile?.major]);
 
   const doughnut1Labels = useMemo(() => ["Selesai", "Dalam Progres", "Tersedia", "Terkunci"], []);
   const doughnut1Data = useMemo(() => [completedMilestones, inProgressMilestones, availableMilestones, lockedMilestones], [completedMilestones, inProgressMilestones, availableMilestones, lockedMilestones]);
@@ -87,12 +96,11 @@ export default function StudentDashboard() {
         </Card>
 
         <Card>
-          <DoughnutChart
-            labels={doughnut1Labels}
-            data={doughnut1Data}
-            title="Progress Roadmap"
-            colors={doughnut1Colors}
-            centerLabel={doughnut1Center}
+          <SkillBarChart
+            labels={studentStats.readinessByMajor.map((m) => m.major)}
+            data={studentStats.readinessByMajor.map((m) => m.score)}
+            title="Readiness Score per Jurusan"
+            color="rgba(124, 58, 237, 0.8)"
           />
         </Card>
       </div>
@@ -131,10 +139,11 @@ export default function StudentDashboard() {
         </Card>
 
         <Card>
-          <DoughnutChart
-            labels={doughnut2Labels}
-            data={doughnut2Data}
-            title="Distribusi Kecocokan Karir"
+          <LineChart
+            labels={lineLabels}
+            datasets={lineDatasets}
+            title="Progress Skill (6 Bulan)"
+            yMax={100}
           />
         </Card>
       </div>

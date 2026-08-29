@@ -6,19 +6,10 @@ import Card from "../../components/ui/card";
 import dynamic from "next/dynamic";
 import DashboardHeader from "../../components/layout/dashboardheader";
 import { adminAPI, getStoredToken } from "../../lib/api";
-import type { StudentStats } from "../../lib/type";
+import type { StudentStats, AdminStudent } from "../../lib/type";
 
 const SkillBarChart = dynamic(() => import("../../components/charts/barchart"), { ssr: false });
-const DoughnutChart = dynamic(() => import("../../components/charts/doughnutchart"), { ssr: false });
 const LineChart = dynamic(() => import("../../components/charts/linechart"), { ssr: false });
-const SkillRadar = dynamic(() => import("../../components/charts/skillradar"), { ssr: false });
-
-interface AdminStudent {
-  id: string;
-  name: string;
-  score: number;
-  status: "assessed" | "pending";
-}
 
 const monthlyData = [
   { month: "Jan", students: 12 },
@@ -27,17 +18,7 @@ const monthlyData = [
   { month: "Apr", students: 32 },
   { month: "Mei", students: 28 },
   { month: "Jun", students: 35 },
-];
-
-function readinessDistribution(students: AdminStudent[]): [number, number, number, number] {
-  const assessed = students.filter((s) => s.status === "assessed");
-  return [
-    assessed.filter((s) => s.score >= 80).length,
-    assessed.filter((s) => s.score >= 60 && s.score < 80).length,
-    assessed.filter((s) => s.score >= 40 && s.score < 60).length,
-    assessed.filter((s) => s.score < 40).length,
-  ];
-}
+]
 
 export default function StatisticsPage() {
   const [mounted, setMounted] = useState(false);
@@ -71,9 +52,6 @@ export default function StatisticsPage() {
       </div>
     );
   }
-
-  const distribution = readinessDistribution(students);
-  const totalAssessed = distribution.reduce((a, b) => a + b, 0);
 
   return (
     <div>
@@ -148,34 +126,12 @@ export default function StatisticsPage() {
         </Card>
       </div>
 
-      <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
+<div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
         <Card>
           <SkillBarChart
             labels={studentStats.readinessByMajor.map((m) => m.major)}
             data={studentStats.readinessByMajor.map((m) => m.score)}
             title="Readiness Score per Jurusan"
-            color="rgba(16, 185, 129, 0.8)"
-          />
-        </Card>
-        <Card>
-          <DoughnutChart
-            labels={["Sangat Siap", "Siap", "Perlu Persiapan", "Mulai Belajar"]}
-            data={distribution}
-            title="Distribusi Readiness"
-            colors={["#10b981", "#3b82f6", "#f59e0b", "#ef4444"]}
-            centerLabel={`${totalAssessed}`}
-          />
-        </Card>
-        <Card>
-          <SkillRadar
-            skills={studentStats.readinessByMajor.map((m) => ({
-              id: m.major,
-              name: m.major.split(" ").slice(0, 2).join(" "),
-              category: "hard" as const,
-              level: m.score,
-            }))}
-            title="Readiness per Jurusan"
-            max={100}
             color="rgba(16, 185, 129, 0.8)"
           />
         </Card>

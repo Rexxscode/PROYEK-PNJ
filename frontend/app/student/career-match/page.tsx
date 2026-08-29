@@ -16,8 +16,6 @@ import { useStudentData } from "../../lib/use-student-data";
 import { getMatchBg, getGapStatusColor, getGapStatusLabel, getReadinessLabel } from "../../lib/utils";
 import type { CareerMatch } from "../../lib/type";
 
-const SkillRadar = dynamic(() => import("../../components/charts/skillradar"), { ssr: false });
-
 export default function CareerMatchPage() {
   const [selectedCareer, setSelectedCareer] = useState<CareerMatch | null>(null);
 
@@ -174,14 +172,6 @@ export default function CareerMatchPage() {
                 <div className="w-3 h-3 rounded bg-primary" /> Level Dibutuhkan
               </div>
             </div>
-          </Card>
-
-          {/* Skill Profile Radar Chart */}
-          <Card>
-            <SkillRadar
-              skills={student.hardSkills.slice(0, 8)}
-              title="Profil Skill Kamu"
-            />
           </Card>
 
           {/* Action */}
