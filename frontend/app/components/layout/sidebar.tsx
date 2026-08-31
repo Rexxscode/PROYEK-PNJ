@@ -18,6 +18,7 @@ import {
   UserPlus,
   Lock,
   Award,
+  IdCard,
 } from "lucide-react";
 import { cn, getInitials } from "../../lib/utils";
 import { getCurrentStudent } from "../../lib/mock-data";
@@ -38,10 +39,14 @@ const navItems = {
     { label: "Portfolio", href: "/student/portofolio", icon: GraduationCap },
     { label: "Sertifikat", href: "/student/sertifikat", icon: Award },
     { label: "Lowongan", href: "/student/jobs", icon: Briefcase },
+    { label: "Profil", href: "/student/profile", icon: UserPlus },
   ],
   admin: [
     { label: "Dashboard", href: "/admin", icon: LayoutDashboard },
     { label: "Data Siswa", href: "/admin/students", icon: Users },
+    { label: "Verifikasi Kartu", href: "/admin/card-verification", icon: IdCard },
+    { label: "Kelola Soal", href: "/admin/quiz", icon: ClipboardCheck },
+    { label: "Soal Tes Jurusan", href: "/admin/quiz/major", icon: Target },
     { label: "Data Industry", href: "/admin/industries", icon: Building2 },
     { label: "Kelola Admin", href: "/admin/accounts", icon: UserPlus },
     { label: "Statistik", href: "/admin/statistics", icon: BarChart3 },

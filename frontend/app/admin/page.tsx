@@ -8,6 +8,7 @@ import {
   GraduationCap,
   Eye,
   Building2,
+  IdCard,
 } from "lucide-react";
 import Card from "../components/ui/card";
 import Badge from "../components/ui/badge";
@@ -15,36 +16,49 @@ import ProgressBar from "../components/ui/progressbar";
 import { SkeletonDashboard } from "../components/ui/skeleton";
 import dynamic from "next/dynamic";
 import DashboardHeader from "../components/layout/dashboardheader";
-import { studentStats, getAllIndustries } from "../lib/mock-data";
+import {
+  getStudentStats,
+  getAllStudentsList,
+  getAllIndustries,
+  getStudentReadiness,
+  getStudentAssessmentStatus,
+  getPendingCardStudents,
+} from "../lib/mock-data";
 import { useCountUp } from "../lib/use-count-up";
 
 const SkillBarChart = dynamic(() => import("../components/charts/barchart"), { ssr: false });
-
-const recentStudents = [
-  { name: "Budi Santoso", major: "Rekayasa Perangkat Lunak", score: 72, status: "assessed" },
-  { name: "Rina Wulandari", major: "Desain Komunikasi Visual", score: 85, status: "assessed" },
-  { name: "Dedi Kurniawan", major: "Teknik Komputer dan Jaringan", score: 58, status: "assessed" },
-  { name: "Siti Nurhaliza", major: "Teknik Transmisi", score: 65, status: "pending" },
-  { name: "Andi Pratama", major: "Rekayasa Perangkat Lunak", score: 91, status: "assessed" },
-  { name: "Maya Putri", major: "Desain Komunikasi Visual", score: 0, status: "pending" },
-  { name: "Rizky Aditya", major: "Rekayasa Perangkat Lunak", score: 78, status: "assessed" },
-  { name: "Diana Sari", major: "Teknik Transmisi", score: 0, status: "pending" },
-];
 
 export default function AdminDashboard() {
   const [mounted, setMounted] = useState(false);
   useEffect(() => { setMounted(true); }, []);
 
-  const assessedPercentage = Math.round((studentStats.assessedStudents / studentStats.totalStudents) * 100);
+  const [pendingCards, setPendingCards] = useState(0);
+  useEffect(() => {
+    const refresh = () => setPendingCards(getPendingCardStudents().length);
+    refresh();
+    window.addEventListener("students-updated", refresh);
+    return () => window.removeEventListener("students-updated", refresh);
+  }, []);
+
+  const stats = getStudentStats();
+  const assessedPercentage = stats.totalStudents ? Math.round((stats.assessedStudents / stats.totalStudents) * 100) : 0;
   const industries = getAllIndustries();
   const pendingIndustries = industries.filter((i) => i.status === "pending").length;
-  const animTotal = useCountUp(studentStats.totalStudents);
-  const animAssessed = useCountUp(studentStats.assessedStudents);
-  const animAvgScore = useCountUp(studentStats.avgReadinessScore);
+  const animTotal = useCountUp(stats.totalStudents);
+  const animAssessed = useCountUp(stats.assessedStudents);
+  const animAvgScore = useCountUp(stats.avgReadinessScore);
   const animPercentage = useCountUp(assessedPercentage);
   const animIndustries = useCountUp(industries.length);
 
   if (!mounted) return <div className="p-6 lg:pl-72"><SkeletonDashboard /></div>;
+
+  const recentStudents = getAllStudentsList().map((s) => ({
+    name: s.name,
+    email: s.email,
+    major: s.major,
+    score: getStudentReadiness(s.email) ?? 0,
+    status: getStudentAssessmentStatus(s.email),
+  }));
 
   return (
     <div>
@@ -72,8 +86,25 @@ export default function AdminDashboard() {
         </a>
       )}
 
+      {/* Pending Student Card Alert */}
+      {pendingCards > 0 && (
+        <a href="/admin/card-verification" className="block mb-6 p-4 bg-indigo-50 dark:bg-indigo-900/20 border border-indigo-200 dark:border-indigo-800 rounded-xl hover:shadow-md transition-shadow">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-lg bg-indigo-100 dark:bg-indigo-900/30 flex items-center justify-center animate-pulse">
+              <IdCard className="w-5 h-5 text-indigo-600 dark:text-indigo-400" />
+            </div>
+            <div>
+              <p className="text-sm font-medium text-indigo-700 dark:text-indigo-300">
+                {pendingCards} siswa mengirim kartu pelajar menunggu verifikasi
+              </p>
+              <p className="text-xs text-indigo-600/70 dark:text-indigo-400/70">Klik untuk memverifikasi kartu pelajar</p>
+            </div>
+          </div>
+        </a>
+      )}
+
       {/* Stats Grid */}
-      <div className="grid sm:grid-cols-2 lg:grid-cols-5 gap-4 mb-8 stagger-in">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4 mb-8 stagger-in">
         <Card>
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-lg bg-blue-100 dark:bg-blue-900/50 flex items-center justify-center">
@@ -139,19 +170,19 @@ export default function AdminDashboard() {
       />
 
       {/* Charts */}
-      <div className="grid lg:grid-cols-2 gap-6 mb-8">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
         <Card>
           <SkillBarChart
-            labels={studentStats.topCareers.map((c) => c.name)}
-            data={studentStats.topCareers.map((c) => c.count)}
+            labels={stats.topCareers.map((c) => c.name)}
+            data={stats.topCareers.map((c) => c.count)}
             title="Top Karier Pilihan Siswa"
             color="rgba(37, 99, 235, 0.8)"
           />
         </Card>
         <Card>
           <SkillBarChart
-            labels={studentStats.readinessByMajor.map((m) => m.major)}
-            data={studentStats.readinessByMajor.map((m) => m.score)}
+            labels={stats.readinessByMajor.map((m) => m.major)}
+            data={stats.readinessByMajor.map((m) => m.score)}
             title="Readiness Score per Jurusan"
             color="rgba(124, 58, 237, 0.8)"
           />
@@ -180,7 +211,7 @@ export default function AdminDashboard() {
             </thead>
             <tbody>
               {recentStudents.map((student) => (
-                <tr key={student.name} className="border-b border-border/50 hover:bg-gray-50 dark:hover:bg-gray-700/50">
+                <tr key={student.email} className="border-b border-border/50 hover:bg-gray-50 dark:hover:bg-gray-700/50">
                   <td className="py-3 px-2 font-medium text-foreground">{student.name}</td>
                   <td className="py-3 px-2 text-muted">{student.major}</td>
                   <td className="py-3 px-2">
@@ -206,7 +237,7 @@ export default function AdminDashboard() {
         {/* Mobile cards */}
         <div className="sm:hidden space-y-3">
           {recentStudents.map((student) => (
-            <div key={student.name} className="p-3 bg-gray-50 dark:bg-gray-700/50 rounded-lg">
+            <div key={student.email} className="p-3 bg-gray-50 dark:bg-gray-700/50 rounded-lg">
               <div className="flex items-center justify-between mb-1">
                 <p className="font-medium text-foreground text-sm">{student.name}</p>
                 <Badge variant={student.status === "assessed" ? "success" : "warning"}>

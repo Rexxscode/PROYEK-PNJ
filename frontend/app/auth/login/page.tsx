@@ -29,22 +29,23 @@ export default function LoginPage() {
     if (!user) {
       const lower = email.toLowerCase();
       const registered = getRegisteredUsers().find((u) => u.email.toLowerCase() === lower);
-      if (registered && registered.role === "industry") {
+      const isPendingForApproval = (status?: string) => status === "pending" || status === "rejected";
+      if (registered && isPendingForApproval(registered.status)) {
         if (registered.status === "pending") {
           setError("Akun kamu masih menunggu persetujuan admin. Silakan tunggu atau hubungi admin.");
           toast("Akun belum disetujui admin", "warning");
-        } else if (registered.status === "rejected") {
+        } else {
           setError("Akun kamu ditolak oleh admin. Hubungi admin untuk informasi lebih lanjut.");
           toast("Akun ditolak", "error");
-        } else {
-          setError("Email atau password salah");
-          toast("Email atau password salah", "error");
         }
       } else {
         const builtIn = userCredentials.find((u) => u.email.toLowerCase() === lower);
         if (builtIn && builtIn.role === "industry" && builtIn.status === "pending") {
           setError("Akun kamu masih menunggu persetujuan admin.");
           toast("Akun belum disetujui admin", "warning");
+        } else if (builtIn && builtIn.role === "student" && builtIn.status === "rejected") {
+          setError("Akun kamu ditolak oleh admin. Hubungi admin untuk informasi lebih lanjut.");
+          toast("Akun ditolak", "error");
         } else {
           setError("Email atau password salah");
           toast("Email atau password salah", "error");

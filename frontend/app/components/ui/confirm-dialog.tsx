@@ -1,5 +1,6 @@
 "use client";
 
+import { createPortal } from "react-dom";
 import { AlertTriangle, X } from "lucide-react";
 
 interface ConfirmDialogProps {
@@ -31,7 +32,7 @@ export default function ConfirmDialog({
 }: ConfirmDialogProps) {
   if (!open) return null;
 
-  return (
+  return createPortal(
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4" onClick={onCancel}>
       <div className="bg-card rounded-2xl w-full max-w-sm shadow-2xl animate-fade-in border border-border" onClick={(e) => e.stopPropagation()}>
         <div className="flex items-center justify-between p-5 pb-0">
@@ -63,6 +64,7 @@ export default function ConfirmDialog({
           </button>
         </div>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 }

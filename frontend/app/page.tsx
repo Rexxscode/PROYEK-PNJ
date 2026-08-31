@@ -61,7 +61,7 @@ export default function Home() {
       <section className="relative overflow-hidden">
         <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-transparent to-secondary/5 pointer-events-none" />
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 sm:py-20 lg:py-32">
-          <div className="grid lg:grid-cols-2 gap-12 items-center">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
             <div className="space-y-8">
               <div className="inline-flex items-center gap-2 px-3 py-1.5 bg-primary/10 rounded-full">
                 <img src="/logo-skillmatch-baru.png" alt="SkillMatch" className="w-4 h-4 object-contain" />
@@ -156,7 +156,7 @@ export default function Home() {
               menemukan karier yang tepat, dan mempersiapkan diri untuk dunia kerja.
             </p>
           </div>
-          <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
             {features.map((feature) => (
               <div
                 key={feature.title}
@@ -201,7 +201,7 @@ export default function Home() {
               Empat langkah sederhana untuk memulai perjalanan karier kamu bersama SkillMatch.
             </p>
           </div>
-          <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-8">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
             {steps.map((step, index) => (
               <div key={step.step} className="relative text-center">
                 {index < steps.length - 1 && (
@@ -262,7 +262,7 @@ export default function Home() {
       {/* Footer */}
       <footer className="py-12 border-t border-border bg-card">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid md:grid-cols-4 gap-8">
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
             <div>
               <div className="flex items-center gap-2 mb-4">
                 <img src="/logo-skillmatch-baru.png" alt="SkillMatch" className="w-8 h-8 rounded-lg object-contain" />
@@ -294,7 +294,7 @@ export default function Home() {
             <div>
               <h4 className="font-semibold text-foreground mb-3">Kontak</h4>
               <ul className="space-y-2 text-sm text-muted">
-                <li>info@skillmatch.id</li>
+                <li>SkillMatchInfoo@gmail.com</li>
                 <li>Jakarta, Indonesia</li>
               </ul>
             </div>

@@ -1,25 +1,13 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { Search, ExternalLink, GraduationCap } from "lucide-react";
+import { useState, useEffect, useMemo } from "react";
+import { Search, ExternalLink, GraduationCap, Lock } from "lucide-react";
 import Link from "next/link";
 import Card from "../../components/ui/card";
 import Badge from "../../components/ui/badge";
 import DashboardHeader from "../../components/layout/dashboardheader";
+import { getStudentCandidates } from "../../lib/mock-data";
 import { getMatchBg, getInitials } from "../../lib/utils";
-
-const candidates = [
-  { name: "Rina Wulandari", major: "Desain Komunikasi Visual", grade: "XII", score: 92, skills: ["UI/UX Design", "Figma", "Adobe Photoshop", "HTML/CSS"], topCareer: "UI/UX Designer", projects: ["E-Commerce UI", "Portfolio Website", "Mobile App Design"], experience: "Magang 3 bulan di PT TechSol" },
-  { name: "Budi Santoso", major: "Rekayasa Perangkat Lunak", grade: "XII", score: 85, skills: ["JavaScript", "Node.js", "SQL/Database", "REST API"], topCareer: "Backend Developer", projects: ["Sistem Absensi Online", "API CRUD RESTful"], experience: "Proyek sekolah: Sistem Perpustakaan" },
-  { name: "Andi Pratama", major: "Rekayasa Perangkat Lunak", grade: "XI", score: 78, skills: ["HTML/CSS", "JavaScript", "React/Next.js", "Git"], topCareer: "Frontend Developer", projects: ["Blog Pribadi", "Todo App"], experience: "Freelance web developer" },
-  { name: "Rizky Aditya", major: "Rekayasa Perangkat Lunak", grade: "XII", score: 71, skills: ["JavaScript", "Python", "Git", "Problem Solving"], topCareer: "Fullstack Developer", projects: ["Chat Application", "Weather API"], experience: "Proyek klub IT" },
-  { name: "Lestari Wijaya", major: "Desain Komunikasi Visual", grade: "XI", score: 83, skills: ["Adobe Illustrator", "Adobe Photoshop", "Video Editing", "Copywriting"], topCareer: "Graphic Designer", projects: ["Dashboard Admin", "Landing Page Company"], experience: "Magang 2 bulan di Startup" },
-  { name: "Fajar Nugroho", major: "Teknik Komputer dan Jaringan", grade: "XII", score: 68, skills: ["Cisco Networking", "Linux Administration", "MikroTik", "Cloud (AWS/GCP)"], topCareer: "Network Engineer", projects: ["Analisis Penjualan", "Data Visualization"], experience: "Asisten lab komputer" },
-  { name: "Hendra Susanto", major: "Teknik Transmisi", grade: "XII", score: 71, skills: ["Fiber Optik", "Radio Frequency", "Network Engineering", "Teknik Mekanik Radio"], topCareer: "Network Engineer", projects: ["Instalasi Jaringan Fiber Optik", "Konfigurasi Radio Link"], experience: "Praktik di PT Telkom 2 bulan" },
-  { name: "Dedi Kurniawan", major: "Teknik Komputer dan Jaringan", grade: "XI", score: 58, skills: ["Linux Administration", "Python", "SQL/Database"], topCareer: "System Administrator", projects: ["Scraper Data", "Report Generator"], experience: "Belum ada pengalaman" },
-];
-
-const allSkillFilters = [...new Set(candidates.flatMap((c) => c.skills))].sort();
 
 const readinessFilters = [
   { key: "all", label: "Semua" },
@@ -43,6 +31,13 @@ export default function CandidatesPage() {
   const [search, setSearch] = useState("");
   const [selectedSkills, setSelectedSkills] = useState<string[]>([]);
   const [readinessFilter, setReadinessFilter] = useState<string>("all");
+
+  const candidates = useMemo(() => getStudentCandidates(), []);
+
+  const allSkillFilters = useMemo(
+    () => [...new Set(candidates.flatMap((c) => c.skills))].sort(),
+    [candidates]
+  );
 
   useEffect(() => {
     const handler = (e: Event) => setSearch((e as CustomEvent).detail || "");
@@ -141,7 +136,7 @@ export default function CandidatesPage() {
         </Card>
       ) : (
       <>
-      <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
         {filtered
           .sort((a, b) => b.score - a.score)
           .map((candidate) => (
@@ -166,18 +161,29 @@ export default function CandidatesPage() {
               </div>
 
               <div className="flex flex-wrap gap-1.5 mb-4">
-                {candidate.skills.map((skill) => (
-                  <Badge key={skill} variant="default" className="text-[10px]">{skill}</Badge>
-                ))}
+                {candidate.skills.length > 0 ? (
+                  candidate.skills.map((skill) => (
+                    <Badge key={skill} variant="default" className="text-[10px]">{skill}</Badge>
+                  ))
+                ) : (
+                  <span className="text-xs text-muted">Belum ada data skill</span>
+                )}
               </div>
 
-              <Link
-                href={`/portfolio/${candidate.name.toLowerCase().replace(/\s+/g, "-")}`}
-                className="w-full py-2.5 border border-border text-foreground text-sm font-medium rounded-xl hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors flex items-center justify-center gap-2"
-              >
-                <ExternalLink className="w-4 h-4" />
-                Lihat Portfolio
-              </Link>
+              {candidate.hasPublicPortfolio ? (
+                <Link
+                  href={`/portfolio/${candidate.name.toLowerCase().replace(/\s+/g, "-")}`}
+                  className="w-full py-2.5 border border-border text-foreground text-sm font-medium rounded-xl hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors flex items-center justify-center gap-2"
+                >
+                  <ExternalLink className="w-4 h-4" />
+                  Lihat Portfolio
+                </Link>
+              ) : (
+                <span className="w-full py-2.5 border border-border text-muted text-sm rounded-xl flex items-center justify-center gap-2">
+                  <Lock className="w-4 h-4" />
+                  Portfolio Belum Diunggah
+                </span>
+              )}
             </Card>
            ))}
       </div>

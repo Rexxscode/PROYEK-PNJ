@@ -3,6 +3,7 @@ export interface Materi {
   title: string;
   description: string;
   major: string;
+  grade: "XI" | "XII";
   skills: string[];
   icon: string;
 }
@@ -17,6 +18,8 @@ export const MAJORS: { name: string; short: string }[] = [
   { name: "Teknik Transmisi", short: "Transmisi" },
 ];
 
+export const GRADE_OPTIONS: ("XI" | "XII")[] = ["XI", "XII"];
+
 export const materiList: Materi[] = [
   // ── Rekayasa Perangkat Lunak ────────────────────────────────────────────
   {
@@ -24,6 +27,7 @@ export const materiList: Materi[] = [
     title: "Fullstack Developer",
     description: "Mengembangkan aplikasi web end-to-end frontend hingga backend.",
     major: "Rekayasa Perangkat Lunak",
+    grade: "XI",
     skills: ["React/Next.js", "Node.js", "TypeScript", "SQL/Database"],
     icon: "layers",
   },
@@ -32,6 +36,7 @@ export const materiList: Materi[] = [
     title: "Frontend Developer",
     description: "Membangun antarmuka pengguna responsif dan interaktif.",
     major: "Rekayasa Perangkat Lunak",
+    grade: "XI",
     skills: ["React/Next.js", "TypeScript", "HTML/CSS", "JavaScript"],
     icon: "monitor",
   },
@@ -40,6 +45,7 @@ export const materiList: Materi[] = [
     title: "Backend Developer",
     description: "Mengembangkan server-side application, API, dan database.",
     major: "Rekayasa Perangkat Lunak",
+    grade: "XII",
     skills: ["Node.js", "Express.js", "SQL/Database", "REST API"],
     icon: "server",
   },
@@ -48,6 +54,7 @@ export const materiList: Materi[] = [
     title: "DevOps Engineer",
     description: "Mengelola infrastruktur, CI/CD, dan deployment.",
     major: "Rekayasa Perangkat Lunak",
+    grade: "XII",
     skills: ["Docker", "Git", "CI/CD", "Linux Basics"],
     icon: "git-branch",
   },
@@ -56,6 +63,7 @@ export const materiList: Materi[] = [
     title: "Mobile App Developer",
     description: "Membangun aplikasi mobile cross-platform dengan Flutter atau React Native.",
     major: "Rekayasa Perangkat Lunak",
+    grade: "XII",
     skills: ["React Native", "JavaScript", "REST API", "Mobile UI/UX"],
     icon: "smartphone",
   },
@@ -66,6 +74,7 @@ export const materiList: Materi[] = [
     title: "Motion Graphic Designer",
     description: "Membuat animasi dan video motion graphics untuk konten digital.",
     major: "Desain Komunikasi Visual",
+    grade: "XI",
     skills: ["Adobe Photoshop", "Adobe Illustrator", "UI/UX Design"],
     icon: "clapperboard",
   },
@@ -74,6 +83,7 @@ export const materiList: Materi[] = [
     title: "Graphic Designer",
     description: "Membuat visual branding, marketing material, dan ilustrasi.",
     major: "Desain Komunikasi Visual",
+    grade: "XI",
     skills: ["Adobe Photoshop", "Adobe Illustrator", "UI/UX Design"],
     icon: "palette",
   },
@@ -82,6 +92,7 @@ export const materiList: Materi[] = [
     title: "UI/UX Designer",
     description: "Merancang antarmuka pengguna yang intuitif dan user-friendly.",
     major: "Desain Komunikasi Visual",
+    grade: "XII",
     skills: ["UI/UX Design", "Figma", "Adobe Photoshop"],
     icon: "figma",
   },
@@ -90,6 +101,7 @@ export const materiList: Materi[] = [
     title: "Product Designer",
     description: "Mendesain produk digital dari riset hingga prototype interaktif.",
     major: "Desain Komunikasi Visual",
+    grade: "XII",
     skills: ["Figma", "UI/UX Design", "Adobe Photoshop"],
     icon: "box",
   },
@@ -98,6 +110,7 @@ export const materiList: Materi[] = [
     title: "Brand Identity Designer",
     description: "Merancang identitas visual merek dan guidelines.",
     major: "Desain Komunikasi Visual",
+    grade: "XII",
     skills: ["Adobe Illustrator", "Adobe Photoshop", "UI/UX Design"],
     icon: "fingerprint",
   },
@@ -108,6 +121,7 @@ export const materiList: Materi[] = [
     title: "System Administrator",
     description: "Mengelola server, sistem operasi, dan infrastruktur IT.",
     major: "Teknik Komputer dan Jaringan",
+    grade: "XI",
     skills: ["Linux Administration", "Docker", "Cloud (AWS/GCP)"],
     icon: "server-cog",
   },
@@ -116,6 +130,7 @@ export const materiList: Materi[] = [
     title: "Network Administrator",
     description: "Mengelola dan mengamankan jaringan perusahaan.",
     major: "Teknik Komputer dan Jaringan",
+    grade: "XII",
     skills: ["Networking", "Cisco Networking", "MikroTik"],
     icon: "network",
   },
@@ -124,6 +139,7 @@ export const materiList: Materi[] = [
     title: "Cloud Engineer",
     description: "Mengelola infrastruktur cloud, deployment, dan scaling.",
     major: "Teknik Komputer dan Jaringan",
+    grade: "XII",
     skills: ["Cloud (AWS/GCP)", "Docker", "Linux Administration"],
     icon: "cloud",
   },
@@ -132,6 +148,7 @@ export const materiList: Materi[] = [
     title: "Cybersecurity Analyst",
     description: "Melindungi sistem dari serangan dan melakukan forensik digital.",
     major: "Teknik Komputer dan Jaringan",
+    grade: "XII",
     skills: ["Cybersecurity Basics", "Linux Administration", "Networking"],
     icon: "shield",
   },
@@ -140,6 +157,7 @@ export const materiList: Materi[] = [
     title: "IT Support Specialist",
     description: "Troubleshooting hardware, software, dan user support.",
     major: "Teknik Komputer dan Jaringan",
+    grade: "XI",
     skills: ["Networking", "Linux Administration", "Cybersecurity Basics"],
     icon: "headset",
   },
@@ -150,6 +168,7 @@ export const materiList: Materi[] = [
     title: "Fiber Optic Specialist",
     description: "Instalasi, splicing, dan testing kabel fiber optik.",
     major: "Teknik Transmisi",
+    grade: "XI",
     skills: ["Fiber Optics", "Networking Basics", "Radio Frequency"],
     icon: "cable",
   },
@@ -158,6 +177,7 @@ export const materiList: Materi[] = [
     title: "RF Engineer",
     description: "Perencanaan dan optimasi radio link wireless.",
     major: "Teknik Transmisi",
+    grade: "XI",
     skills: ["Radio Frequency", "Networking Basics", "Fiber Optics"],
     icon: "radio",
   },
@@ -166,6 +186,7 @@ export const materiList: Materi[] = [
     title: "NOC Analyst",
     description: "Monitoring dan troubleshooting jaringan 24/7.",
     major: "Teknik Transmisi",
+    grade: "XII",
     skills: ["Networking Basics", "Fiber Optics", "Radio Frequency"],
     icon: "activity",
   },
@@ -174,6 +195,7 @@ export const materiList: Materi[] = [
     title: "Network Engineer",
     description: "Mengelola dan memelihara infrastruktur jaringan backbone.",
     major: "Teknik Transmisi",
+    grade: "XII",
     skills: ["Networking Basics", "Fiber Optics", "Radio Frequency"],
     icon: "router",
   },
@@ -182,6 +204,7 @@ export const materiList: Materi[] = [
     title: "Telecom Technician",
     description: "Instalasi dan maintenance sistem telekomunikasi.",
     major: "Teknik Transmisi",
+    grade: "XII",
     skills: ["Fiber Optics", "Networking Basics", "Radio Frequency"],
     icon: "antenna",
   },

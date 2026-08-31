@@ -13,6 +13,7 @@ import {
   markAsRead,
   type AppNotification,
 } from "../../lib/notifications";
+import { changePassword } from "../../lib/mock-data";
 
 interface DashboardHeaderProps {
   title: string;
@@ -174,7 +175,7 @@ export default function DashboardHeader({ title, subtitle, actions, role = "stud
                   </div>
                   {searchQuery && (
                     <div className="mt-3 pt-3 border-t border-border text-sm text-muted">
-                      Hasil pencarian untuk &quot;{searchQuery}&quot;...
+                      Hasil pencarian untuk "{searchQuery}"...
                     </div>
                   )}
                 </div>
@@ -326,7 +327,14 @@ export default function DashboardHeader({ title, subtitle, actions, role = "stud
                       </div>
                       <button
                         onClick={() => {
-                          toast("Ubah password memerlukan backend authentication", "warning");
+                          if (editPassword.length < 8) {
+                            toast("Password minimal 8 karakter", "warning");
+                            return;
+                          }
+                          const email = localStorage.getItem("studentEmail");
+                          if (!email) return;
+                          changePassword(email, editPassword);
+                          toast("Password berhasil diubah!", "success");
                           setEditPassword("");
                         }}
                         className="px-3 py-2 bg-primary text-white rounded-lg text-sm font-medium hover:bg-primary-dark transition-colors flex-shrink-0"

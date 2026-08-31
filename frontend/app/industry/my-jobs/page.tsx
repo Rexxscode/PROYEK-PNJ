@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { createPortal } from "react-dom";
-import { Edit3, Trash2, MapPin, Calendar, Plus, X, CheckCircle2, Briefcase } from "lucide-react";
+import { Edit3, Trash2, MapPin, Calendar, Plus, X, CheckCircle2, Briefcase, Users, Wallet, ChevronDown, ChevronUp } from "lucide-react";
 import Link from "next/link";
 import DashboardHeader from "../../components/layout/dashboardheader";
 import Card from "../../components/ui/card";
@@ -10,6 +10,8 @@ import Badge from "../../components/ui/badge";
 import { SkeletonTable } from "../../components/ui/skeleton";
 import ConfirmDialog from "../../components/ui/confirm-dialog";
 import { useToast } from "../../lib/toast-context";
+import { allSuggestedSkills } from "../../lib/job-skills";
+import { getApplicationsForJob } from "../../lib/mock-data";
 
 interface Job {
   id: string;
@@ -60,16 +62,6 @@ function getJobs(): Job[] {
 
 const typeLabels: Record<string, string> = { magang: "Magang", fulltime: "Full-time", parttime: "Part-time", freelance: "Freelance" };
 
-const allSuggestedSkills = [
-  "JavaScript", "TypeScript", "React/Next.js", "Node.js", "Python",
-  "HTML/CSS", "SQL/Database", "Git", "REST API", "Java",
-  "Figma", "UI/UX Design", "Adobe Photoshop", "Adobe Illustrator",
-  "Video Editing", "Motion Graphics", "Copywriting", "Digital Marketing",
-  "Cisco Networking", "MikroTik", "Linux Administration", "Cloud (AWS/GCP)",
-  "Fiber Optik", "Radio Frequency", "Network Engineering", "Teknik Mekanik Radio", "Operator Radio",
-  "Problem Solving", "Communication", "Team Leadership",
-];
-
 export default function MyJobsPage() {
   const { toast } = useToast();
   const [jobs, setJobs] = useState<Job[]>([]);
@@ -78,6 +70,7 @@ export default function MyJobsPage() {
   const [editJob, setEditJob] = useState<Job | null>(null);
   const [editForm, setEditForm] = useState({ title: "", company: "", location: "", type: "magang" as string, description: "", skills: [] as string[], deadline: "", salary: "" });
   const [editSkillInput, setEditSkillInput] = useState("");
+  const [showApplicants, setShowApplicants] = useState<string | null>(null);
 
   useEffect(() => {
     setJobs(getJobs());
@@ -175,12 +168,46 @@ export default function MyJobsPage() {
                 <div className="flex flex-wrap items-center gap-3 text-xs text-muted">
                   <span className="flex items-center gap-1"><MapPin className="w-3 h-3" />{job.location}</span>
                   <span className="flex items-center gap-1"><Calendar className="w-3 h-3" />Deadline: {job.deadline}</span>
+                  {job.salary && <span className="flex items-center gap-1"><Wallet className="w-3 h-3" />{job.salary}</span>}
                 </div>
                 <div className="flex flex-wrap gap-1.5 mt-2">
                   {job.skills.map((sk) => (
                     <span key={sk} className="px-2 py-0.5 bg-primary/10 text-primary text-[10px] rounded-full font-medium">{sk}</span>
                   ))}
                 </div>
+                {(() => {
+                  const applicants = getApplicationsForJob(job.id);
+                  return (
+                    <div className="mt-3">
+                      <button
+                        type="button"
+                        onClick={() => setShowApplicants(showApplicants === job.id ? null : job.id)}
+                        className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full border border-border text-xs font-medium hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
+                      >
+                        <Users className="w-3.5 h-3.5" />
+                        {applicants.length} Pelamar
+                        {showApplicants === job.id ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />}
+                      </button>
+                      {showApplicants === job.id && (
+                        <div className="mt-2 space-y-1.5">
+                          {applicants.length === 0 ? (
+                            <p className="text-xs text-muted">Belum ada pelamar untuk lowongan ini.</p>
+                          ) : (
+                            applicants.map((a) => (
+                              <div key={a.id} className="flex items-center justify-between px-3 py-2 bg-gray-50 dark:bg-gray-700/50 rounded-lg">
+                                <div>
+                                  <p className="text-xs font-medium text-foreground">{a.studentName}</p>
+                                  <p className="text-[10px] text-muted">{a.studentEmail}</p>
+                                </div>
+                                <span className="text-[10px] text-muted">{new Date(a.appliedAt).toLocaleDateString("id-ID")}</span>
+                              </div>
+                            ))
+                          )}
+                        </div>
+                      )}
+                    </div>
+                  );
+                })()}
               </div>
               <div className="flex gap-2 sm:flex-col">
                 <button
@@ -220,7 +247,7 @@ export default function MyJobsPage() {
                 <input type="text" value={editForm.title} onChange={(e) => setEditForm((p) => ({ ...p, title: e.target.value }))}
                   className="w-full px-4 py-2.5 border border-border rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary" />
               </div>
-              <div className="grid sm:grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm font-medium text-foreground mb-1.5">Perusahaan *</label>
                   <input type="text" value={editForm.company} onChange={(e) => setEditForm((p) => ({ ...p, company: e.target.value }))}
@@ -232,7 +259,7 @@ export default function MyJobsPage() {
                     className="w-full px-4 py-2.5 border border-border rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary" />
                 </div>
               </div>
-              <div className="grid sm:grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm font-medium text-foreground mb-1.5">Tipe Pekerjaan</label>
                   <select value={editForm.type} onChange={(e) => setEditForm((p) => ({ ...p, type: e.target.value }))}

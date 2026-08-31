@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { createPortal } from "react-dom";
 import {
   Briefcase,
@@ -11,15 +11,19 @@ import {
   CheckCircle2,
   Building2,
   Send,
+  Wallet,
 } from "lucide-react";
 import Card from "../../components/ui/card";
 import Badge from "../../components/ui/badge";
 import { SkeletonTable } from "../../components/ui/skeleton";
 import DashboardHeader from "../../components/layout/dashboardheader";
-import { getCurrentStudent } from "../../lib/mock-data";
+import { getCurrentStudent, getAllPostedJobs, addJobApplication } from "../../lib/mock-data";
 import { getMatchBg, formatDate } from "../../lib/utils";
 import { useToast } from "../../lib/toast-context";
+import { addNotification } from "../../lib/notifications";
 import type { JobOpportunity } from "../../lib/type";
+
+type JobWithPoster = JobOpportunity & { postedBy?: string };
 
 type FilterType = "all" | "magang" | "fulltime" | "parttime" | "freelance";
 
@@ -50,7 +54,7 @@ export default function JobsPage() {
   const [mounted, setMounted] = useState(false);
   const [filter, setFilter] = useState<FilterType>("all");
   const [sortBy, setSortBy] = useState<"match" | "date">("match");
-  const [selectedJob, setSelectedJob] = useState<JobOpportunity | null>(null);
+  const [selectedJob, setSelectedJob] = useState<JobWithPoster | null>(null);
   const [applied, setApplied] = useState(false);
   const [search, setSearch] = useState("");
 
@@ -62,7 +66,34 @@ export default function JobsPage() {
   }, []);
 
   const student = mounted ? getCurrentStudent() : null;
-  const jobOpportunities = student?.jobOpportunities || [];
+
+  const postedJobs = useMemo(() => {
+    if (!mounted || !student) return [] as JobWithPoster[];
+    const studentSkills = (student.hardSkills || []).map((s) => s.name.toLowerCase());
+    return getAllPostedJobs().map((j) => {
+      const requiredSkills = Array.isArray(j.skills) ? j.skills : [];
+      const matched = requiredSkills.filter((sk) => studentSkills.includes(sk.toLowerCase())).length;
+      const matchPercentage = requiredSkills.length > 0 ? Math.round((matched / requiredSkills.length) * 100) : 0;
+      const type = (["magang", "fulltime", "parttime", "freelance"].includes(j.type) ? j.type : "magang") as JobOpportunity["type"];
+      return {
+        id: j.id,
+        company: j.company,
+        companyLogo: "",
+        title: j.title,
+        type,
+        location: j.location,
+        description: j.description,
+        requiredSkills,
+        matchPercentage,
+        postedAt: j.postedAt || new Date().toISOString().slice(0, 10),
+        deadline: j.deadline || "2026-12-31",
+        salary: j.salary || undefined,
+        postedBy: j.postedBy || undefined,
+      } as JobWithPoster;
+    });
+  }, [mounted, student]);
+
+  const jobOpportunities = [...postedJobs, ...(student?.jobOpportunities || [])];
   const profile = student?.profile;
 
   if (!mounted || !student) return <div className="p-6 lg:pl-72"><SkeletonTable /></div>;
@@ -104,6 +135,24 @@ export default function JobsPage() {
     );
 
   const handleApply = () => {
+    if (!selectedJob || !profile) return;
+    const email = typeof window !== "undefined" ? localStorage.getItem("studentEmail") || profile.email : profile.email;
+    addJobApplication({
+      jobId: selectedJob.id,
+      jobTitle: selectedJob.title,
+      company: selectedJob.company,
+      studentName: profile.name,
+      studentEmail: email,
+    });
+    if (selectedJob.postedBy) {
+      addNotification({
+        text: `${profile.name} melamar "${selectedJob.title}" di ${selectedJob.company}`,
+        type: "job_application",
+        targetRole: "industry",
+        targetEmail: selectedJob.postedBy,
+      });
+    }
+    window.dispatchEvent(new CustomEvent("notifications-updated"));
     setApplied(true);
     toast("Lamaran berhasil dikirim!", "success");
     setTimeout(() => {
@@ -206,6 +255,11 @@ export default function JobsPage() {
                   <span className="flex items-center gap-1">
                     <Calendar className="w-3 h-3" /> Deadline: {formatDate(job.deadline)}
                   </span>
+                  {job.salary && (
+                    <span className="flex items-center gap-1">
+                      <Wallet className="w-3 h-3" /> {job.salary}
+                    </span>
+                  )}
                 </div>
 
                 <p className="text-sm text-muted mb-3 line-clamp-2">{job.description}</p>

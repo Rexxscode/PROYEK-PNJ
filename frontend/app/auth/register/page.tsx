@@ -3,9 +3,10 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { Mail, Lock, User, BookOpen, Building2, Eye, EyeOff } from "lucide-react";
-import { registerUser } from "../../lib/mock-data";
+import { Mail, Lock, User, BookOpen, Building2, Eye, EyeOff, IdCard } from "lucide-react";
+import { registerUser, majorCodeToName, normalizeGrade } from "../../lib/mock-data";
 import { useToast } from "../../lib/toast-context";
+import { addNotification } from "../../lib/notifications";
 
 export default function RegisterPage() {
   const router = useRouter();
@@ -42,24 +43,27 @@ export default function RegisterPage() {
       email,
       password,
       name,
-      major: role === "industry" ? "Industry" : major,
-      grade: role === "industry" ? "-" : grade,
+      major: role === "industry" ? "Industry" : majorCodeToName(major),
+      grade: role === "industry" ? "-" : normalizeGrade(grade),
       role,
       company: role === "industry" ? company : undefined,
-      status: role === "industry" ? "pending" : undefined,
+      status: "pending",
     });
     if (!success) {
       setError("Email sudah terdaftar, gunakan email lain");
       toast("Email sudah terdaftar", "error");
       return;
     }
-    if (role === "industry") {
-      toast("Registrasi berhasil! Menunggu persetujuan admin.", "success");
-      router.push("/auth/pending");
-      return;
-    }
-    toast("Registrasi berhasil! Silakan masuk.", "success");
-    router.push("/auth/login");
+    const roleLabel = role === "industry" ? "Perusahaan" : "Siswa";
+    addNotification({
+      text: `${roleLabel} baru mendaftar dan menunggu persetujuan: ${name}${role === "industry" ? ` (${company})` : ""}`,
+      type: "registration",
+      targetRole: "admin",
+    });
+    window.dispatchEvent(new CustomEvent("notifications-updated"));
+    toast("Registrasi berhasil! Menunggu persetujuan admin.", "success");
+    router.push(`/auth/pending?role=${role}`);
+    return;
   };
 
   return (
@@ -196,6 +200,19 @@ export default function RegisterPage() {
                     <option value="alumni">Alumni</option>
                   </select>
                 </div>
+              </div>
+            )}
+
+            {role === "student" && (
+              <div className="p-4 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-xl">
+                <div className="flex items-center gap-2 text-blue-700 dark:text-blue-300 text-sm font-medium mb-1">
+                  <IdCard className="w-4 h-4 flex-shrink-0" />
+                  Kartu Pelajar
+                </div>
+                <p className="text-xs text-blue-600/80 dark:text-blue-400/80">
+                  Setelah mendaftar, admin akan menyetujui akun kamu sebelum bisa masuk. Setelah
+                  masuk, unggah kartu pelajar di halaman Profil agar fitur terbuka setelah diverifikasi.
+                </p>
               </div>
             )}
 

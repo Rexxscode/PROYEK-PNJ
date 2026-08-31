@@ -326,6 +326,8 @@ export interface RegisteredUser {
   role?: "student" | "industry" | "admin";
   company?: string;
   status?: "approved" | "pending" | "rejected";
+  studentCard?: string;
+  cardStatus?: "pending" | "approved";
 }
 
 const REGISTERED_USERS_KEY = "registeredUsers";
@@ -348,6 +350,170 @@ export function registerUser(user: RegisteredUser): boolean {
   return true;
 }
 
+// ===== Student card verification helpers =====
+export function isRegisteredStudent(email: string): boolean {
+  if (typeof window === "undefined") return false;
+  const lower = (email || "").toLowerCase();
+  return getRegisteredUsers().some(
+    (u) => u.role === "student" && u.email.toLowerCase() === lower
+  );
+}
+
+export function getStudentCardDataUrl(email: string): string | null {
+  if (typeof window === "undefined") return null;
+  const lower = (email || "").toLowerCase();
+  const u = getRegisteredUsers().find(
+    (r) => r.role === "student" && r.email.toLowerCase() === lower
+  );
+  return u && u.studentCard ? u.studentCard : null;
+}
+
+function notifyStudentsUpdated(): void {
+  if (typeof window === "undefined") return;
+  window.dispatchEvent(new Event("students-updated"));
+}
+
+export function getStudentCardStatus(email: string): "none" | "pending" | "approved" {
+  if (typeof window === "undefined") return "none";
+  if (!isRegisteredStudent(email)) return "approved";
+  const lower = (email || "").toLowerCase();
+  const u = getRegisteredUsers().find(
+    (r) => r.role === "student" && r.email.toLowerCase() === lower
+  );
+  if (!u || !u.studentCard) return "none";
+  return u.cardStatus || "pending";
+}
+
+export function saveStudentCardToProfile(email: string, dataUrl: string): boolean {
+  if (typeof window === "undefined") return false;
+  const lower = (email || "").toLowerCase();
+  const arr = getRegisteredUsers().map((u) =>
+    u.role === "student" && u.email.toLowerCase() === lower
+      ? { ...u, studentCard: dataUrl, cardStatus: "pending" as const }
+      : u
+  );
+  localStorage.setItem(REGISTERED_USERS_KEY, JSON.stringify(arr));
+  notifyStudentsUpdated();
+  return arr.some((u) => u.role === "student" && u.email.toLowerCase() === lower);
+}
+
+export function removeStudentCard(email: string): void {
+  if (typeof window === "undefined") return;
+  const lower = (email || "").toLowerCase();
+  const arr = getRegisteredUsers().map((u) =>
+    u.role === "student" && u.email.toLowerCase() === lower
+      ? { ...u, studentCard: undefined, cardStatus: undefined }
+      : u
+  );
+  localStorage.setItem(REGISTERED_USERS_KEY, JSON.stringify(arr));
+  notifyStudentsUpdated();
+}
+
+export function approveStudentCard(email: string): boolean {
+  if (typeof window === "undefined") return false;
+  const lower = (email || "").toLowerCase();
+  const arr = getRegisteredUsers().map((u) =>
+    u.role === "student" && u.email.toLowerCase() === lower && u.studentCard
+      ? { ...u, cardStatus: "approved" as const }
+      : u
+  );
+  localStorage.setItem(REGISTERED_USERS_KEY, JSON.stringify(arr));
+  notifyStudentsUpdated();
+  return arr.some(
+    (u) => u.role === "student" && u.email.toLowerCase() === lower && u.cardStatus === "approved"
+  );
+}
+
+export function isStudentCardVerified(email: string): boolean {
+  if (!isRegisteredStudent(email)) return true;
+  return getStudentCardStatus(email) === "approved";
+}
+
+export function getPendingCardStudents(): RegisteredUser[] {
+  if (typeof window === "undefined") return [];
+  return getRegisteredUsers().filter(
+    (u) => u.role === "student" && !!u.studentCard && u.cardStatus !== "approved" && u.status === "approved"
+  );
+}
+
+// ===== Industry posted jobs (shared across all industry accounts) =====
+
+export interface PostedJob {
+  id: string;
+  title: string;
+  company: string;
+  location: string;
+  type: string;
+  description: string;
+  skills: string[];
+  deadline: string;
+  salary?: string;
+  postedBy: string;
+  postedAt: string;
+}
+
+export function getAllPostedJobs(): PostedJob[] {
+  if (typeof window === "undefined") return [];
+  const jobs: PostedJob[] = [];
+  try {
+    for (let i = 0; i < window.localStorage.length; i++) {
+      const key = window.localStorage.key(i);
+      if (!key || !key.startsWith("industryJobs_")) continue;
+      const raw = window.localStorage.getItem(key);
+      if (!raw) continue;
+      const arr = JSON.parse(raw);
+      if (Array.isArray(arr)) {
+        arr.forEach((j) => {
+          if (j && j.title && j.company) jobs.push({ ...j });
+        });
+      }
+    }
+  } catch {}
+  return jobs;
+}
+
+// ===== Job applications (student -> industry, per lowongan) =====
+
+const JOB_APPLICATIONS_KEY = "job_applications";
+
+export interface JobApplication {
+  id: string;
+  jobId: string;
+  jobTitle: string;
+  company: string;
+  studentName: string;
+  studentEmail: string;
+  appliedAt: string;
+}
+
+export function getJobApplications(): JobApplication[] {
+  if (typeof window === "undefined") return [];
+  try {
+    const arr = JSON.parse(localStorage.getItem(JOB_APPLICATIONS_KEY) || "[]");
+    return Array.isArray(arr) ? arr : [];
+  } catch {
+    return [];
+  }
+}
+
+export function addJobApplication(
+  application: Omit<JobApplication, "id" | "appliedAt">
+): JobApplication {
+  const app: JobApplication = {
+    ...application,
+    id: `app-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
+    appliedAt: new Date().toISOString(),
+  };
+  const all = getJobApplications();
+  all.unshift(app);
+  localStorage.setItem(JOB_APPLICATIONS_KEY, JSON.stringify(all));
+  return app;
+}
+
+export function getApplicationsForJob(jobId: string): JobApplication[] {
+  return getJobApplications().filter((a) => a.jobId === jobId);
+}
+
 export const userCredentials: UserCredential[] = [
   { email: "budi@student.smk.id", password: "Budi@2026!", role: "student", name: "Budi Santoso" },
   { email: "rina@student.smk.id", password: "Rina@2026!", role: "student", name: "Rina Wulandari" },
@@ -365,18 +531,19 @@ export const userCredentials: UserCredential[] = [
 ];
 
 export function validateLogin(email: string, password: string): UserCredential | null {
-  const user = userCredentials.find(
-    (u) => u.email.toLowerCase() === email.toLowerCase() && u.password === password
-  );
+  const lower = email.toLowerCase();
+  const override = getPasswordOverride(lower);
+  const user = userCredentials.find((u) => u.email.toLowerCase() === lower);
+  const registered = getRegisteredUsers().find((u) => u.email.toLowerCase() === lower);
+  const storedPassword = override ?? user?.password ?? registered?.password;
+  if (!storedPassword || storedPassword !== password) return null;
   if (user) {
     if (user.role === "industry" && user.status && user.status !== "approved") return null;
-    return user;
+    return override !== null ? { ...user, password } : user;
   }
-  const registered = getRegisteredUsers().find(
-    (u) => u.email.toLowerCase() === email.toLowerCase() && u.password === password
-  );
   if (registered) {
     if (registered.role === "industry" && registered.status && registered.status !== "approved") return null;
+    if (registered.role === "student" && registered.status && registered.status !== "approved") return null;
     return { email: registered.email, password: registered.password, role: (registered.role as "student" | "industry" | "admin") || "student", name: registered.name, company: registered.company, status: registered.status };
   }
   return null;
@@ -447,6 +614,136 @@ export function rejectIndustry(email: string): void {
   }
 }
 
+// ===== Student Registration (Kartu Pelajar) Management =====
+
+export function normalizeGrade(grade: string): string {
+  const t = grade.trim().toLowerCase();
+  if (t === "x") return "X";
+  if (t === "xi") return "XI";
+  if (t === "xii") return "XII";
+  if (t === "alumni") return "Alumni";
+  return grade;
+}
+
+export function majorCodeToName(code: string): string {
+  const map: Record<string, string> = {
+    rpl: "Rekayasa Perangkat Lunak",
+    dkv: "Desain Komunikasi Visual",
+    tkj: "Teknik Komputer dan Jaringan",
+    tt: "Teknik Transmisi",
+  };
+  return map[code] || code;
+}
+
+export function getPendingStudentRegistrations(): RegisteredUser[] {
+  return getRegisteredUsers().filter((u) => u.role === "student");
+}
+
+export function getPendingStudentApprovals(): RegisteredUser[] {
+  return getRegisteredUsers().filter((u) => u.role === "student" && u.status !== "approved");
+}
+
+export function setRegistrationStatus(email: string, status: "approved" | "rejected" | "pending"): void {
+  const lower = email.toLowerCase();
+  const users = getRegisteredUsers();
+  const idx = users.findIndex((u) => u.email.toLowerCase() === lower);
+  if (idx !== -1) {
+    users[idx].status = status;
+    localStorage.setItem(REGISTERED_USERS_KEY, JSON.stringify(users));
+    return;
+  }
+  const cIdx = userCredentials.findIndex((u) => u.email.toLowerCase() === lower);
+  if (cIdx !== -1) userCredentials[cIdx].status = status;
+}
+
+const GRADE_OVERRIDE_KEY = "student_grade_overrides";
+
+const PASSWORD_OVERRIDE_KEY = "password_overrides";
+
+export function getPasswordOverride(email: string): string | null {
+  if (typeof window === "undefined") return null;
+  try {
+    const map = JSON.parse(localStorage.getItem(PASSWORD_OVERRIDE_KEY) || "{}");
+    const p = map[email.toLowerCase()];
+    return typeof p === "string" ? p : null;
+  } catch {
+    return null;
+  }
+}
+
+export function changePassword(email: string, newPassword: string): boolean {
+  if (typeof window === "undefined") return false;
+  const lower = email.toLowerCase();
+  const map = JSON.parse(localStorage.getItem(PASSWORD_OVERRIDE_KEY) || "{}");
+  map[lower] = newPassword;
+  localStorage.setItem(PASSWORD_OVERRIDE_KEY, JSON.stringify(map));
+  const users = getRegisteredUsers();
+  const idx = users.findIndex((u) => u.email.toLowerCase() === lower);
+  if (idx !== -1) {
+    users[idx].password = newPassword;
+    localStorage.setItem(REGISTERED_USERS_KEY, JSON.stringify(users));
+  }
+  return true;
+}
+
+export function getGradeOverride(email: string): string | null {
+  if (typeof window === "undefined") return null;
+  try {
+    const map = JSON.parse(localStorage.getItem(GRADE_OVERRIDE_KEY) || "{}");
+    const g = map[email.toLowerCase()];
+    return typeof g === "string" ? g : null;
+  } catch {
+    return null;
+  }
+}
+
+export function setGradeOverride(email: string, grade: string): void {
+  if (typeof window === "undefined") return;
+  const map = JSON.parse(localStorage.getItem(GRADE_OVERRIDE_KEY) || "{}");
+  map[email.toLowerCase()] = grade;
+  localStorage.setItem(GRADE_OVERRIDE_KEY, JSON.stringify(map));
+}
+
+function mapStudentRows(filterFn: (u: RegisteredUser) => boolean) {
+  const seeds = Object.values(students).map((s) => ({
+    name: s.profile.name,
+    email: s.profile.email,
+    major: s.profile.major,
+    grade: getGradeOverride(s.profile.email) || s.profile.grade,
+    source: "seed" as const,
+  }));
+  const regs = getRegisteredUsers()
+    .filter((u) => u.role === "student" && filterFn(u))
+    .map((u) => ({
+      name: u.name,
+      email: u.email,
+      major: majorCodeToName(u.major),
+      grade: getGradeOverride(u.email) || normalizeGrade(u.grade || "XI"),
+      source: "registered" as const,
+    }));
+  return [...seeds, ...regs];
+}
+
+export function getAllStudentsList(): {
+  name: string;
+  email: string;
+  major: string;
+  grade: string;
+  source: "seed" | "registered";
+}[] {
+  return mapStudentRows(() => true);
+}
+
+export function getAllApprovedStudentsList(): {
+  name: string;
+  email: string;
+  major: string;
+  grade: string;
+  source: "seed" | "registered";
+}[] {
+  return mapStudentRows((u) => u.status === "approved");
+}
+
 export function getAllAdmins(): UserCredential[] {
   const builtIn = userCredentials.filter((u) => u.role === "admin");
   const registered = getRegisteredUsers().filter((u) => u.role === "admin").map((u) => ({
@@ -470,19 +767,40 @@ export function registerAdmin(user: { email: string; password: string; name: str
 
 function getStudentByEmail(email: string): StudentData | null {
   const lower = email.toLowerCase();
-  if (lower.includes("andi")) return students["rpl-andi"];
-  if (lower.includes("rizky")) return students["rpl-rizky"];
-  if (lower.includes("lestari")) return students["dkv-lestari"];
-  if (lower.includes("dedi")) return students["tkj-dedi"];
-  if (lower.includes("budi")) return students.rpl;
-  if (lower.includes("rina")) return students.dkv;
-  if (lower.includes("hendra")) return students.tt;
-  if (lower.includes("fajar")) return students.tkj;
-  if (lower.includes("rpl")) return students.rpl;
-  if (lower.includes("dkv")) return students.dkv;
-  if (lower.includes("tt")) return students.tt;
-  if (lower.includes("tkj")) return students.tkj;
-  return null;
+  let base: StudentData | null = null;
+
+  const registered = getRegisteredUsers().find(
+    (u) => u.role === "student" && u.email.toLowerCase() === lower
+  );
+  if (registered) {
+    base = students.rpl;
+    base = {
+      ...base,
+      profile: {
+        ...base.profile,
+        email: registered.email,
+        name: registered.name,
+        major: majorCodeToName(registered.major),
+        grade: normalizeGrade(registered.grade || "XI"),
+      },
+    };
+  } else if (lower.includes("andi")) base = students["rpl-andi"];
+  else if (lower.includes("rizky")) base = students["rpl-rizky"];
+  else if (lower.includes("lestari")) base = students["dkv-lestari"];
+  else if (lower.includes("dedi")) base = students["tkj-dedi"];
+  else if (lower.includes("budi")) base = students.rpl;
+  else if (lower.includes("rina")) base = students.dkv;
+  else if (lower.includes("hendra")) base = students.tt;
+  else if (lower.includes("fajar")) base = students.tkj;
+  else if (lower.includes("rpl")) base = students.rpl;
+  else if (lower.includes("dkv")) base = students.dkv;
+  else if (lower.includes("tt")) base = students.tt;
+  else if (lower.includes("tkj")) base = students.tkj;
+
+  if (!base) return null;
+  const override = getGradeOverride(lower);
+  if (override) base = { ...base, profile: { ...base.profile, grade: override } };
+  return base;
 }
 
 // ===== Helper: Get student data from localStorage =====
@@ -503,21 +821,207 @@ export function getStudentBySlug(slug: string): StudentData | null {
   }) || null;
 }
 
-export const studentStats: StudentStats = {
-  totalStudents: 248,
-  assessedStudents: 195,
-  avgReadinessScore: 67,
-  topCareers: [
-    { name: "Fullstack Developer", count: 45 },
-    { name: "Backend Developer", count: 38 },
-    { name: "Frontend Developer", count: 35 },
-    { name: "Data Analyst", count: 28 },
-    { name: "DevOps Engineer", count: 15 },
-  ],
-  readinessByMajor: [
-    { major: "Rekayasa Perangkat Lunak", score: 72 },
-    { major: "Desain Komunikasi Visual", score: 68 },
-    { major: "Teknik Transmisi", score: 65 },
-    { major: "Teknik Komputer dan Jaringan", score: 58 },
-  ],
-};
+export function getPublicStudentBySlug(slug: string): StudentData | null {
+  const seed = getStudentBySlug(slug);
+  if (seed) return seed;
+  if (typeof window === "undefined") return null;
+  const want = slug.toLowerCase();
+  const u = getRegisteredUsers().find(
+    (x) =>
+      x.role === "student" &&
+      x.status === "approved" &&
+      x.name.toLowerCase().replace(/\s+/g, "-") === want
+  );
+  if (!u) return null;
+  const lower = u.email.toLowerCase();
+  const matches = readStoredCareerMatches(lower) || [];
+  let projects: Project[] = [];
+  try {
+    const raw = JSON.parse(localStorage.getItem(`portfolio_projects_${lower}`) || "[]");
+    if (Array.isArray(raw)) projects = raw as Project[];
+  } catch {}
+  const hardSkills = [
+    ...new Map(
+      matches.flatMap((m) => m.requiredSkills || []).map((s) => [s.name, s])
+    ).values(),
+  ];
+  return {
+    profile: {
+      id: `usr-${lower}`,
+      name: u.name,
+      email: u.email,
+      role: "student",
+      major: majorCodeToName(u.major || "") || u.major || "Rekayasa Perangkat Lunak",
+      grade: getGradeOverride(lower) || normalizeGrade(u.grade || "XI"),
+      avatar: "",
+      createdAt: "",
+    },
+    hardSkills,
+    softSkills: [],
+    careerMatches: matches,
+    skillGaps: [],
+    roadmapMilestones: [],
+    projects,
+    jobOpportunities: [],
+  };
+}
+
+// ===== Computed student statistics (real data: seeds + approved registrations) =====
+
+function readStoredCareerMatches(email: string): CareerMatch[] | null {
+  if (typeof window === "undefined") return null;
+  const lower = email.toLowerCase();
+  try {
+    const stored = window.localStorage.getItem(`career_matches_${lower}`);
+    if (stored) {
+      const arr = JSON.parse(stored);
+      if (Array.isArray(arr)) return arr as CareerMatch[];
+    }
+  } catch {}
+  return null;
+}
+
+export function getStudentReadiness(email: string): number | null {
+  const lower = email.toLowerCase();
+  const seed = Object.values(students).find((s) => s.profile.email.toLowerCase() === lower);
+  const matches = seed ? seed.careerMatches : readStoredCareerMatches(lower);
+  if (!matches || matches.length === 0) return null;
+  const total = matches.reduce((a, m) => a + (m.readinessScore || 0), 0);
+  return Math.round(total / matches.length);
+}
+
+export function getStudentAssessmentStatus(email: string): "assessed" | "pending" {
+  return getStudentReadiness(email) === null ? "pending" : "assessed";
+}
+
+export interface StudentCandidate {
+  name: string;
+  email: string;
+  major: string;
+  grade: string;
+  score: number;
+  skills: string[];
+  topCareer: string;
+  hasPublicPortfolio: boolean;
+}
+
+export function getStudentCandidates(): StudentCandidate[] {
+  const results: StudentCandidate[] = [];
+  const seeds = Object.values(students);
+  const seedEmails = new Set(seeds.map((s) => s.profile.email.toLowerCase()));
+
+  seeds.forEach((s) => {
+    const score = getStudentReadiness(s.profile.email) ?? 0;
+    const skills = [...s.hardSkills]
+      .sort((a, b) => b.level - a.level)
+      .slice(0, 5)
+      .map((x) => x.name);
+    const top = [...s.careerMatches].sort((a, b) => b.readinessScore - a.readinessScore)[0];
+    results.push({
+      name: s.profile.name,
+      email: s.profile.email,
+      major: s.profile.major,
+      grade: getGradeOverride(s.profile.email) || s.profile.grade,
+      score,
+      skills,
+      topCareer: top ? top.title : "Belum memilih karier",
+      hasPublicPortfolio: true,
+    });
+  });
+
+  getRegisteredUsers()
+    .filter(
+      (u) => u.role === "student" && u.status === "approved" && !seedEmails.has(u.email.toLowerCase())
+    )
+    .forEach((u) => {
+      const lower = u.email.toLowerCase();
+      const matches = readStoredCareerMatches(lower) || [];
+      if (matches.length === 0) return;
+      const score = getStudentReadiness(lower) ?? 0;
+      const skills = [
+        ...new Set(
+          matches.flatMap((m) => m.requiredSkills?.map((s) => s.name) || [])
+        ),
+      ].slice(0, 5);
+      const top = [...matches].sort((a, b) => (b.readinessScore || 0) - (a.readinessScore || 0))[0];
+      results.push({
+        name: u.name,
+        email: u.email,
+        major: majorCodeToName(u.major || "") || u.major,
+        grade: getGradeOverride(lower) || normalizeGrade(u.grade || "XI"),
+        score,
+        skills,
+        topCareer: top ? top.title : "Belum memilih karier",
+        hasPublicPortfolio: true,
+      });
+    });
+
+  return results;
+}
+
+export function getStudentStats(): StudentStats {
+  const seeds = Object.values(students);
+  const all = getAllApprovedStudentsList();
+
+  const assessed = all.filter((s) => getStudentReadiness(s.email) !== null);
+  const avgReadinessScore =
+    assessed.length === 0
+      ? 0
+      : Math.round(
+          assessed.reduce((a, s) => a + (getStudentReadiness(s.email) || 0), 0) / assessed.length
+        );
+
+  const careerTally = new Map<string, number>();
+  all.forEach((s) => {
+    const matches =
+      seeds.find((x) => x.profile.email.toLowerCase() === s.email.toLowerCase())?.careerMatches ||
+      readStoredCareerMatches(s.email) ||
+      [];
+    matches.forEach((m) => {
+      careerTally.set(m.title, (careerTally.get(m.title) || 0) + 1);
+    });
+  });
+  const topCareers = Array.from(careerTally.entries())
+    .map(([name, count]) => ({ name, count }))
+    .sort((a, b) => b.count - a.count)
+    .slice(0, 5);
+
+  const majorsOrder = [
+    "Rekayasa Perangkat Lunak",
+    "Desain Komunikasi Visual",
+    "Teknik Komputer dan Jaringan",
+    "Teknik Transmisi",
+  ];
+  const majorMap = new Map<string, { total: number; assessed: number }>();
+  all.forEach((s) => {
+    const cur = majorMap.get(s.major) || { total: 0, assessed: 0 };
+    cur.total += 1;
+    if (getStudentReadiness(s.email) !== null) cur.assessed += 1;
+    majorMap.set(s.major, cur);
+  });
+  const majors = [
+    ...majorsOrder,
+    ...Array.from(majorMap.keys()).filter((m) => !majorsOrder.includes(m)),
+  ].filter((m) => majorMap.has(m));
+
+  const readinessByMajor = majors.map((major) => {
+    const studentsInMajor = all.filter((s) => s.major === major);
+    const assessedIn = studentsInMajor.filter((s) => getStudentReadiness(s.email) !== null);
+    const score =
+      assessedIn.length === 0
+        ? 0
+        : Math.round(
+            assessedIn.reduce((a, s) => a + (getStudentReadiness(s.email) || 0), 0) /
+              assessedIn.length
+          );
+    return { major, score };
+  });
+
+  return {
+    totalStudents: all.length,
+    assessedStudents: assessed.length,
+    avgReadinessScore,
+    topCareers,
+    readinessByMajor,
+  };
+}

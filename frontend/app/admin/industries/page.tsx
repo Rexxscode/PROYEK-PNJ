@@ -7,6 +7,7 @@ import Badge from "../../components/ui/badge";
 import DashboardHeader from "../../components/layout/dashboardheader";
 import { getAllIndustries, approveIndustry, rejectIndustry, UserCredential } from "../../lib/mock-data";
 import { useToast } from "../../lib/toast-context";
+import { addNotification } from "../../lib/notifications";
 
 export default function IndustriesPage() {
   const { toast } = useToast();
@@ -37,6 +38,13 @@ export default function IndustriesPage() {
     approveIndustry(email);
     refresh();
     window.dispatchEvent(new CustomEvent("industries-updated"));
+    addNotification({
+      text: "Akun perusahaan kamu telah disetujui! Kamu kini bisa membuka profil, memposting lowongan, dan melihat kandidat.",
+      type: "registration",
+      targetRole: "industry",
+      targetEmail: email,
+    });
+    window.dispatchEvent(new CustomEvent("notifications-updated"));
     toast(`Akun ${email} berhasil disetujui`, "success");
   };
 
@@ -44,6 +52,13 @@ export default function IndustriesPage() {
     rejectIndustry(email);
     refresh();
     window.dispatchEvent(new CustomEvent("industries-updated"));
+    addNotification({
+      text: "Pendaftaran akun perusahaan kamu ditolak oleh admin.",
+      type: "registration",
+      targetRole: "industry",
+      targetEmail: email,
+    });
+    window.dispatchEvent(new CustomEvent("notifications-updated"));
     toast(`Akun ${email} ditolak`, "warning");
   };
 

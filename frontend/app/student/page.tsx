@@ -4,8 +4,6 @@ import { useState, useEffect, useMemo } from "react";
 import {
   ClipboardCheck,
   Target,
-  Briefcase,
-  TrendingUp,
   ArrowRight,
   Star,
   BookOpen,
@@ -100,7 +98,7 @@ export default function StudentDashboard() {
 
       {/* Readiness Score Card */}
       {hasQuiz && readinessScore > 0 && (
-        <div className="grid lg:grid-cols-3 gap-6 mb-8">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
           <Card className={`lg:col-span-2 ${readinessTier.bgColor} border ${readinessTier.borderColor}`}>
             <div className="flex items-center justify-between gap-4">
               <div className="min-w-0">
@@ -178,7 +176,7 @@ export default function StudentDashboard() {
       )}
 
       {/* Top Career Matches */}
-      <div className="grid lg:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <Card>
           <div className="flex items-center justify-between mb-4">
             <h3 className="font-semibold text-foreground">Top Career Matches</h3>

@@ -9,12 +9,10 @@ import {
   TrendingUp,
   Search,
   ArrowRight,
-  Building2,
   Edit3,
   X,
   CheckCircle2,
   MapPin,
-  Mail,
   Globe,
 } from "lucide-react";
 import Link from "next/link";
@@ -234,7 +232,7 @@ export default function IndustryDashboard() {
       </Card>
 
       {/* Stats */}
-      <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8 stagger-in">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8 stagger-in">
         <Card>
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-lg bg-blue-100 dark:bg-blue-900/50 flex items-center justify-center">
@@ -332,7 +330,7 @@ export default function IndustryDashboard() {
       </Card>
 
       {/* Quick Actions */}
-      <div className="grid sm:grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <Link href="/industry/candidates">
           <Card hover>
             <div className="flex items-center gap-4">
@@ -377,7 +375,7 @@ export default function IndustryDashboard() {
                 <input type="text" value={editForm.company} onChange={(e) => setEditForm((p) => ({ ...p, company: e.target.value }))}
                   className="w-full px-4 py-2.5 border border-border rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary" />
               </div>
-              <div className="grid sm:grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm font-medium text-foreground mb-1.5">Bidang Industri</label>
                   <select value={editForm.industry} onChange={(e) => setEditForm((p) => ({ ...p, industry: e.target.value }))}
@@ -391,7 +389,7 @@ export default function IndustryDashboard() {
                     className="w-full px-4 py-2.5 border border-border rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary" />
                 </div>
               </div>
-              <div className="grid sm:grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm font-medium text-foreground mb-1.5">Website</label>
                   <input type="text" value={editForm.website} onChange={(e) => setEditForm((p) => ({ ...p, website: e.target.value }))} placeholder="www.perusahaan.com"
