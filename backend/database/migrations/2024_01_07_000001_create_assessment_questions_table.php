@@ -10,7 +10,12 @@ return new class extends Migration
     {
         Schema::create('assessment_questions', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('major_id', 10)->constrained('majors', 'short_code')->onDelete('cascade');
+            $table->string('major_id', 10)->nullable();
+            $table->foreign('major_id')
+                ->references('short_code')
+                ->on('majors')
+                ->onDelete('cascade')
+                ->onUpdate('cascade');
             $table->string('question');
             $table->json('options');
             $table->integer('correct');

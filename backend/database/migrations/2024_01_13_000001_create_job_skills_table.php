@@ -9,7 +9,7 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('job_skills', function (Blueprint $table) {
-            $table->foreignId('job_id')->constrained('jobs')->onDelete('cascade');
+            $table->foreignId('job_id')->constrained('job_opportunities')->onDelete('cascade');
             $table->string('skill_id', 20)->constrained('skills')->onDelete('cascade');
             $table->tinyInteger('required_level')->default(1);
             $table->primary(['job_id', 'skill_id']);

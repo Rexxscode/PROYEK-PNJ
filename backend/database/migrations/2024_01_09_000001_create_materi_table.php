@@ -10,7 +10,12 @@ return new class extends Migration
     {
         Schema::create('materi', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('major_id', 10)->constrained('majors', 'short_code')->onDelete('cascade');
+            $table->string('major_id', 10)->nullable();
+            $table->foreign('major_id')
+                ->references('short_code')
+                ->on('majors')
+                ->onDelete('set null')
+                ->onUpdate('cascade');
             $table->string('title', 100);
             $table->text('description')->nullable();
             $table->json('skills');

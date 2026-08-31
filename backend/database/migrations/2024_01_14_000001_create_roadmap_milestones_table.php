@@ -10,7 +10,12 @@ return new class extends Migration
     {
         Schema::create('roadmap_milestones', function (Blueprint $table) {
             $table->string('id', 20)->primary();
-            $table->foreignId('major_id', 10)->constrained('majors', 'short_code')->onDelete('set null');
+            $table->string('major_id', 10)->nullable();
+            $table->foreign('major_id')
+                ->references('short_code')
+                ->on('majors')
+                ->onDelete('set null')
+                ->onUpdate('cascade');
             $table->string('title', 100);
             $table->text('description')->nullable();
             $table->enum('level', ['fundamental', 'intermediate', 'advanced']);

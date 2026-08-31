@@ -41,12 +41,10 @@ class MateriSeeder extends Seeder
 
         foreach ($materiList as $materi) {
             Materi::updateOrCreate(
-                ['id' => $materi['id']],
+                ['title' => $materi['title'], 'major_id' => $materi['major_id']],
                 [
-                    'major_id' => $materi['major_id'],
-                    'title' => $materi['title'],
                     'description' => $materi['description'],
-                    'skills' => [],
+                    'skills' => json_encode([]),
                     'icon' => $materi['icon'],
                 ]
             );

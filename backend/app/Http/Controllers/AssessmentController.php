@@ -124,7 +124,7 @@ class AssessmentController extends Controller
                     'correct' => 0,
                     'total' => 0,
                     'level' => 'beginner'
-                };
+                ];
             }
 
             $skillScores[$skill]['total']++;
@@ -150,5 +150,19 @@ class AssessmentController extends Controller
         }
 
         return $skillScores;
+    }
+
+    public function results(): JsonResponse
+    {
+        $student = auth()->user()->student;
+
+        $results = $student->assessmentResults()
+            ->latest()
+            ->get(['id', 'major_id', 'score', 'level', 'skill_scores', 'answered_at']);
+
+        return response()->json([
+            'success' => true,
+            'data' => $results
+        ]);
     }
 }

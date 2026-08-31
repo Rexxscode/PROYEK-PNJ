@@ -25,4 +25,12 @@ class Materi extends Model
     {
         return $this->belongsTo(Major::class, 'major_id', 'short_code');
     }
+
+    /**
+     * The questions for this materi.
+     */
+    public function materiQuestions(): HasMany
+    {
+        return $this->hasMany(MateriQuestion::class, 'materi_id');
+    }
 }

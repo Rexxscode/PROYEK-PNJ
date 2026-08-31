@@ -22,6 +22,7 @@ class DatabaseSeeder extends Seeder
             MajorSeeder::class,
             SkillSeeder::class,
             MateriSeeder::class,
+            MateriQuestionSeeder::class,
             AssessmentQuestionSeeder::class,
             RoadmapSeeder::class,
             UserSeeder::class,

@@ -62,7 +62,7 @@ foreach ($byMajor as $prefix => $qs) {
     $shortCode = substr($prefix, 0, 3);
     foreach ($qs as $q) {
         $lines[] = '        // ' . $q['id'];
-        $lines[] = '        AssessmentQuestion::updateOrCreate(['];
+        $lines[] = '        AssessmentQuestion::updateOrCreate([';
         $lines[] = "            'id' => '" . $q['id'] . "',";
         $lines[] = "            'major_id' => Major::where('short_code', '" . $shortCode . "')->value('id'),";
         $lines[] = "            'question' => '" . addslashes($q['question']) . "',";

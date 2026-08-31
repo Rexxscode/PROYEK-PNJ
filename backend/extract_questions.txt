@@ -80,7 +80,7 @@ foreach ($allQuestions as $q) {
     $major = 'Major::where("short_code", "'.$q['major_id'].'")->first(); // placeholder
     // We'll use a different approach - directly reference the major short_code in the query
     
-    $seederContent .= "        // " . $q['id'] . " - " . substr($q['question'], 0, 50) . "...\n";
+    $seederContent .= "    // " . $q['id'] . " - " . substr($q['question'], 0, 50) . "...\n";
     
     // Build the options JSON
     $optionsJson = json_encode(array_slice($q['options'], 0, 5));
