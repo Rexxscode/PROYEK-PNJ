@@ -27,7 +27,7 @@ class MateriController extends Controller
         ]);
     }
 
-    public function questions($materiId): JsonResponse
+    public function questions(int|string $materiId): JsonResponse
     {
         $student = auth()->user();
 
@@ -60,7 +60,7 @@ class MateriController extends Controller
         ]);
     }
 
-    public function submit(Request $request, $materiId): JsonResponse
+    public function submit(Request $request, int|string $materiId): JsonResponse
     {
         $student = auth()->user();
 

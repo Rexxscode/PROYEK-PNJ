@@ -145,7 +145,11 @@ class IndustryController extends Controller
         ]);
     }
 
-    private function formatProfile($industry)
+    /**
+     * @param \App\Models\Industry $industry
+     * @return array<string, mixed>
+     */
+    private function formatProfile($industry): array
     {
         return [
             'company' => $industry->company,

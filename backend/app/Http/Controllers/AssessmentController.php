@@ -104,7 +104,7 @@ class AssessmentController extends Controller
         ]);
     }
 
-    private function getLevel($score): string
+    private function getLevel(int $score): string
     {
         if ($score <= 20) return 'beginner';
         if ($score <= 40) return 'developing';
@@ -113,7 +113,7 @@ class AssessmentController extends Controller
         return 'expert';
     }
 
-    private function calculateSkillScores($questions, $answers): array
+    private function calculateSkillScores(array $questions, array $answers): array
     {
         $skillScores = [];
 

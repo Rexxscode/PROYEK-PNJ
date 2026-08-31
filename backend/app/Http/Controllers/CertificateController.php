@@ -27,7 +27,7 @@ class CertificateController extends Controller
         ]);
     }
 
-    public function detail($materiId): JsonResponse
+    public function detail(int|string $materiId): JsonResponse
     {
         $certificate = Certificate::where('student_id', auth()->user()->student->id)
             ->where('materi_id', $materiId)
