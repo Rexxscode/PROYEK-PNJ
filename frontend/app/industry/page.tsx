@@ -21,7 +21,8 @@ import Badge from "../components/ui/badge";
 import { SkeletonDashboard } from "../components/ui/skeleton";
 import DashboardHeader from "../components/layout/dashboardheader";
 import { getMatchBg, getInitials } from "../lib/utils";
-import { getIndustryCompany, students } from "../lib/mock-data";
+import { useAuth } from "../lib/auth-context";
+import { api, BACKEND_ENDPOINTS } from "../lib/api";
 import { useCountUp } from "../lib/use-count-up";
 import { useToast } from "../lib/toast-context";
 
@@ -35,23 +36,6 @@ interface IndustryProfile {
   description: string;
   founded: string;
   employeeCount: string;
-}
-
-function getProfile(): IndustryProfile | null {
-  if (typeof window === "undefined") return null;
-  const email = localStorage.getItem("studentEmail") || "";
-  if (!email) return null;
-  try {
-    return JSON.parse(localStorage.getItem(`${PROFILE_KEY}_${email}`) || "null");
-  } catch {
-    return null;
-  }
-}
-
-function saveProfile(profile: IndustryProfile) {
-  const email = localStorage.getItem("studentEmail") || "";
-  if (!email) return;
-  localStorage.setItem(`${PROFILE_KEY}_${email}`, JSON.stringify(profile));
 }
 
 const industryOptions = [
@@ -73,36 +57,8 @@ const employeeOptions = [
   "500+",
 ];
 
-function getIndustryJobs(): { id: string; title: string; skills: string[] }[] {
-  if (typeof window === "undefined") return [];
-  const email = localStorage.getItem("studentEmail") || "";
-  try {
-    const jobs = JSON.parse(localStorage.getItem(`industryJobs_${email}`) || "[]");
-    return Array.isArray(jobs) ? jobs : [];
-  } catch {
-    return [];
-  }
-}
-
 function getAllStudentsWithMatch(jobSkills: string[]) {
-  const list = Object.values(students);
-  return list.map((s) => {
-    const studentSkillNames = s.hardSkills.map((sk) => sk.name.toLowerCase());
-    const matchedSkills = jobSkills.filter((js) => studentSkillNames.includes(js.toLowerCase()));
-    const matchCount = matchedSkills.length;
-    const score = jobSkills.length > 0 ? Math.round((matchCount / jobSkills.length) * 100) : 0;
-    const topMatch = s.careerMatches.length > 0
-      ? s.careerMatches.reduce((best, cm) => cm.matchPercentage > best.matchPercentage ? cm : best, s.careerMatches[0])
-      : null;
-    return {
-      name: s.profile.name,
-      major: s.profile.major,
-      score,
-      matchedSkills,
-      topSkill: matchedSkills[0] || s.hardSkills[0]?.name || "-",
-      matchFor: topMatch?.title || "-",
-    };
-  });
+  return [];
 }
 
 const candidateColors = [
@@ -115,6 +71,7 @@ const candidateColors = [
 
 export default function IndustryDashboard() {
   const { toast } = useToast();
+  const { user } = useAuth();
   const [mounted, setMounted] = useState(false);
   const [profile, setProfile] = useState<IndustryProfile | null>(null);
   const [showProfileModal, setShowProfileModal] = useState(false);
@@ -127,35 +84,59 @@ export default function IndustryDashboard() {
     founded: "",
     employeeCount: "",
   });
+  const [industryJobs, setIndustryJobs] = useState<{ id: string; title: string; skills: string[] }[]>([]);
+  const [candidates, setCandidates] = useState<{ name: string; major: string; score: number; matchedSkills: string[]; matchFor: string }[]>([]);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const email = localStorage.getItem("studentEmail") || "";
-    const saved = getProfile();
-    if (saved) {
-      setProfile(saved);
-    } else {
-      const defaultProfile: IndustryProfile = {
-        company: getIndustryCompany(email),
-        industry: "Teknologi Informasi",
-        location: "Jakarta, Indonesia",
-        website: "",
-        description: "",
-        founded: "",
-        employeeCount: "11-50",
-      };
-      setProfile(defaultProfile);
-      saveProfile(defaultProfile);
-    }
-    setMounted(true);
-  }, []);
+    if (!user) return;
+    const fetchData = async () => {
+      try {
+        const [profileRes, jobsRes, candidatesRes] = await Promise.all([
+          api.get<{ success: boolean; data: IndustryProfile }>(BACKEND_ENDPOINTS.industries.me).catch(() => null),
+          api.get<{ success: boolean; data: { id: string; title: string; skills: string[] }[] }>(BACKEND_ENDPOINTS.jobs.mine).catch(() => ({ success: false, data: [] })),
+          api.get<{ success: boolean; data: { name: string; major: string; score: number; matchedSkills: string[]; matchFor: string }[] }>(BACKEND_ENDPOINTS.industries.candidates).catch(() => ({ success: false, data: [] })),
+        ]);
 
-  const industryJobs = getIndustryJobs();
+        if (profileRes?.success) {
+          setProfile(profileRes.data);
+          setEditForm(profileRes.data);
+        } else {
+          const defaultProfile: IndustryProfile = {
+            company: user.industry?.company_name || user.name,
+            industry: "Teknologi Informasi",
+            location: "Jakarta, Indonesia",
+            website: "",
+            description: "",
+            founded: "",
+            employeeCount: "11-50",
+          };
+          setProfile(defaultProfile);
+          setEditForm(defaultProfile);
+        }
+
+        if (jobsRes?.success) {
+          setIndustryJobs(jobsRes.data);
+        }
+
+        if (candidatesRes?.success) {
+          setCandidates(candidatesRes.data);
+        }
+      } catch {
+        // silently fail
+      } finally {
+        setLoading(false);
+        setMounted(true);
+      }
+    };
+    fetchData();
+  }, [user]);
+
   const allJobSkills = [...new Set(industryJobs.flatMap((j) => j.skills))];
-  const allStudents = getAllStudentsWithMatch(allJobSkills);
-  const totalCandidates = allStudents.length;
-  const matchedCandidates = allStudents.filter((s) => s.score > 0).length;
+  const totalCandidates = candidates.length;
+  const matchedCandidates = candidates.filter((s) => s.score > 0).length;
   const avgMatch = matchedCandidates > 0
-    ? Math.round(allStudents.filter((s) => s.score > 0).reduce((sum, s) => sum + s.score, 0) / matchedCandidates)
+    ? Math.round(candidates.filter((s) => s.score > 0).reduce((sum, s) => sum + s.score, 0) / matchedCandidates)
     : 0;
   const jobsCount = industryJobs.length;
 
@@ -169,18 +150,22 @@ export default function IndustryDashboard() {
     setShowProfileModal(true);
   };
 
-  const handleSaveProfile = () => {
+  const handleSaveProfile = async () => {
     if (!editForm.company.trim()) {
       toast("Nama perusahaan harus diisi", "error");
       return;
     }
-    setProfile(editForm);
-    saveProfile(editForm);
-    setShowProfileModal(false);
-    toast("Profil perusahaan berhasil diperbarui", "success");
+    try {
+      await api.put(BACKEND_ENDPOINTS.industries.profile, editForm);
+      setProfile(editForm);
+      setShowProfileModal(false);
+      toast("Profil perusahaan berhasil diperbarui", "success");
+    } catch {
+      toast("Gagal menyimpan profil", "error");
+    }
   };
 
-  if (!mounted) return <div className="p-6 lg:pl-72"><SkeletonDashboard /></div>;
+  if (loading || !user) return <div className="p-6 lg:pl-72"><SkeletonDashboard /></div>;
   return (
     <div>
       <DashboardHeader
@@ -288,7 +273,7 @@ export default function IndustryDashboard() {
           </Link>
         </div>
         <div className="space-y-3">
-          {allStudents
+          {candidates
             .sort((a, b) => b.score - a.score)
             .slice(0, 5)
             .map((candidate, index) => (

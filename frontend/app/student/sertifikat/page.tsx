@@ -18,39 +18,51 @@ import { SkeletonDashboard } from "../../components/ui/skeleton";
 import DashboardHeader from "../../components/layout/dashboardheader";
 import { MAJORS, materiList } from "../../lib/materi-catalog";
 import { getQuizForMateri } from "../../lib/materi-quiz";
-import { getCurrentStudent } from "../../lib/mock-data";
-import { getCertificateResults } from "../../lib/certificates";
-import type { CertificateResult } from "../../lib/certificates";
+import { useAuth } from "../../lib/auth-context";
+import { api, BACKEND_ENDPOINTS } from "../../lib/api";
 
 type MateriStatus = {
-  result?: CertificateResult;
+  result?: { materiId: string; studentName: string; major: string; score: number; total: number; passed: boolean; date: string };
   status: "not-started" | "in-progress" | "passed";
 };
 
+interface CertificateResult {
+  materiId: string;
+  studentName: string;
+  major: string;
+  score: number;
+  total: number;
+  passed: boolean;
+  date: string;
+}
+
 export default function SertifikatPage() {
+  const { user } = useAuth();
   const [mounted, setMounted] = useState(false);
   const [statusMap, setStatusMap] = useState<Record<string, MateriStatus>>({});
 
   useEffect(() => {
     setMounted(true);
-    const student = getCurrentStudent();
-    if (!student) return;
-    const results = getCertificateResults(student.profile.email);
-    const map: Record<string, MateriStatus> = {};
-    materiList.forEach((m) => {
-      const r = results[m.id];
-      map[m.id] = r
-        ? { result: r, status: r.passed ? "passed" : "in-progress" }
-        : { status: "not-started" };
-    });
-    setStatusMap(map);
-  }, []);
+    if (!user) return;
+    api.get<{ data: Record<string, CertificateResult> }>(BACKEND_ENDPOINTS.certificates.list)
+      .then((res) => {
+        const results = res.data || {};
+        const map: Record<string, MateriStatus> = {};
+        materiList.forEach((m) => {
+          const r = results[m.id];
+          map[m.id] = r
+            ? { result: r, status: r.passed ? "passed" : "in-progress" }
+            : { status: "not-started" };
+        });
+        setStatusMap(map);
+      })
+      .catch(() => {});
+  }, [user]);
 
-  if (!mounted) return <div className="p-6 lg:pl-72"><SkeletonDashboard /></div>;
+  if (!mounted || !user) return <div className="p-6 lg:pl-72"><SkeletonDashboard /></div>;
 
-  const student = getCurrentStudent();
-  const studentGrade = student?.profile.grade || "";
-  const studentMajor = MAJORS.find((m) => m.name === student?.profile.major) ?? MAJORS[0];
+  const studentGrade = user.student?.grade || "";
+  const studentMajor = MAJORS.find((m) => m.name === user.student?.major) ?? MAJORS[0];
   const majorEntries = [studentMajor];
   const majorMateri = materiList.filter((m) => m.major === studentMajor.name && m.grade === studentGrade);
 

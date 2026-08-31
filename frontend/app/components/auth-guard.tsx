@@ -1,8 +1,7 @@
 "use client";
 
-import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { getUserRole } from "../lib/mock-data";
+import { useAuth } from "../lib/auth-context";
 
 interface AuthGuardProps {
   allowedRoles: ("student" | "admin" | "industry")[];
@@ -11,30 +10,26 @@ interface AuthGuardProps {
 
 export default function AuthGuard({ allowedRoles, children }: AuthGuardProps) {
   const router = useRouter();
-  const [authorized, setAuthorized] = useState(false);
+  const { user, loading } = useAuth();
 
-  useEffect(() => {
-    const email = localStorage.getItem("studentEmail");
-    if (!email) {
-      router.replace("/auth/login");
-      return;
-    }
-    const role = getUserRole(email);
-    if (!allowedRoles.includes(role)) {
-      if (role === "admin") router.replace("/admin");
-      else if (role === "industry") router.replace("/industry");
-      else router.replace("/student");
-      return;
-    }
-    setAuthorized(true);
-  }, [allowedRoles, router]);
-
-  if (!authorized) {
+  if (loading) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
         <div className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin" />
       </div>
     );
+  }
+
+  if (!user) {
+    router.replace("/auth/login");
+    return null;
+  }
+
+  if (!allowedRoles.includes(user.role)) {
+    if (user.role === "admin") router.replace("/admin");
+    else if (user.role === "industry") router.replace("/industry");
+    else router.replace("/student");
+    return null;
   }
 
   return <>{children}</>;

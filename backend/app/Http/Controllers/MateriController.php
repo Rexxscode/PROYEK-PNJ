@@ -13,6 +13,20 @@ use Illuminate\Validation\Rule;
 
 class MateriController extends Controller
 {
+    public function listByMajor(string $major): JsonResponse
+    {
+        $materiList = Materi::where('major_id', $major)->get();
+
+        return response()->json([
+            'success' => true,
+            'data' => $materiList,
+            'meta' => [
+                'total' => count($materiList),
+                'major_id' => $major,
+            ]
+        ]);
+    }
+
     public function questions($materiId): JsonResponse
     {
         $student = auth()->user();

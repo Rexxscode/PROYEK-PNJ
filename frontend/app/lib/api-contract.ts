@@ -18,6 +18,7 @@ export type {
 export const BACKEND_ENDPOINTS = {
   auth: {
     login: "/api/v1/auth/login",
+    register: "/api/v1/auth/register",
     logout: "/api/v1/auth/logout",
     me: "/api/v1/auth/me",
   },
@@ -29,6 +30,9 @@ export const BACKEND_ENDPOINTS = {
   industries: {
     list: "/api/v1/industries",
     register: "/api/v1/industries/register",
+    me: "/api/v1/industries/me",
+    profile: "/api/v1/industries/profile",
+    candidates: "/api/v1/industries/candidates",
     approval: (email: string) => `/api/v1/industries/${email}/approval`,
   },
   majors: {
@@ -70,6 +74,7 @@ export const BACKEND_ENDPOINTS = {
   },
   notifications: {
     list: "/api/v1/notifications",
+    unreadCount: "/api/v1/notifications/unread-count",
     markRead: (id: string) => `/api/v1/notifications/${id}/read`,
     markAllRead: "/api/v1/notifications/read-all",
   },

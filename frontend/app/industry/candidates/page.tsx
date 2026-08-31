@@ -6,8 +6,19 @@ import Link from "next/link";
 import Card from "../../components/ui/card";
 import Badge from "../../components/ui/badge";
 import DashboardHeader from "../../components/layout/dashboardheader";
-import { getStudentCandidates } from "../../lib/mock-data";
+import { api, BACKEND_ENDPOINTS } from "../../lib/api";
 import { getMatchBg, getInitials } from "../../lib/utils";
+
+interface Candidate {
+  name: string;
+  email: string;
+  major: string;
+  grade: string;
+  score: number;
+  skills: string[];
+  topCareer: string;
+  hasPublicPortfolio: boolean;
+}
 
 const readinessFilters = [
   { key: "all", label: "Semua" },
@@ -31,8 +42,19 @@ export default function CandidatesPage() {
   const [search, setSearch] = useState("");
   const [selectedSkills, setSelectedSkills] = useState<string[]>([]);
   const [readinessFilter, setReadinessFilter] = useState<string>("all");
+  const [candidates, setCandidates] = useState<Candidate[]>([]);
 
-  const candidates = useMemo(() => getStudentCandidates(), []);
+  useEffect(() => {
+    const fetchCandidates = async () => {
+      try {
+        const response = await api.get<{ data: Candidate[] }>(BACKEND_ENDPOINTS.industries.candidates);
+        setCandidates(response.data);
+      } catch (error) {
+        console.error("Failed to fetch candidates:", error);
+      }
+    };
+    fetchCandidates();
+  }, []);
 
   const allSkillFilters = useMemo(
     () => [...new Set(candidates.flatMap((c) => c.skills))].sort(),

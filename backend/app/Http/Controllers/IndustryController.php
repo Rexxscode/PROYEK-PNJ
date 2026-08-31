@@ -240,7 +240,7 @@ class IndustryController extends Controller
             'success' => true,
             'data' => [
                 'candidates' => $matchedStudents,
-                'total' => $matchedStudents.length,
+                'total' => count($matchedStudents),
             ],
         ]);
     }

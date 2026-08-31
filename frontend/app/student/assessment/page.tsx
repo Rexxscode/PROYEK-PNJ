@@ -9,7 +9,8 @@ import Card from "../../components/ui/card";
 import Badge from "../../components/ui/badge";
 import { SkeletonDashboard } from "../../components/ui/skeleton";
 import DashboardHeader from "../../components/layout/dashboardheader";
-import { getCurrentStudent } from "../../lib/mock-data";
+import { useAuth } from "../../lib/auth-context";
+import { api, BACKEND_ENDPOINTS } from "../../lib/api";
 import { addNotification } from "../../lib/notifications";
 import { getQuizForMajor, gradeQuiz, type QuizQuestion, type QuizResult } from "../../lib/major-quiz";
 import { generateCareerMatches, saveCareerMatches } from "../../lib/career-match";
@@ -62,6 +63,7 @@ function getLevelColor(level: number): "danger" | "warning" | "default" | "prima
 }
 
 export default function AssessmentPage() {
+  const { user } = useAuth();
   const searchParams = useSearchParams();
   const isRetake = searchParams.get("retake") === "true";
   const [mounted, setMounted] = useState(false);
@@ -83,9 +85,7 @@ export default function AssessmentPage() {
   }, [mounted, isRetake]);
 
   useEffect(() => {
-    if (!mounted) return;
-    const student = getCurrentStudent();
-    if (!student) return;
+    if (!mounted || !user) return;
     const bucket: Record<string, QuizQuestion[]> = {};
     let all: QuizQuestion[] = [];
     MAJORS.forEach((m) => {
@@ -95,14 +95,12 @@ export default function AssessmentPage() {
     });
     setQuizBucket(bucket);
     setAllQuestions(all);
-    const ownShort = MAJORS.find((m) => m.name === student.profile.major)?.short;
+    const ownShort = MAJORS.find((m) => m.name === user.student?.major)?.short;
     setSelectedTab(ownShort ? ownShort.toLowerCase() : "all");
-  }, [mounted]);
+  }, [mounted, user]);
 
-  if (!mounted) return <div className="p-6 lg:pl-72"><SkeletonDashboard /></div>;
-  const student = getCurrentStudent();
-  if (!student) return <div className="p-6 lg:pl-72"><SkeletonDashboard /></div>;
-  const { profile: currentUser } = student;
+  if (!mounted || !user) return <div className="p-6 lg:pl-72"><SkeletonDashboard /></div>;
+  const currentUser = { name: user.name, email: user.email, major: user.student?.major || "", grade: user.student?.grade || "" };
   const quizQuestions = selectedTab === "all" ? allQuestions : quizBucket[selectedTab] || [];
   const quizProgress = quizQuestions.filter((q) => quizAnswers[q.id] !== undefined).length;
   const quizComplete = quizQuestions.length > 0 && quizQuestions.every((q) => quizAnswers[q.id] !== undefined);
@@ -125,6 +123,11 @@ export default function AssessmentPage() {
       setQuizResult(result);
       localStorage.setItem("major_quiz_result", JSON.stringify(result));
       localStorage.setItem("major_quiz_answers", JSON.stringify(quizAnswers));
+
+      api.post(BACKEND_ENDPOINTS.assessment.submit, {
+        major: currentUser.major,
+        answers: quizAnswers,
+      }).catch(() => {});
 
       const careerMatches = generateCareerMatches(currentUser.major, result);
       saveCareerMatches(careerMatches);

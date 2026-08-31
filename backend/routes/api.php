@@ -29,17 +29,21 @@ Route::prefix('v1/students')->group(function () {
 
 Route::prefix('v1/assessment')->group(function () {
     Route::get('questions/{major?}', [AssessmentController::class, 'questions']);
-    Route::post('submit', [AssessmentController::class, 'submit']);
-    Route::get('results', [AssessmentController::class, 'results']);
+    Route::middleware('auth:sanctum')->group(function () {
+        Route::post('submit', [AssessmentController::class, 'submit']);
+        Route::get('results', [AssessmentController::class, 'results']);
+    });
 });
 
 Route::prefix('v1/materi')->group(function () {
     Route::get('majors/{major}', [MateriController::class, 'listByMajor']);
-    Route::get('{materiId}/questions', [MateriController::class, 'questions']);
-    Route::post('{materiId}/submit', [MateriController::class, 'submit']);
+    Route::middleware('auth:sanctum')->group(function () {
+        Route::get('{materiId}/questions', [MateriController::class, 'questions']);
+        Route::post('{materiId}/submit', [MateriController::class, 'submit']);
+    });
 });
 
-Route::prefix('v1/certificates')->group(function () {
+Route::prefix('v1/certificates')->middleware('auth:sanctum')->group(function () {
     Route::get('', [CertificateController::class, 'list']);
     Route::get('{materiId}', [CertificateController::class, 'detail']);
 });

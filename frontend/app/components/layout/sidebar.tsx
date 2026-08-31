@@ -21,7 +21,7 @@ import {
   IdCard,
 } from "lucide-react";
 import { cn, getInitials } from "../../lib/utils";
-import { getCurrentStudent } from "../../lib/mock-data";
+import { useAuth } from "../../lib/auth-context";
 
 interface SidebarProps {
   role: "student" | "admin" | "industry";
@@ -85,6 +85,7 @@ export function MobileMenuButton({ onClick }: { onClick: () => void }) {
 export default function Sidebar({ role, currentPath, isCollapsed = false, onToggle }: SidebarProps) {
   const [mounted, setMounted] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
+  const { user: authUser } = useAuth();
 
   useEffect(() => {
     window.dispatchEvent(new CustomEvent("sidebar-toggle", { detail: { open: mobileOpen } }));
@@ -110,12 +111,9 @@ export default function Sidebar({ role, currentPath, isCollapsed = false, onTogg
     setMobileOpen(false);
   }, [currentPath]);
 
-  const studentData = mounted ? getCurrentStudent() : null;
-  const storedName = mounted ? localStorage.getItem("loggedUserName") : null;
-  const storedEmail = mounted ? localStorage.getItem("studentEmail") : null;
-  const user = role === "student" && studentData
-    ? studentData.profile
-    : { id: "", name: storedName || (role === "admin" ? "Admin" : "Industry"), email: storedEmail || "", role, major: "", grade: "", avatar: "", createdAt: "" };
+  const userName = authUser?.name || (role === "admin" ? "Admin" : "Industry");
+  const userEmail = authUser?.email || "";
+  const grade = authUser?.student?.grade || "";
 
   const items = navItems[role];
 
@@ -157,7 +155,7 @@ export default function Sidebar({ role, currentPath, isCollapsed = false, onTogg
         <nav className="flex-1 py-4 px-3 space-y-1 overflow-y-auto">
           {items.map((item) => {
             const isActive = currentPath === item.href;
-            const isJobsLocked = role === "student" && item.href === "/student/jobs" && user.grade !== "XII";
+            const isJobsLocked = role === "student" && item.href === "/student/jobs" && grade !== "XII";
             return (
               <Link
                 key={item.href}
@@ -190,12 +188,12 @@ export default function Sidebar({ role, currentPath, isCollapsed = false, onTogg
               {profilePhoto ? (
                 <img src={profilePhoto} alt="Profile" className="w-full h-full object-cover" />
               ) : (
-                <span className="text-xs font-bold text-white">{getInitials(user.name)}</span>
+                <span className="text-xs font-bold text-white">{getInitials(userName)}</span>
               )}
             </div>
             {!isCollapsed && (
               <div className="flex-1 min-w-0">
-                <p className="text-sm font-medium text-foreground truncate">{user.name}</p>
+                <p className="text-sm font-medium text-foreground truncate">{userName}</p>
                 <span className={cn("text-xs px-2 py-0.5 rounded-full font-medium", roleColors[role])}>
                   {roleLabels[role]}
                 </span>
@@ -230,7 +228,7 @@ export default function Sidebar({ role, currentPath, isCollapsed = false, onTogg
         <nav className="flex-1 py-4 px-3 space-y-1 overflow-y-auto">
           {items.map((item) => {
             const isActive = currentPath === item.href;
-            const isJobsLocked = role === "student" && item.href === "/student/jobs" && user.grade !== "XII";
+            const isJobsLocked = role === "student" && item.href === "/student/jobs" && grade !== "XII";
             return (
               <Link
                 key={item.href}
@@ -261,11 +259,11 @@ export default function Sidebar({ role, currentPath, isCollapsed = false, onTogg
               {profilePhoto ? (
                 <img src={profilePhoto} alt="Profile" className="w-full h-full object-cover" />
               ) : (
-                <span className="text-xs font-bold text-white">{getInitials(user.name)}</span>
+                <span className="text-xs font-bold text-white">{getInitials(userName)}</span>
               )}
             </div>
             <div className="flex-1 min-w-0">
-              <p className="text-sm font-medium text-foreground truncate">{user.name}</p>
+              <p className="text-sm font-medium text-foreground truncate">{userName}</p>
               <span className={cn("text-xs px-2 py-0.5 rounded-full font-medium", roleColors[role])}>
                 {roleLabels[role]}
               </span>

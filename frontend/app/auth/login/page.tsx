@@ -4,18 +4,21 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { Mail, Lock, Eye, EyeOff } from "lucide-react";
-import { validateLogin, getRegisteredUsers, userCredentials } from "../../lib/mock-data";
+import { useAuth } from "../../lib/auth-context";
+import { ApiError } from "../../lib/api";
 import { useToast } from "../../lib/toast-context";
 
 export default function LoginPage() {
   const router = useRouter();
   const { toast } = useToast();
+  const { login } = useAuth();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!email || !password) {
       setError("Email dan password harus diisi");
@@ -25,48 +28,38 @@ export default function LoginPage() {
       setError("Password minimal 8 karakter");
       return;
     }
-    const user = validateLogin(email, password);
-    if (!user) {
-      const lower = email.toLowerCase();
-      const registered = getRegisteredUsers().find((u) => u.email.toLowerCase() === lower);
-      const isPendingForApproval = (status?: string) => status === "pending" || status === "rejected";
-      if (registered && isPendingForApproval(registered.status)) {
-        if (registered.status === "pending") {
-          setError("Akun kamu masih menunggu persetujuan admin. Silakan tunggu atau hubungi admin.");
-          toast("Akun belum disetujui admin", "warning");
-        } else {
-          setError("Akun kamu ditolak oleh admin. Hubungi admin untuk informasi lebih lanjut.");
-          toast("Akun ditolak", "error");
-        }
+
+    setIsLoading(true);
+    setError("");
+
+    try {
+      const user = await login(email, password);
+      toast(`Selamat datang, ${user.name}!`, "success");
+      if (user.role === "admin") {
+        router.push("/admin");
+      } else if (user.role === "industry") {
+        router.push("/industry");
       } else {
-        const builtIn = userCredentials.find((u) => u.email.toLowerCase() === lower);
-        if (builtIn && builtIn.role === "industry" && builtIn.status === "pending") {
+        router.push("/student");
+      }
+    } catch (err) {
+      if (err instanceof ApiError) {
+        if (err.status === 403) {
           setError("Akun kamu masih menunggu persetujuan admin.");
           toast("Akun belum disetujui admin", "warning");
-        } else if (builtIn && builtIn.role === "student" && builtIn.status === "rejected") {
-          setError("Akun kamu ditolak oleh admin. Hubungi admin untuk informasi lebih lanjut.");
-          toast("Akun ditolak", "error");
-        } else {
+        } else if (err.status === 401) {
           setError("Email atau password salah");
           toast("Email atau password salah", "error");
+        } else {
+          setError(err.message || "Terjadi kesalahan");
+          toast(err.message || "Terjadi kesalahan", "error");
         }
+      } else {
+        setError("Tidak dapat terhubung ke server");
+        toast("Gagal terhubung ke server", "error");
       }
-      return;
-    }
-    setError("");
-    toast(`Selamat datang, ${user.name}!`, "success");
-    localStorage.setItem("studentEmail", email);
-    localStorage.setItem("loggedUserName", user.name);
-    localStorage.setItem("loggedUserRole", user.role);
-    if (user.company) {
-      localStorage.setItem("loggedUserCompany", user.company);
-    }
-    if (user.role === "admin") {
-      router.push("/admin");
-    } else if (user.role === "industry") {
-      router.push("/industry");
-    } else {
-      router.push("/student");
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -128,9 +121,10 @@ export default function LoginPage() {
             {error && <p className="text-sm text-red-500 mb-2">{error}</p>}
             <button
               type="submit"
-              className="w-full py-2.5 bg-primary text-white font-medium rounded-xl hover:bg-primary-dark dark:bg-primary dark:hover:bg-primary-light transition-colors shadow-lg shadow-primary/25"
+              disabled={isLoading}
+              className="w-full py-2.5 bg-primary text-white font-medium rounded-xl hover:bg-primary-dark dark:bg-primary dark:hover:bg-primary-light transition-colors shadow-lg shadow-primary/25 disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              Masuk
+              {isLoading ? "Masuk..." : "Masuk"}
             </button>
           </form>
 

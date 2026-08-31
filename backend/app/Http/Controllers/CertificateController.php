@@ -13,16 +13,7 @@ class CertificateController extends Controller
 {
     public function list(): JsonResponse
     {
-        $student = auth()->user();
-
-        if (!$student) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Unauthorized',
-            ], 401);
-        }
-
-        $certificates = Certificate::where('student_id', $student->id)
+        $certificates = Certificate::where('student_id', auth()->user()->student->id)
             ->with(['materi', 'major'])
             ->latest()
             ->get();
@@ -38,16 +29,7 @@ class CertificateController extends Controller
 
     public function detail($materiId): JsonResponse
     {
-        $student = auth()->user();
-
-        if (!$student) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Unauthorized',
-            ], 401);
-        }
-
-        $certificate = Certificate::where('student_id', $student->id)
+        $certificate = Certificate::where('student_id', auth()->user()->student->id)
             ->where('materi_id', $materiId)
             ->first();
 

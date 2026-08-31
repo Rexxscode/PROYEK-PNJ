@@ -3,6 +3,7 @@ import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { ThemeProvider } from "./lib/theme-context";
 import { ToastProvider } from "./lib/toast-context";
+import { AuthProvider } from "./lib/auth-context";
 import ScrollToTop from "./components/ui/scroll-to-top";
 
 const geistSans = Geist({
@@ -37,7 +38,11 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
         />
       </head>
       <body className="min-h-full flex flex-col">
-        <ThemeProvider><ToastProvider>{children}</ToastProvider></ThemeProvider>
+        <ThemeProvider>
+          <AuthProvider>
+            <ToastProvider>{children}</ToastProvider>
+          </AuthProvider>
+        </ThemeProvider>
         <ScrollToTop />
       </body>
     </html>

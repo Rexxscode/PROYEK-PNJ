@@ -15,62 +15,84 @@ import Badge from "../components/ui/badge";
 import DashboardHeader from "../components/layout/dashboardheader";
 import { SkeletonDashboard } from "../components/ui/skeleton";
 import dynamic from "next/dynamic";
-import { getCurrentStudent } from "../lib/mock-data";
+import { useAuth } from "../lib/auth-context";
+import { api, BACKEND_ENDPOINTS } from "../lib/api";
 import { getMatchColor, getReadinessTier } from "../lib/utils";
 import { useCountUp } from "../lib/use-count-up";
-import { getQuizResult } from "../lib/major-roadmap";
-import { loadCareerMatches, generateCareerMatches, saveCareerMatches } from "../lib/career-match";
 import type { CareerMatch } from "../lib/type";
 import Link from "next/link";
 
 const SkillBarChart = dynamic(() => import("../components/charts/barchart"), { ssr: false });
 
+interface AssessmentResult {
+  id: number;
+  major: string;
+  score: number;
+  total_questions: number;
+  answers: Record<string, number>;
+  created_at: string;
+}
+
+interface Project {
+  id: number;
+  title: string;
+  description: string;
+  skills: string[];
+  slug: string;
+}
+
 export default function StudentDashboard() {
+  const { user } = useAuth();
   const [mounted, setMounted] = useState(false);
+  const [assessmentResult, setAssessmentResult] = useState<AssessmentResult | null>(null);
+  const [projects, setProjects] = useState<Project[]>([]);
+  const [careerMatches, setCareerMatches] = useState<CareerMatch[]>([]);
+  const [loading, setLoading] = useState(true);
   useEffect(() => { setMounted(true); }, []);
 
-  const student = mounted ? getCurrentStudent() : null;
-
-  const animProjects = useCountUp(mounted && student ? student.projects.length : 0);
-
-  const { profile, projects } = student || { profile: null, hardSkills: [], projects: [], jobOpportunities: [] };
-
-  const [hasQuiz, setHasQuiz] = useState(false);
-  const [careerMatches, setCareerMatches] = useState<CareerMatch[]>([]);
-
   useEffect(() => {
-    if (!student || !profile) return;
-    const qr = getQuizResult();
-    setHasQuiz(!!qr);
-    const savedMatches = loadCareerMatches();
-    if (qr && savedMatches && savedMatches.length > 0 && savedMatches.some((m) => !m.skillGaps || m.skillGaps.length === 0)) {
-      const fresh = generateCareerMatches(student.profile.major, qr);
-      saveCareerMatches(fresh);
-      setCareerMatches(fresh);
-    } else if (savedMatches && savedMatches.length > 0) {
-      setCareerMatches(savedMatches);
-    } else {
-      setCareerMatches(student.careerMatches);
-    }
-  }, [mounted]);
+    if (!user) return;
+    const fetchData = async () => {
+      try {
+        const [assessmentRes, projectsRes] = await Promise.all([
+          api.get<{ success: boolean; data: AssessmentResult[] }>(BACKEND_ENDPOINTS.assessment.results).catch(() => ({ success: false, data: [] })),
+          api.get<{ success: boolean; data: Project[] }>(BACKEND_ENDPOINTS.portfolios.list(user.email)).catch(() => ({ success: false, data: [] })),
+        ]);
 
-  const readinessScore = careerMatches.length ? Math.round(careerMatches.reduce((s, c) => s + (c.readinessScore || 0), 0) / careerMatches.length) : 0;
+        if (assessmentRes.success && assessmentRes.data.length > 0) {
+          setAssessmentResult(assessmentRes.data[0]);
+        }
+        if (projectsRes.success) {
+          setProjects(projectsRes.data);
+        }
+      } catch {
+        // silently fail
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchData();
+  }, [user]);
+
+  const hasQuiz = !!assessmentResult;
+  const readinessScore = assessmentResult ? Math.round((assessmentResult.score / assessmentResult.total_questions) * 100) : 0;
   const readinessTier = getReadinessTier(readinessScore);
 
+  const animProjects = useCountUp(mounted ? projects.length : 0);
   const animReadiness = useCountUp(mounted ? readinessScore : 0);
   const animMatches = useCountUp(mounted ? careerMatches.length : 0);
-  const animSkills = useCountUp(mounted && student ? student.hardSkills.length : 0);
+  const animSkills = useCountUp(mounted && assessmentResult ? Object.keys(assessmentResult.answers).length : 0);
 
   const doughnutLabels = useMemo(() => careerMatches.map((c) => c.title), [careerMatches]);
   const doughnutData = useMemo(() => careerMatches.map((c) => c.matchPercentage), [careerMatches]);
 
-  if (!student || !profile) return <div className="p-6 lg:pl-72"><SkeletonDashboard /></div>;
+  if (loading || !user) return <div className="p-6 lg:pl-72"><SkeletonDashboard /></div>;
 
   return (
     <div>
       <DashboardHeader
-        title={`Selamat datang, ${profile.name}!`}
-        subtitle={`${profile.major} - Kelas ${profile.grade}`}
+        title={`Selamat datang, ${user.name}!`}
+        subtitle={user.student ? `${user.student.major_name} - Kelas ${user.student.grade}` : "Dashboard"}
         showNotifications
       />
 

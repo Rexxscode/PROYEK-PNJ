@@ -4,13 +4,14 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { Mail, Lock, User, BookOpen, Building2, Eye, EyeOff, IdCard } from "lucide-react";
-import { registerUser, majorCodeToName, normalizeGrade } from "../../lib/mock-data";
+import { useAuth } from "../../lib/auth-context";
+import { ApiError } from "../../lib/api";
 import { useToast } from "../../lib/toast-context";
-import { addNotification } from "../../lib/notifications";
 
 export default function RegisterPage() {
   const router = useRouter();
   const { toast } = useToast();
+  const { register } = useAuth();
   const [role, setRole] = useState<"student" | "industry">("student");
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
@@ -20,8 +21,9 @@ export default function RegisterPage() {
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!name || !email) {
       setError("Nama dan email harus diisi");
@@ -39,31 +41,39 @@ export default function RegisterPage() {
       setError("Password minimal 8 karakter");
       return;
     }
-    const success = registerUser({
-      email,
-      password,
-      name,
-      major: role === "industry" ? "Industry" : majorCodeToName(major),
-      grade: role === "industry" ? "-" : normalizeGrade(grade),
-      role,
-      company: role === "industry" ? company : undefined,
-      status: "pending",
-    });
-    if (!success) {
-      setError("Email sudah terdaftar, gunakan email lain");
-      toast("Email sudah terdaftar", "error");
-      return;
+
+    setIsLoading(true);
+    setError("");
+
+    try {
+      await register({
+        name,
+        email,
+        password,
+        password_confirmation: password,
+        role,
+        major: role === "student" ? major.toUpperCase() : undefined,
+        grade: grade.toUpperCase(),
+        company: role === "industry" ? company : undefined,
+      });
+      toast("Registrasi berhasil!", "success");
+      router.push(`/auth/pending?role=${role}`);
+    } catch (err) {
+      if (err instanceof ApiError) {
+        if (err.errors) {
+          const firstError = Object.values(err.errors)[0]?.[0];
+          setError(firstError || err.message);
+        } else {
+          setError(err.message);
+        }
+        toast(err.message || "Registrasi gagal", "error");
+      } else {
+        setError("Tidak dapat terhubung ke server");
+        toast("Gagal terhubung ke server", "error");
+      }
+    } finally {
+      setIsLoading(false);
     }
-    const roleLabel = role === "industry" ? "Perusahaan" : "Siswa";
-    addNotification({
-      text: `${roleLabel} baru mendaftar dan menunggu persetujuan: ${name}${role === "industry" ? ` (${company})` : ""}`,
-      type: "registration",
-      targetRole: "admin",
-    });
-    window.dispatchEvent(new CustomEvent("notifications-updated"));
-    toast("Registrasi berhasil! Menunggu persetujuan admin.", "success");
-    router.push(`/auth/pending?role=${role}`);
-    return;
   };
 
   return (
@@ -242,9 +252,10 @@ export default function RegisterPage() {
             {error && <p className="text-sm text-red-500 mb-2">{error}</p>}
             <button
               type="submit"
-              className="w-full py-2.5 bg-primary text-white font-medium rounded-xl hover:bg-primary-dark transition-colors"
+              disabled={isLoading}
+              className="w-full py-2.5 bg-primary text-white font-medium rounded-xl hover:bg-primary-dark transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              Daftar Sekarang
+              {isLoading ? "Mendaftar..." : "Daftar Sekarang"}
             </button>
           </form>
 

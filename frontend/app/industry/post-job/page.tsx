@@ -7,13 +7,15 @@ import DashboardHeader from "../../components/layout/dashboardheader";
 import Card from "../../components/ui/card";
 import ConfirmDialog from "../../components/ui/confirm-dialog";
 import { useToast } from "../../lib/toast-context";
-import { addNotification } from "../../lib/notifications";
+import { api, BACKEND_ENDPOINTS } from "../../lib/api";
+import { useAuth } from "../../lib/auth-context";
 
 import { skillGroups, skillFilterOptions, allSuggestedSkills } from "../../lib/job-skills";
 
 export default function PostJobPage() {
   const router = useRouter();
   const { toast } = useToast();
+  const { user } = useAuth();
   const [title, setTitle] = useState("");
   const [company, setCompany] = useState("");
   const [location, setLocation] = useState("");
@@ -25,6 +27,7 @@ export default function PostJobPage() {
   const [skillFilter, setSkillFilter] = useState("Semua");
   const [submitted, setSubmitted] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const visibleSkills =
     skillFilter === "Semua" ? allSuggestedSkills : skillGroups[skillFilter];
@@ -40,36 +43,27 @@ export default function PostJobPage() {
     setShowConfirm(true);
   };
 
-  const handleConfirmSubmit = () => {
-    const email = localStorage.getItem("studentEmail") || "";
-    const newJob = {
-      id: `job-${Date.now()}`,
-      title,
-      company,
-      location,
-      type,
-      description,
-      skills: selectedSkills,
-      deadline,
-      salary,
-      postedBy: email,
-    };
+  const handleConfirmSubmit = async () => {
+    setIsSubmitting(true);
     try {
-      const key = `industryJobs_${email}`;
-      const stored = JSON.parse(localStorage.getItem(key) || "[]");
-      stored.push(newJob);
-      localStorage.setItem(key, JSON.stringify(stored));
-    } catch {}
-    setShowConfirm(false);
-    setSubmitted(true);
-    toast("Lowongan berhasil diposting!", "success");
-
-    addNotification({
-      text: `Lowongan baru: ${title} di ${company}`,
-      type: "job_posted",
-      targetRole: "student",
-    });
-    window.dispatchEvent(new CustomEvent("notifications-updated"));
+      await api.post(BACKEND_ENDPOINTS.jobs.create, {
+        title,
+        company,
+        location,
+        type,
+        description,
+        skills: selectedSkills,
+        deadline,
+        salary,
+      });
+      setShowConfirm(false);
+      setSubmitted(true);
+      toast("Lowongan berhasil diposting!", "success");
+    } catch {
+      toast("Gagal memposting lowongan", "error");
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   if (submitted) {

@@ -61,7 +61,7 @@ class AssessmentController extends Controller
         }
 
         // Calculate score and results
-        $questions = AssessmentQuestion::where('major_id', $major_id)->get();
+        $questions = AssessmentQuestion::where('major_id', $major)->get();
         $correct = 0;
         $skillScores = [];
         $levelScores = [];
@@ -82,7 +82,7 @@ class AssessmentController extends Controller
         $skillScores = $this->calculateSkillScores($questions, $answers);
 
         // Save assessment result
-        $student = auth()->user(); // authenticated user
+        $student = auth()->user()->student;
         $result = $student->assessmentResults()->create([
             'major_id' => $major,
             'score' => $correct,

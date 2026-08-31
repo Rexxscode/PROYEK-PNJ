@@ -15,7 +15,7 @@ import Card from "../../components/ui/card";
 import Badge from "../../components/ui/badge";
 import { SkeletonDashboard } from "../../components/ui/skeleton";
 import DashboardHeader from "../../components/layout/dashboardheader";
-import { getCurrentStudent } from "../../lib/mock-data";
+import { useAuth } from "../../lib/auth-context";
 import { cn } from "../../lib/utils";
 import { type QuizResult } from "../../lib/major-quiz";
 import {
@@ -41,6 +41,7 @@ const resourceTypeLabel: Record<string, { label: string; color: string }> = {
 };
 
 export default function RoadmapPage() {
+  const { user } = useAuth();
   const [mounted, setMounted] = useState(false);
   const [milestones, setMilestones] = useState<RoadmapMilestone[]>([]);
   const [quizResult, setQuizResult] = useState<QuizResult | null>(null);
@@ -51,19 +52,18 @@ export default function RoadmapPage() {
   useEffect(() => { setMounted(true); }, []);
 
   useEffect(() => {
-    if (!mounted) return;
-    const student = getCurrentStudent();
-    if (!student) return;
+    if (!mounted || !user) return;
 
     const qr = getQuizResult();
     setQuizResult(qr);
 
-    const roadmap = getRoadmapForScore(student.profile.major, qr?.score || 0);
+    const major = user.student?.major || "";
+    const roadmap = getRoadmapForScore(major, qr?.score || 0);
     setMilestones(roadmap);
 
-    const matches = loadCareerMatches() || student.careerMatches;
+    const matches = loadCareerMatches() || [];
     if (qr && matches.length > 0 && matches.some((m) => !m.skillGaps || m.skillGaps.length === 0)) {
-      const fresh = generateCareerMatches(student.profile.major, qr);
+      const fresh = generateCareerMatches(major, qr);
       saveCareerMatches(fresh);
       setCareerMatches(fresh);
       if (fresh.length > 0) setSelectedCareer(fresh[0]);
@@ -71,11 +71,9 @@ export default function RoadmapPage() {
       setCareerMatches(matches);
       if (matches.length > 0) setSelectedCareer(matches[0]);
     }
-  }, [mounted]);
+  }, [mounted, user]);
 
-  if (!mounted) return <div className="p-6 lg:pl-72"><SkeletonDashboard /></div>;
-  const student = getCurrentStudent();
-  if (!student) return <div className="p-6 lg:pl-72"><SkeletonDashboard /></div>;
+  if (!mounted || !user) return <div className="p-6 lg:pl-72"><SkeletonDashboard /></div>;
 
   const gapSkillNames = (selectedCareer?.skillGaps || []).map((g) => g.name.toLowerCase());
   const unlockedMilestones = gapSkillNames.length > 0

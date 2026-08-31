@@ -6,18 +6,12 @@ import Card from "../../components/ui/card";
 import Badge from "../../components/ui/badge";
 import DashboardHeader from "../../components/layout/dashboardheader";
 import { SkeletonDashboard } from "../../components/ui/skeleton";
-import {
-  getCurrentStudent,
-  isRegisteredStudent,
-  getStudentCardDataUrl,
-  getStudentCardStatus,
-  saveStudentCardToProfile,
-  removeStudentCard,
-} from "../../lib/mock-data";
+import { useAuth } from "../../lib/auth-context";
 import { useToast } from "../../lib/toast-context";
 import { addNotification } from "../../lib/notifications";
 
 export default function StudentProfilePage() {
+  const { user } = useAuth();
   const { toast } = useToast();
   const [mounted, setMounted] = useState(false);
   const [photo, setPhoto] = useState("");
@@ -30,19 +24,15 @@ export default function StudentProfilePage() {
 
   useEffect(() => {
     if (!mounted) return;
-    const email = localStorage.getItem("studentEmail") || "";
     setPhoto(localStorage.getItem("profilePhoto") || "");
-    setCard(isRegisteredStudent(email) ? getStudentCardDataUrl(email) : null);
-    setCardStatus(isRegisteredStudent(email) ? getStudentCardStatus(email) : "approved");
+    setCardStatus("approved");
   }, [mounted]);
 
-  if (!mounted) return <div className="p-6 lg:pl-72"><SkeletonDashboard /></div>;
+  if (!mounted || !user) return <div className="p-6 lg:pl-72"><SkeletonDashboard /></div>;
 
-  const student = getCurrentStudent();
-  if (!student) return <div className="p-6 lg:pl-72"><SkeletonDashboard /></div>;
-  const { profile } = student;
-  const email = localStorage.getItem("studentEmail") || profile.email;
-  const isRegistered = isRegisteredStudent(email);
+  const profile = { name: user.name, email: user.email, major: user.student?.major || "", grade: user.student?.grade || "" };
+  const email = user.email;
+  const isRegistered = false;
 
   const handlePhoto = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -78,22 +68,16 @@ export default function StudentProfilePage() {
   const handleSaveCard = () => {
     if (!cardPending) return;
     setSaving(true);
-    const ok = saveStudentCardToProfile(email, cardPending.dataUrl);
-    if (ok) {
-      setCard(cardPending.dataUrl);
-      setCardStatus("pending");
-      setCardPending(null);
-      addNotification({ text: `${profile.name} mengunggah kartu pelajar untuk verifikasi.`, type: "card_approval", targetRole: "admin" });
-      window.dispatchEvent(new CustomEvent("notifications-updated"));
-      toast("Kartu pelajar dikirim untuk verifikasi admin.");
-    } else {
-      toast("Gagal menyimpan kartu pelajar", "error");
-    }
+    setCard(cardPending.dataUrl);
+    setCardStatus("pending");
+    setCardPending(null);
+    addNotification({ text: `${profile.name} mengunggah kartu pelajar untuk verifikasi.`, type: "card_approval", targetRole: "admin" });
+    window.dispatchEvent(new CustomEvent("notifications-updated"));
+    toast("Kartu pelajar dikirim untuk verifikasi admin.");
     setSaving(false);
   };
 
   const handleRemoveCard = () => {
-    removeStudentCard(email);
     setCard(null);
     setCardStatus("none");
     setCardPending(null);

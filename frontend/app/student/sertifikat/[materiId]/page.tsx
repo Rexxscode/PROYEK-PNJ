@@ -26,15 +26,15 @@ import CertificateView, {
 } from "../../../components/certificate/certificate-view";
 import { getMateriById } from "../../../lib/materi-catalog";
 import { getQuizForMateri } from "../../../lib/materi-quiz";
-import { getCurrentStudent } from "../../../lib/mock-data";
+import { useAuth } from "../../../lib/auth-context";
+import { api, BACKEND_ENDPOINTS } from "../../../lib/api";
 import {
-  getCertificateResult,
-  saveCertificateResult,
   getRequiredCorrect,
   isPassingScore,
 } from "../../../lib/certificates";
 
 export default function MateriTesPage() {
+  const { user } = useAuth();
   const params = useParams<{ materiId: string }>();
   const materiId = params?.materiId || "";
   const [mounted, setMounted] = useState(false);
@@ -65,18 +65,24 @@ export default function MateriTesPage() {
 
   useEffect(() => {
     setMounted(true);
-    if (!quiz || quiz.length === 0) return;
-    const email = getCurrentStudent()?.profile.email || "";
-    const existing = getCertificateResult(email, materiId);
-    if (existing && existing.passed) {
-      setResult({ score: existing.score, total: existing.total, passed: existing.passed, date: existing.date });
-    } else {
-      setAnswers(new Array(quiz.length).fill(-1));
-      setCurrent(0);
-    }
-  }, [materiId, quiz]);
+    if (!quiz || quiz.length === 0 || !user) return;
+    api.get<{ data: Record<string, { score: number; total: number; passed: boolean; date: string }> }>(BACKEND_ENDPOINTS.certificates.list)
+      .then((res) => {
+        const existing = res.data?.[materiId];
+        if (existing && existing.passed) {
+          setResult({ score: existing.score, total: existing.total, passed: existing.passed, date: existing.date });
+        } else {
+          setAnswers(new Array(quiz.length).fill(-1));
+          setCurrent(0);
+        }
+      })
+      .catch(() => {
+        setAnswers(new Array(quiz.length).fill(-1));
+        setCurrent(0);
+      });
+  }, [materiId, quiz, user]);
 
-  if (!mounted) return <div className="p-6 lg:pl-72"><SkeletonDashboard /></div>;
+  if (!mounted || !user) return <div className="p-6 lg:pl-72"><SkeletonDashboard /></div>;
 
   if (!materi || !quiz || quiz.length === 0) {
     return (
@@ -94,16 +100,17 @@ export default function MateriTesPage() {
     );
   }
 
-  const student = getCurrentStudent();
+  const studentMajor = user.student?.major || "";
+  const studentGrade = user.student?.grade || "";
 
-  if (!!student && (materi.major !== student.profile.major || materi.grade !== student.profile.grade)) {
+  if (materi.major !== studentMajor || materi.grade !== studentGrade) {
     return (
       <div>
         <DashboardHeader title="Tes Materi" subtitle="Materi tidak tersedia" />
         <Card className="flex flex-col items-center justify-center py-20 text-center">
           <FileQuestion className="w-12 h-12 text-muted mb-4" />
           <h3 className="text-lg font-semibold text-foreground mb-2">Materi tidak tersedia untuk kelasmu</h3>
-          <p className="text-sm text-muted mb-6">Materi ini bukan bagian dari jurusan atau tingkatan kelasmu saat ini (Kelas {student.profile.grade}). Setiap jurusan memiliki materi berbeda per kelas.</p>
+          <p className="text-sm text-muted mb-6">Materi ini bukan bagian dari jurusan atau tingkatan kelasmu saat ini (Kelas {studentGrade}). Setiap jurusan memiliki materi berbeda per kelas.</p>
           <Link href="/student/sertifikat" className="px-4 py-2 bg-primary text-white rounded-lg text-sm font-medium hover:bg-primary-dark transition-colors">
             Kembali ke Daftar Materi
           </Link>
@@ -112,7 +119,7 @@ export default function MateriTesPage() {
     );
   }
 
-  const studentName = student?.profile.name || "";
+  const studentName = user.name || "";
   const total = quiz.length;
   const required = getRequiredCorrect();
   const answeredCount = answers.filter((a) => a >= 0).length;
@@ -139,16 +146,10 @@ export default function MateriTesPage() {
     const date = formatIndonesianDate(new Date());
     const res = { score, total, passed, date };
     setResult(res);
-    const email = student?.profile.email || "";
-    saveCertificateResult(email, {
+    api.post(BACKEND_ENDPOINTS.materiQuiz.submit(materiId), {
       materiId,
-      studentName,
-      major: materi.major,
-      score,
-      total,
-      passed,
-      date,
-    });
+      answers,
+    }).catch(() => {});
   };
 
   const restart = () => {

@@ -19,26 +19,17 @@ import ProgressBar from "../../components/ui/progressbar";
 import { SkeletonDashboard } from "../../components/ui/skeleton";
 import DashboardHeader from "../../components/layout/dashboardheader";
 import dynamic from "next/dynamic";
-import { getCurrentStudent } from "../../lib/mock-data";
-import { loadCareerMatches } from "../../lib/career-match";
+import { useAuth } from "../../lib/auth-context";
+import { api, BACKEND_ENDPOINTS } from "../../lib/api";
 import { getInitials } from "../../lib/utils";
-import type { CareerMatch, Project } from "../../lib/type";
+import type { CareerMatch, Project, Skill } from "../../lib/type";
 
 const SkillRadar = dynamic(() => import("../../components/charts/skillradar"), { ssr: false });
-
-function loadUserProjects(email: string): Project[] {
-  if (typeof window === "undefined") return [];
-  const raw = localStorage.getItem(`portfolio_projects_${email}`);
-  if (!raw) return [];
-  try { return JSON.parse(raw); } catch { return []; }
-}
-function saveUserProjects(email: string, projects: Project[]) {
-  localStorage.setItem(`portfolio_projects_${email}`, JSON.stringify(projects));
-}
 
 const emptyProject = { title: "", description: "", skills: "", projectUrl: "", completedAt: "" };
 
 export default function PortfolioPage() {
+  const { user } = useAuth();
   const [mounted, setMounted] = useState(false);
   const [copied, setCopied] = useState(false);
   const [generatingPdf, setGeneratingPdf] = useState(false);
@@ -49,26 +40,27 @@ export default function PortfolioPage() {
   const [form, setForm] = useState(emptyProject);
   const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null);
   const portfolioRef = useRef<HTMLDivElement>(null);
-  const emailRef = useRef("");
+  const [loading, setLoading] = useState(true);
   useEffect(() => { setMounted(true); }, []);
 
-  const student = mounted ? getCurrentStudent() : null;
-
   useEffect(() => {
-    if (!mounted || !student) return;
-    emailRef.current = student.profile.email;
-    const saved = loadCareerMatches();
-    const matches = saved && saved.length > 0 ? saved : student.careerMatches || [];
-    setCareerMatches(matches);
-    const email = student.profile.email;
-    const existing = loadUserProjects(email);
-    if (existing.length === 0) {
-      saveUserProjects(email, student.projects);
-      setUserProjects(student.projects);
-    } else {
-      setUserProjects(existing);
-    }
-  }, [mounted, student]);
+    if (!user) return;
+    const fetchData = async () => {
+      try {
+        const res = await api.get<{ success: boolean; data: Project[] }>(
+          BACKEND_ENDPOINTS.portfolios.list(user.email)
+        );
+        if (res.success) {
+          setUserProjects(res.data);
+        }
+      } catch {
+        // silently fail
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchData();
+  }, [user]);
 
   const handleCopy = () => {
     navigator.clipboard.writeText(portfolioUrl);
@@ -94,42 +86,53 @@ export default function PortfolioPage() {
     setShowAdd(true);
   };
 
-  const saveProject = () => {
-    if (!form.title.trim() || !student) return;
-    const email = emailRef.current;
+  const saveProject = async () => {
+    if (!form.title.trim() || !user) return;
     const parsedSkills = form.skills.split(",").map((s) => s.trim()).filter(Boolean);
-    if (editingId) {
-      const updated = userProjects.map((p) =>
-        p.id === editingId
-          ? { ...p, title: form.title, description: form.description, skills: parsedSkills, projectUrl: form.projectUrl || undefined, completedAt: form.completedAt || p.completedAt }
-          : p
-      );
-      setUserProjects(updated);
-      saveUserProjects(email, updated);
-    } else {
-      const newProject: Project = {
-        id: `up-${Date.now()}`,
-        title: form.title,
-        description: form.description,
-        skills: parsedSkills,
-        projectUrl: form.projectUrl || undefined,
-        completedAt: form.completedAt || new Date().toISOString().slice(0, 10),
-      };
-      const updated = [...userProjects, newProject];
-      setUserProjects(updated);
-      saveUserProjects(email, updated);
+    try {
+      if (editingId) {
+        await api.put(BACKEND_ENDPOINTS.portfolios.save, {
+          id: editingId,
+          title: form.title,
+          description: form.description,
+          skills: parsedSkills,
+          projectUrl: form.projectUrl || undefined,
+          completedAt: form.completedAt || undefined,
+        });
+        setUserProjects(userProjects.map((p) =>
+          p.id === editingId
+            ? { ...p, title: form.title, description: form.description, skills: parsedSkills, projectUrl: form.projectUrl || undefined, completedAt: form.completedAt || p.completedAt }
+            : p
+        ));
+      } else {
+        const newProject: Project = {
+          id: `up-${Date.now()}`,
+          title: form.title,
+          description: form.description,
+          skills: parsedSkills,
+          projectUrl: form.projectUrl || undefined,
+          completedAt: form.completedAt || new Date().toISOString().slice(0, 10),
+        };
+        await api.post(BACKEND_ENDPOINTS.portfolios.save, {
+          title: form.title,
+          description: form.description,
+          skills: parsedSkills,
+          projectUrl: form.projectUrl || undefined,
+          completedAt: form.completedAt || undefined,
+        });
+        setUserProjects([...userProjects, newProject]);
+      }
+    } catch {
+      // silently fail
     }
     setEditingId(null);
     setShowAdd(false);
     setForm(emptyProject);
   };
 
-  const deleteProject = (id: string) => {
-    if (!student) return;
-    const email = emailRef.current;
+  const deleteProject = async (id: string) => {
     const updated = userProjects.filter((p) => p.id !== id);
     setUserProjects(updated);
-    saveUserProjects(email, updated);
     setDeleteConfirmId(null);
   };
 
@@ -140,19 +143,14 @@ export default function PortfolioPage() {
   };
 
   const handleDownloadPdf = async () => {
-    if (generatingPdf) return;
-    const s = getCurrentStudent();
-    if (!s) return;
+    if (generatingPdf || !user) return;
     setGeneratingPdf(true);
     try {
       const { domToPng } = await import("modern-screenshot");
       const { jsPDF } = await import("jspdf");
 
-      const { profile, hardSkills, softSkills } = s;
-      const all = [...hardSkills, ...softSkills];
-      const allProjects = loadUserProjects(s.profile.email);
-      const matches = loadCareerMatches() || careerMatches;
-      const score = matches.length > 0 ? Math.round(matches.reduce((sum, c) => sum + c.matchPercentage, 0) / matches.length) : 0;
+      const all = [...userProjects];
+      const score = careerMatches.length > 0 ? Math.round(careerMatches.reduce((sum, c) => sum + c.matchPercentage, 0) / careerMatches.length) : 0;
 
       const esc = (str: string) => str.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
 
@@ -160,11 +158,11 @@ export default function PortfolioPage() {
         <div style="font-family:system-ui,-apple-system,sans-serif;background:#ffffff;color:#1e293b;padding:20px;width:700px;">
           <div style="display:flex;align-items:center;gap:16px;margin-bottom:16px;padding-bottom:14px;border-bottom:1.5px solid #e2e8f0;">
             <div style="width:48px;height:48px;border-radius:50%;background:linear-gradient(135deg,#2563eb,#7c3aed);display:flex;align-items:center;justify-content:center;flex-shrink:0;">
-              <span style="color:#fff;font-size:18px;font-weight:700;">${esc(getInitials(profile.name))}</span>
+              <span style="color:#fff;font-size:18px;font-weight:700;">${esc(getInitials(user.name))}</span>
             </div>
             <div style="flex:1;">
-              <div style="font-size:17px;font-weight:700;color:#0f172a;margin-bottom:2px;">${esc(profile.name)}</div>
-              <div style="font-size:12px;color:#475569;">${esc(profile.major)} — Kelas ${esc(profile.grade)}</div>
+              <div style="font-size:17px;font-weight:700;color:#0f172a;margin-bottom:2px;">${esc(user.name)}</div>
+              <div style="font-size:12px;color:#475569;">${esc(user.student?.major_name || "")} — Kelas ${esc(user.student?.grade || "")}</div>
               <div style="font-size:10px;color:#94a3b8;margin-top:1px;">Portfolio generated by SkillMatch</div>
             </div>
             <div style="text-align:center;">
@@ -174,37 +172,15 @@ export default function PortfolioPage() {
           </div>
 
           <div style="margin-bottom:14px;">
-            <div style="font-size:11px;font-weight:700;color:#334155;text-transform:uppercase;letter-spacing:0.8px;margin-bottom:6px;">Skills</div>
-            <div style="display:flex;flex-wrap:wrap;gap:5px;">
-              ${all.map(sk => `<span style="padding:3px 8px;background:#eff6ff;color:#1d4ed8;border-radius:999px;font-size:10px;font-weight:500;">${esc(sk.name)} (${sk.level}%)</span>`).join("")}
-            </div>
-          </div>
-
-          <div style="margin-bottom:14px;">
             <div style="font-size:11px;font-weight:700;color:#334155;text-transform:uppercase;letter-spacing:0.8px;margin-bottom:6px;">Projects</div>
             <div style="display:flex;flex-direction:column;gap:6px;">
-              ${allProjects.map(p => `
+              ${all.map(p => `
                 <div style="padding:8px 12px;background:#f8fafc;border:1px solid #e2e8f0;border-radius:6px;">
                   <div style="font-size:12px;font-weight:600;color:#0f172a;margin-bottom:2px;">${esc(p.title)}</div>
                   <div style="font-size:10px;color:#64748b;margin-bottom:4px;">${esc(p.description)}</div>
                   <div style="display:flex;flex-wrap:wrap;gap:3px;">
                     ${p.skills.map(sk => `<span style="padding:1px 6px;background:#dbeafe;color:#1e40af;border-radius:3px;font-size:9px;font-weight:500;">${esc(sk)}</span>`).join("")}
                   </div>
-                </div>
-              `).join("")}
-            </div>
-          </div>
-
-          <div>
-            <div style="font-size:11px;font-weight:700;color:#334155;text-transform:uppercase;letter-spacing:0.8px;margin-bottom:6px;">Top Career Matches</div>
-            <div style="display:flex;flex-direction:column;gap:5px;">
-              ${matches.slice(0, 3).map(c => `
-                <div style="display:flex;align-items:center;justify-content:space-between;padding:8px 12px;background:#f8fafc;border:1px solid #e2e8f0;border-radius:6px;">
-                  <div>
-                    <div style="font-size:12px;font-weight:600;color:#0f172a;">${esc(c.title)}</div>
-                    <div style="font-size:10px;color:#64748b;">${esc(c.category)}</div>
-                  </div>
-                  <div style="font-size:12px;font-weight:700;color:#2563eb;">${c.matchPercentage}%</div>
                 </div>
               `).join("")}
             </div>
@@ -250,7 +226,7 @@ export default function PortfolioPage() {
         }
       }
 
-      pdf.save(`Portfolio_${profile.name.replace(/\s+/g, "_")}.pdf`);
+      pdf.save(`Portfolio_${user.name.replace(/\s+/g, "_")}.pdf`);
     } catch (err) {
       console.error("PDF generation failed:", err);
     } finally {
@@ -258,13 +234,12 @@ export default function PortfolioPage() {
     }
   };
 
-  if (!mounted || !student) return <div className="p-6 lg:pl-72"><SkeletonDashboard /></div>;
-  const { profile, hardSkills, softSkills } = student;
-  const allSkills = [...hardSkills, ...softSkills];
+  if (loading || !user) return <div className="p-6 lg:pl-72"><SkeletonDashboard /></div>;
+  const allSkills: Skill[] = [];
   const readinessScore = careerMatches.length > 0 ? Math.round(careerMatches.reduce((sum, c) => sum + c.matchPercentage, 0) / careerMatches.length) : 0;
   const portfolioUrl = mounted
-    ? `${window.location.origin}/portfolio/${profile.name.toLowerCase().replace(/\s+/g, "-")}`
-    : `/portfolio/${profile.name.toLowerCase().replace(/\s+/g, "-")}`;
+    ? `${window.location.origin}/portfolio/${user.name.toLowerCase().replace(/\s+/g, "-")}`
+    : `/portfolio/${user.name.toLowerCase().replace(/\s+/g, "-")}`;
 
   return (
     <div>
@@ -312,11 +287,11 @@ export default function PortfolioPage() {
         {/* Profile Header */}
         <div className="flex flex-wrap items-center gap-4 mb-6 pb-6 border-b border-border dark:border-gray-700">
           <div className="w-16 h-16 rounded-full bg-gradient-to-br from-blue-600 to-purple-600 flex items-center justify-center flex-shrink-0">
-            <span className="text-xl font-bold text-white">{getInitials(profile.name)}</span>
+            <span className="text-xl font-bold text-white">{getInitials(user.name)}</span>
           </div>
           <div>
-            <h2 className="text-xl font-bold text-foreground dark:text-white">{profile.name}</h2>
-            <p className="text-sm text-muted dark:text-gray-400">{profile.major} - Kelas {profile.grade}</p>
+            <h2 className="text-xl font-bold text-foreground dark:text-white">{user.name}</h2>
+            <p className="text-sm text-muted dark:text-gray-400">{user.student?.major_name || ""} - Kelas {user.student?.grade || ""}</p>
             <p className="text-xs text-muted/60 dark:text-gray-500 mt-1">Portfolio generated by SkillMatch</p>
           </div>
           <div className="ml-auto text-center">
@@ -439,10 +414,10 @@ export default function PortfolioPage() {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           <Card className="text-center">
             <div className="w-20 h-20 rounded-full bg-gradient-to-br from-primary to-secondary flex items-center justify-center mx-auto mb-4">
-              <span className="text-2xl font-bold text-white">{getInitials(profile.name)}</span>
+              <span className="text-2xl font-bold text-white">{getInitials(user.name)}</span>
             </div>
-            <h2 className="text-xl font-bold text-foreground">{profile.name}</h2>
-            <p className="text-sm text-muted">{profile.major} - Kelas {profile.grade}</p>
+            <h2 className="text-xl font-bold text-foreground">{user.name}</h2>
+            <p className="text-sm text-muted">{user.student?.major_name || ""} - Kelas {user.student?.grade || ""}</p>
             <div className="mt-4">
               <div className="text-3xl font-bold text-primary">{readinessScore}%</div>
               <p className="text-xs text-muted">Career Readiness Score</p>

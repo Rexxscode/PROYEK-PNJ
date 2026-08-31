@@ -17,7 +17,7 @@ import { SkeletonDashboard } from "../../components/ui/skeleton";
 import dynamic from "next/dynamic";
 import Link from "next/link";
 import DashboardHeader from "../../components/layout/dashboardheader";
-import { getCurrentStudent } from "../../lib/mock-data";
+import { useAuth } from "../../lib/auth-context";
 import { loadCareerMatches, generateCareerMatches, saveCareerMatches } from "../../lib/career-match";
 import { getMatchBg, getReadinessTier } from "../../lib/utils";
 import { getQuizResult } from "../../lib/major-roadmap";
@@ -26,31 +26,39 @@ import type { CareerMatch } from "../../lib/type";
 const SkillRadar = dynamic(() => import("../../components/charts/skillradar"), { ssr: false });
 
 export default function CareerMatchPage() {
+  const { user } = useAuth();
   const [mounted, setMounted] = useState(false);
   const [selectedCareer, setSelectedCareer] = useState<CareerMatch | null>(null);
   const [careerMatches, setCareerMatches] = useState<CareerMatch[]>([]);
+  const [hardSkills, setHardSkills] = useState<{ id: string; name: string; category: "hard"; level: number }[]>([]);
   useEffect(() => { setMounted(true); }, []);
 
-  const student = mounted ? getCurrentStudent() : null;
-
   useEffect(() => {
-    if (!mounted) return;
+    if (!mounted || !user) return;
     const saved = loadCareerMatches();
-    let matches = saved && saved.length > 0 ? saved : student?.careerMatches || [];
-    if (matches.length > 0 && matches.some((m) => !m.skillGaps || m.skillGaps.length === 0) && student) {
-      const qr = getQuizResult();
-      if (qr) {
-        matches = generateCareerMatches(student.profile.major, qr);
-        saveCareerMatches(matches);
-      }
+    const qr = getQuizResult();
+    const major = user.student?.major || "";
+    let matches = saved && saved.length > 0 ? saved : [];
+    if (qr && matches.length > 0 && matches.some((m) => !m.skillGaps || m.skillGaps.length === 0)) {
+      matches = generateCareerMatches(major, qr);
+      saveCareerMatches(matches);
     }
     setCareerMatches(matches);
     if (matches.length > 0 && !selectedCareer) {
       setSelectedCareer(matches[0]);
     }
-  }, [mounted]);
+    if (qr) {
+      const skills: { id: string; name: string; category: "hard"; level: number }[] = Object.entries(qr.skillScores).map(([name, data]) => ({
+        id: `skill-${name}`,
+        name,
+        category: "hard" as const,
+        level: data.total > 0 ? Math.round((data.correct / data.total) * 5) : 0,
+      }));
+      setHardSkills(skills.slice(0, 8));
+    }
+  }, [mounted, user]);
 
-  if (!mounted || !student) return <div className="p-6 lg:pl-72"><SkeletonDashboard /></div>;
+  if (!mounted || !user) return <div className="p-6 lg:pl-72"><SkeletonDashboard /></div>;
 
   const activeCareer = selectedCareer || careerMatches[0];
   if (!activeCareer) return <div className="p-6 lg:pl-72"><SkeletonDashboard /></div>;
@@ -267,7 +275,7 @@ export default function CareerMatchPage() {
           {/* Skill Radar */}
           <Card>
             <SkillRadar
-              skills={student.hardSkills.slice(0, 8)}
+              skills={hardSkills}
               title="Profil Skill Kamu"
             />
           </Card>
@@ -281,7 +289,7 @@ export default function CareerMatchPage() {
               <BookOpen className="w-4 h-4" />
               Lihat Rekomendasi Belajar
             </Link>
-            {student.profile.grade === "XII" && (
+            {user.student?.grade === "XII" && (
               <Link
                 href="/student/jobs"
                 className="flex items-center justify-center gap-2 px-6 py-3 border border-border text-foreground font-medium rounded-xl hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"

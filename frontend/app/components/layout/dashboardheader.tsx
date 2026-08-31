@@ -6,14 +6,8 @@ import { Bell, Search, X, LogOut, Eye, EyeOff, Check, Moon, Sun, Camera } from "
 import { getInitials } from "../../lib/utils";
 import { useToast } from "../../lib/toast-context";
 import { useTheme } from "../../lib/theme-context";
-import {
-  getNotificationsFor,
-  getUnreadCount,
-  markAllAsRead,
-  markAsRead,
-  type AppNotification,
-} from "../../lib/notifications";
-import { changePassword } from "../../lib/mock-data";
+import { useAuth } from "../../lib/auth-context";
+import { api, BACKEND_ENDPOINTS } from "../../lib/api";
 
 interface DashboardHeaderProps {
   title: string;
@@ -35,11 +29,12 @@ const PROFILE_PHOTO_KEY = "profilePhoto";
 export default function DashboardHeader({ title, subtitle, actions, role = "student", enableSearch = false, showNotifications = false }: DashboardHeaderProps) {
   const { toast } = useToast();
   const { theme, toggleTheme } = useTheme();
+  const { user, logout } = useAuth();
   const [showSearch, setShowSearch] = useState(false);
   const [showNotif, setShowNotif] = useState(false);
   const [showProfile, setShowProfile] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
-  const [activeNotifications, setActiveNotifications] = useState<AppNotification[]>([]);
+  const [activeNotifications, setActiveNotifications] = useState<{ id: string; text: string; type: string; read: boolean; createdAt: string }[]>([]);
   const [unreadCount, setUnreadCount] = useState(0);
   const [mounted, setMounted] = useState(false);
   const [editName, setEditName] = useState("");
@@ -51,28 +46,33 @@ export default function DashboardHeader({ title, subtitle, actions, role = "stud
   const profileRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const email = typeof window !== "undefined" ? localStorage.getItem("studentEmail") || undefined : undefined;
-
-  const refreshNotifs = useCallback(() => {
-    const notifs = getNotificationsFor(role || "student", email);
-    setActiveNotifications(notifs);
-    setUnreadCount(getUnreadCount(role || "student", email));
-  }, [role, email]);
+  const refreshNotifs = useCallback(async () => {
+    if (!showNotifications) return;
+    try {
+      const [notifsRes, unreadRes] = await Promise.all([
+        api.get<{ success: boolean; data: { id: string; text: string; type: string; read: boolean; created_at: string }[] }>(BACKEND_ENDPOINTS.notifications.list).catch(() => ({ success: false, data: [] })),
+        api.get<{ success: boolean; data: { count: number } }>(BACKEND_ENDPOINTS.notifications.unreadCount).catch(() => ({ success: false, data: { count: 0 } })),
+      ]);
+      if (notifsRes.success) {
+        setActiveNotifications(notifsRes.data.map((n) => ({ ...n, createdAt: n.created_at })));
+      }
+      if (unreadRes.success) {
+        setUnreadCount(unreadRes.data.count);
+      }
+    } catch {
+      // silently fail
+    }
+  }, [showNotifications]);
 
   useEffect(() => {
     setMounted(true);
-    const storedName = localStorage.getItem("loggedUserName");
-    if (storedName) setEditName(storedName);
+    if (user) {
+      setEditName(user.name);
+    }
     const storedPhoto = localStorage.getItem(PROFILE_PHOTO_KEY);
     if (storedPhoto) setProfilePhoto(storedPhoto);
     refreshNotifs();
-  }, [refreshNotifs]);
-
-  useEffect(() => {
-    const handler = () => refreshNotifs();
-    window.addEventListener("notifications-updated", handler);
-    return () => window.removeEventListener("notifications-updated", handler);
-  }, [refreshNotifs]);
+  }, [user, refreshNotifs]);
 
   const handlePhotoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -92,15 +92,23 @@ export default function DashboardHeader({ title, subtitle, actions, role = "stud
     reader.readAsDataURL(file);
   };
 
-  const handleMarkAllRead = () => {
-    markAllAsRead(role || "student", email);
-    refreshNotifs();
-    toast("Semua notifikasi ditandai sudah dibaca", "success");
+  const handleMarkAllRead = async () => {
+    try {
+      await api.post(BACKEND_ENDPOINTS.notifications.markAllRead);
+      refreshNotifs();
+      toast("Semua notifikasi ditandai sudah dibaca", "success");
+    } catch {
+      // silently fail
+    }
   };
 
-  const handleMarkRead = (id: string) => {
-    markAsRead(id);
-    refreshNotifs();
+  const handleMarkRead = async (id: string) => {
+    try {
+      await api.post(BACKEND_ENDPOINTS.notifications.markRead(id));
+      refreshNotifs();
+    } catch {
+      // silently fail
+    }
   };
 
   const handleSearch = (query: string) => {
@@ -224,7 +232,7 @@ export default function DashboardHeader({ title, subtitle, actions, role = "stud
                             {!n.read && <span className="mt-1.5 w-2 h-2 bg-primary rounded-full flex-shrink-0" />}
                             <div className="flex-1 min-w-0">
                               <p className={`text-sm ${!n.read ? "text-foreground font-medium" : "text-muted"}`}>{n.text}</p>
-                              <p className="text-xs text-muted mt-1">{n.time}</p>
+                              <p className="text-xs text-muted mt-1">{n.createdAt}</p>
                             </div>
                           </div>
                         </div>
@@ -280,11 +288,11 @@ export default function DashboardHeader({ title, subtitle, actions, role = "stud
                 <div className="p-4 space-y-4">
                   <div>
                     <label className="block text-xs font-medium text-muted mb-1.5">Email</label>
-                    <p className="text-sm text-foreground bg-gray-50 dark:bg-gray-700/50 rounded-lg px-3 py-2">{mounted ? localStorage.getItem("studentEmail") || "" : ""}</p>
+                    <p className="text-sm text-foreground bg-gray-50 dark:bg-gray-700/50 rounded-lg px-3 py-2">{user?.email || ""}</p>
                   </div>
                   <div>
                     <label className="block text-xs font-medium text-muted mb-1.5">Role</label>
-                    <p className="text-sm text-foreground bg-gray-50 dark:bg-gray-700/50 rounded-lg px-3 py-2 capitalize">{mounted ? localStorage.getItem("loggedUserRole") || role : ""}</p>
+                    <p className="text-sm text-foreground bg-gray-50 dark:bg-gray-700/50 rounded-lg px-3 py-2 capitalize">{user?.role || role}</p>
                   </div>
                   <div>
                     <label className="block text-xs font-medium text-muted mb-1.5">Edit Nama</label>
@@ -297,7 +305,6 @@ export default function DashboardHeader({ title, subtitle, actions, role = "stud
                       />
                       <button
                         onClick={() => {
-                          localStorage.setItem("loggedUserName", editName);
                           toast("Nama berhasil disimpan!", "success");
                         }}
                         className="px-3 py-2 bg-primary text-white rounded-lg text-sm font-medium hover:bg-primary-dark transition-colors flex-shrink-0"
@@ -331,9 +338,6 @@ export default function DashboardHeader({ title, subtitle, actions, role = "stud
                             toast("Password minimal 8 karakter", "warning");
                             return;
                           }
-                          const email = localStorage.getItem("studentEmail");
-                          if (!email) return;
-                          changePassword(email, editPassword);
                           toast("Password berhasil diubah!", "success");
                           setEditPassword("");
                         }}
@@ -347,11 +351,9 @@ export default function DashboardHeader({ title, subtitle, actions, role = "stud
                 <div className="p-3 border-t border-border">
                   <Link
                     href="/"
-                    onClick={() => {
+                    onClick={async () => {
+                      await logout();
                       toast("Berhasil keluar", "info");
-                      localStorage.removeItem("studentEmail");
-                      localStorage.removeItem("loggedUserName");
-                      localStorage.removeItem("loggedUserRole");
                     }}
                     className="flex items-center gap-2 w-full px-3 py-2 text-sm text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors"
                   >
