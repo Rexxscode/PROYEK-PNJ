@@ -1,20 +1,34 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Search, Check, X, Building2 } from "lucide-react";
+import { Search, Check, X, Building2, Loader2 } from "lucide-react";
 import Card from "../../components/ui/card";
 import Badge from "../../components/ui/badge";
 import DashboardHeader from "../../components/layout/dashboardheader";
-import { getAllIndustries, approveIndustry, rejectIndustry, UserCredential } from "../../lib/mock-data";
+import { api, BACKEND_ENDPOINTS } from "../../lib/api";
 import { useToast } from "../../lib/toast-context";
 import { addNotification } from "../../lib/notifications";
+
+type IndustryRow = { id: number; email: string; name: string; company: string | null; status: string };
+type IndustryAction = "approve" | "reject";
 
 export default function IndustriesPage() {
   const { toast } = useToast();
   const [search, setSearch] = useState("");
-  const [industries, setIndustries] = useState<UserCredential[]>([]);
+  const [industries, setIndustries] = useState<IndustryRow[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [busyEmail, setBusyEmail] = useState<string | null>(null);
 
-  const refresh = () => setIndustries(getAllIndustries());
+  const refresh = async () => {
+    try {
+      const res = await api.get<{ success: boolean; data: IndustryRow[] }>(BACKEND_ENDPOINTS.industries.list);
+      if (res.success) setIndustries(res.data);
+    } catch {
+      // silently fail
+    } finally {
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
     refresh();
@@ -29,41 +43,44 @@ export default function IndustriesPage() {
     return () => window.removeEventListener("global-search", handler);
   }, []);
 
+  const handleApproval = async (email: string, action: IndustryAction) => {
+    setBusyEmail(email);
+    try {
+      await api.post(BACKEND_ENDPOINTS.industries.approval(email), { action });
+      await refresh();
+      window.dispatchEvent(new CustomEvent("industries-updated"));
+      if (action === "approve") {
+        addNotification({
+          text: "Akun perusahaan kamu telah disetujui! Kamu kini bisa membuka profil, memposting lowongan, dan melihat kandidat.",
+          type: "registration",
+          targetRole: "industry",
+          targetEmail: email,
+        });
+        toast(`Akun ${email} berhasil disetujui`, "success");
+      } else {
+        addNotification({
+          text: "Pendaftaran akun perusahaan kamu ditolak oleh admin.",
+          type: "registration",
+          targetRole: "industry",
+          targetEmail: email,
+        });
+        toast(`Akun ${email} ditolak`, "warning");
+      }
+      window.dispatchEvent(new CustomEvent("notifications-updated"));
+    } catch (err) {
+      if (err instanceof Error) toast(err.message, "warning");
+    } finally {
+      setBusyEmail(null);
+    }
+  };
+
   const filtered = industries.filter((i) => {
     const q = search.toLowerCase();
     return !q || i.name.toLowerCase().includes(q) || (i.company || "").toLowerCase().includes(q) || i.email.toLowerCase().includes(q);
   });
 
-  const handleApprove = (email: string) => {
-    approveIndustry(email);
-    refresh();
-    window.dispatchEvent(new CustomEvent("industries-updated"));
-    addNotification({
-      text: "Akun perusahaan kamu telah disetujui! Kamu kini bisa membuka profil, memposting lowongan, dan melihat kandidat.",
-      type: "registration",
-      targetRole: "industry",
-      targetEmail: email,
-    });
-    window.dispatchEvent(new CustomEvent("notifications-updated"));
-    toast(`Akun ${email} berhasil disetujui`, "success");
-  };
-
-  const handleReject = (email: string) => {
-    rejectIndustry(email);
-    refresh();
-    window.dispatchEvent(new CustomEvent("industries-updated"));
-    addNotification({
-      text: "Pendaftaran akun perusahaan kamu ditolak oleh admin.",
-      type: "registration",
-      targetRole: "industry",
-      targetEmail: email,
-    });
-    window.dispatchEvent(new CustomEvent("notifications-updated"));
-    toast(`Akun ${email} ditolak`, "warning");
-  };
-
   const pending = filtered.filter((i) => i.status === "pending");
-  const approved = filtered.filter((i) => i.status === "approved" || !i.status);
+  const approved = filtered.filter((i) => i.status === "approved");
 
   return (
     <div>
@@ -95,14 +112,16 @@ export default function IndustriesPage() {
                   </div>
                   <div className="flex gap-2 ml-auto">
                     <button
-                      onClick={() => handleApprove(ind.email)}
-                      className="flex items-center gap-1.5 px-4 py-2 rounded-xl text-sm font-medium bg-emerald-600 text-white hover:bg-emerald-700 transition-colors"
+                      onClick={() => handleApproval(ind.email, "approve")}
+                      disabled={busyEmail === ind.email}
+                      className="flex items-center gap-1.5 px-4 py-2 rounded-xl text-sm font-medium bg-emerald-600 text-white hover:bg-emerald-700 transition-colors disabled:opacity-60"
                     >
-                      <Check className="w-4 h-4" /> Setujui
+                      {busyEmail === ind.email ? <Loader2 className="w-4 h-4 animate-spin" /> : <Check className="w-4 h-4" />} Setujui
                     </button>
                     <button
-                      onClick={() => handleReject(ind.email)}
-                      className="flex items-center gap-1.5 px-4 py-2 rounded-xl text-sm font-medium bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400 hover:bg-red-200 dark:hover:bg-red-900/50 transition-colors"
+                      onClick={() => handleApproval(ind.email, "reject")}
+                      disabled={busyEmail === ind.email}
+                      className="flex items-center gap-1.5 px-4 py-2 rounded-xl text-sm font-medium bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400 hover:bg-red-200 dark:hover:bg-red-900/50 transition-colors disabled:opacity-60"
                     >
                       <X className="w-4 h-4" /> Tolak
                     </button>
@@ -126,8 +145,11 @@ export default function IndustriesPage() {
         />
       </div>
 
-      {/* Approved Industries Table */}
-      {approved.length === 0 && pending.length === 0 ? (
+      {loading ? (
+        <div className="flex justify-center py-12">
+          <div className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin" />
+        </div>
+      ) : approved.length === 0 && pending.length === 0 ? (
         <Card className="text-center py-12">
           <Building2 className="w-12 h-12 text-muted mx-auto mb-3" />
           <p className="text-foreground font-medium">Tidak ada industry ditemukan</p>

@@ -88,5 +88,52 @@ export const api = {
   delete: <T>(url: string) => request<T>("DELETE", url),
 };
 
+async function requestFile<T>(
+  method: "POST" | "PUT" | "PATCH",
+  url: string,
+  formData: FormData,
+): Promise<T> {
+  const token = getToken();
+  const headers: Record<string, string> = {
+    Accept: "application/json",
+  };
+
+  if (token) {
+    headers["Authorization"] = `Bearer ${token}`;
+  }
+
+  const response = await fetch(`${API_BASE}${url}`, {
+    method,
+    headers,
+    body: formData,
+  });
+
+  if (response.status === 401) {
+    removeToken();
+    if (typeof window !== "undefined") {
+      window.location.href = "/auth/login";
+    }
+    throw new ApiError(401, "Session expired. Please login again.");
+  }
+
+  const data = await response.json();
+
+  if (!response.ok) {
+    throw new ApiError(
+      response.status,
+      data.message || "Request failed",
+      data.errors,
+    );
+  }
+
+  return data as T;
+}
+
+export const apiUpload = {
+  post: <T>(url: string, formData: FormData) => requestFile<T>("POST", url, formData),
+  put: <T>(url: string, formData: FormData) => requestFile<T>("PUT", url, formData),
+  patch: <T>(url: string, formData: FormData) => requestFile<T>("PATCH", url, formData),
+};
+
 export { setToken, removeToken, getToken, ApiError };
 export { BACKEND_ENDPOINTS };

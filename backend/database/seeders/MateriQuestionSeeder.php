@@ -59,12 +59,14 @@ class MateriQuestionSeeder extends Seeder
             preg_match_all('/options:\s*\[([^\]]+)\]/', $quizContent, $optionsMatches);
             preg_match_all('/correct:\s*(\d+)/', $quizContent, $correctMatches);
             preg_match_all('/difficulty:\s*"([^"]+)"/', $quizContent, $difficultyMatches);
+            preg_match_all('/skill:\s*"([^"]+)"/', $quizContent, $skillMatches);
 
             $ids = $idMatches[1] ?? [];
             $questions = $questionMatches[1] ?? [];
             $optionsRaw = $optionsMatches[1] ?? [];
             $corrects = $correctMatches[1] ?? [];
             $difficulties = $difficultyMatches[1] ?? [];
+            $skills = $skillMatches[1] ?? [];
 
             // Parse options
             $parsedOptions = [];
@@ -75,6 +77,16 @@ class MateriQuestionSeeder extends Seeder
 
             $totalQuestions = min(count($ids), count($questions), count($parsedOptions), count($corrects), count($difficulties));
             $totalQuestions = min($totalQuestions, 100);
+
+            $skillCache = [];
+
+            $skillIdFor = function (string $skillName) use (&$skillCache) {
+                if (isset($skillCache[$skillName])) {
+                    return $skillCache[$skillName];
+                }
+                $skill = \App\Models\Skill::where('name', $skillName)->first();
+                return $skillCache[$skillName] = $skill?->id ?? null;
+            };
 
             // Get all materi for this major
             $materiList = Materi::where('major_id', $map['major_id'])
@@ -96,6 +108,7 @@ class MateriQuestionSeeder extends Seeder
 
                     $question = new MateriQuestion([
                         'materi_id' => $materi->id,
+                        'skill_id' => !empty($skills[$globalIndex]) ? $skillIdFor($skills[$globalIndex]) : null,
                         'question' => $questions[$globalIndex] ?? '',
                         'options' => json_encode($parsedOptions[$globalIndex] ?? []),
                         'correct_index' => $correctIdx,

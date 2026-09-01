@@ -4,9 +4,10 @@ import { useState, useEffect } from "react";
 import { BadgeCheck, Lock, Sparkles, Upload, Clock } from "lucide-react";
 import Card from "./ui/card";
 import Link from "next/link";
-import { getStudentCardStatus } from "../lib/mock-data";
+import { useAuth } from "../lib/auth-context";
 
 export default function StudentCardGate({ children, skip = false }: { children: React.ReactNode; skip?: boolean }) {
+  const { user, loading } = useAuth();
   const [state, setState] = useState<"loading" | "locked" | "open">("loading");
   const [cardStatus, setCardStatus] = useState<"none" | "pending" | "approved">("none");
 
@@ -15,11 +16,14 @@ export default function StudentCardGate({ children, skip = false }: { children: 
       setState("open");
       return;
     }
-    const email = localStorage.getItem("studentEmail") || "";
-    const status = getStudentCardStatus(email);
+    if (loading) {
+      setState("loading");
+      return;
+    }
+    const status = user?.student?.card_status ?? "none";
     setCardStatus(status);
     setState(status === "approved" ? "open" : "locked");
-  }, [skip]);
+  }, [skip, user, loading]);
 
   if (state === "loading") {
     return (

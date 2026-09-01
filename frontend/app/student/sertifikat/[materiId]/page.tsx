@@ -25,13 +25,12 @@ import CertificateView, {
   formatIndonesianDate,
 } from "../../../components/certificate/certificate-view";
 import { getMateriById } from "../../../lib/materi-catalog";
-import { getQuizForMateri } from "../../../lib/materi-quiz";
 import { useAuth } from "../../../lib/auth-context";
 import { api, BACKEND_ENDPOINTS } from "../../../lib/api";
 import {
   getRequiredCorrect,
-  isPassingScore,
 } from "../../../lib/certificates";
+import type { QuizQuestion } from "../../../lib/major-quiz";
 
 export default function MateriTesPage() {
   const { user } = useAuth();
@@ -39,9 +38,11 @@ export default function MateriTesPage() {
   const materiId = params?.materiId || "";
   const [mounted, setMounted] = useState(false);
   const [current, setCurrent] = useState(0);
-  const [answers, setAnswers] = useState<number[]>([]);
+  const [answers, setAnswers] = useState<Record<string, number>>({});
   const [confirmSubmit, setConfirmSubmit] = useState(false);
   const [result, setResult] = useState<{ score: number; total: number; passed: boolean; date: string } | null>(null);
+  const [questions, setQuestions] = useState<QuizQuestion[]>([]);
+  const [loadError, setLoadError] = useState<string | null>(null);
   const [generatingPdf, setGeneratingPdf] = useState(false);
   const [previewScale, setPreviewScale] = useState(1);
   const certRef = useRef<HTMLDivElement>(null);
@@ -61,30 +62,33 @@ export default function MateriTesPage() {
   }, [result]);
 
   const materi = useMemo(() => getMateriById(materiId), [materiId]);
-  const quiz = useMemo(() => getQuizForMateri(materiId), [materiId]);
 
   useEffect(() => {
     setMounted(true);
-    if (!quiz || quiz.length === 0 || !user) return;
-    api.get<{ data: Record<string, { score: number; total: number; passed: boolean; date: string }> }>(BACKEND_ENDPOINTS.certificates.list)
-      .then((res) => {
-        const existing = res.data?.[materiId];
-        if (existing && existing.passed) {
-          setResult({ score: existing.score, total: existing.total, passed: existing.passed, date: existing.date });
-        } else {
-          setAnswers(new Array(quiz.length).fill(-1));
-          setCurrent(0);
+    if (!materi || !user) return;
+    let cancelled = false;
+    const load = async () => {
+      try {
+        const res = await api.get<{ success: boolean; data: QuizQuestion[] }>(BACKEND_ENDPOINTS.materiQuiz.questions(materiId));
+        if (cancelled) return;
+        if (!res.success || !res.data || res.data.length === 0) {
+          setQuestions([]);
+          setLoadError("Soal untuk materi ini belum tersedia.");
+          return;
         }
-      })
-      .catch(() => {
-        setAnswers(new Array(quiz.length).fill(-1));
-        setCurrent(0);
-      });
-  }, [materiId, quiz, user]);
+        const qs = res.data.map((q) => ({ ...q, id: String(q.id) }));
+        setQuestions(qs);
+      } catch {
+        if (!cancelled) setLoadError("Gagal memuat soal. Periksa koneksi atau coba lagi.");
+      }
+    };
+    load();
+    return () => { cancelled = true; };
+  }, [materi, materiId, user]);
 
   if (!mounted || !user) return <div className="p-6 lg:pl-72"><SkeletonDashboard /></div>;
 
-  if (!materi || !quiz || quiz.length === 0) {
+  if (!materi) {
     return (
       <div>
         <DashboardHeader title="Tes Materi" subtitle="Materi tidak ditemukan" />
@@ -120,14 +124,12 @@ export default function MateriTesPage() {
   }
 
   const studentName = user.name || "";
-  const total = quiz.length;
+  const total = questions.length;
   const required = getRequiredCorrect();
-  const answeredCount = answers.filter((a) => a >= 0).length;
+  const answeredCount = Object.values(answers).filter((a) => a >= 0).length;
 
   const selectAnswer = (idx: number) => {
-    const next = [...answers];
-    next[current] = idx;
-    setAnswers(next);
+    setAnswers((prev) => ({ ...prev, [questions[current].id]: idx }));
   };
 
   const goNext = () => {
@@ -138,11 +140,14 @@ export default function MateriTesPage() {
   };
 
   const computeResult = () => {
-    const score = quiz.reduce(
-      (sum, q, i) => sum + (answers[i] === q.correct ? 1 : 0),
+    const score = questions.reduce(
+      (sum, q, i) => {
+        const active = answers[q.id];
+        return sum + (active !== undefined && active === q.correct ? 1 : 0);
+      },
       0
     );
-    const passed = isPassingScore(score, total);
+    const passed = total > 0 && score / total >= 0.8;
     const date = formatIndonesianDate(new Date());
     const res = { score, total, passed, date };
     setResult(res);
@@ -153,7 +158,7 @@ export default function MateriTesPage() {
   };
 
   const restart = () => {
-    setAnswers(new Array(total).fill(-1));
+    setAnswers({});
     setCurrent(0);
     setResult(null);
     setConfirmSubmit(false);
@@ -314,7 +319,25 @@ export default function MateriTesPage() {
     );
   }
 
-  const q = quiz[current];
+  if (loadError || questions.length === 0) {
+    return (
+      <div>
+        <DashboardHeader title="Tes Materi" subtitle={materi.title} />
+        <Card className="flex flex-col items-center justify-center py-20 text-center">
+          <FileQuestion className="w-12 h-12 text-muted mb-4" />
+          <h3 className="text-lg font-semibold text-foreground mb-2">
+            {loadError ? "Soal tidak dapat dimuat" : "Soal belum tersedia"}
+          </h3>
+          <p className="text-sm text-muted mb-6">{loadError || "Soal untuk materi ini belum tersedia."}</p>
+          <Link href="/student/sertifikat" className="px-4 py-2 bg-primary text-white rounded-lg text-sm font-medium hover:bg-primary-dark transition-colors">
+            Kembali ke Daftar Materi
+          </Link>
+        </Card>
+      </div>
+    );
+  }
+
+  const q = questions[current];
 
   // ── Form Tes ─────────────────────────────────────────────────────────────
   return (
@@ -353,7 +376,7 @@ export default function MateriTesPage() {
         </h3>
         <div className="space-y-2.5">
           {q.options.map((opt, idx) => {
-            const isSelected = answers[current] === idx;
+            const isSelected = answers[q.id] === idx;
             return (
               <button
                 key={idx}

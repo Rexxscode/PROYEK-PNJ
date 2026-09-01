@@ -23,6 +23,8 @@ class Student extends Model
         'major_id',
         'grade',
         'avatar',
+        'student_card',
+        'card_status',
     ];
 
     /**
@@ -34,7 +36,7 @@ class Student extends Model
         'grade' => 'string',
     ];
 
-    protected $appends = ['name', 'slug'];
+    protected $appends = ['name', 'slug', 'readiness', 'assessed'];
 
     public function getNameAttribute(): string
     {
@@ -44,6 +46,19 @@ class Student extends Model
     public function getSlugAttribute(): string
     {
         return $this->user ? strtolower(str_replace(' ', '-', $this->user->name)) : '';
+    }
+
+    public function getReadinessAttribute(): ?int
+    {
+        $max = $this->assessmentResults()
+            ->max('percentage');
+
+        return $max !== null ? (int) $max : null;
+    }
+
+    public function getAssessedAttribute(): bool
+    {
+        return $this->getReadinessAttribute() !== null;
     }
 
     /**

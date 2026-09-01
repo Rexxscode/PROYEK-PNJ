@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useState, useEffect } from "react";
 import {
   ArrowLeft,
   Save,
@@ -11,16 +11,16 @@ import {
   Target,
   ListChecks,
   GraduationCap,
+  Loader2,
 } from "lucide-react";
 import Card from "../../../components/ui/card";
 import Badge from "../../../components/ui/badge";
 import DashboardHeader from "../../../components/layout/dashboardheader";
 import { MAJORS } from "../../../lib/materi-catalog";
 import {
-  getMajorQuizForAdmin,
-  saveMajorQuiz,
-  resetMajorQuiz,
-  hasMajorQuizOverride,
+  fetchMajorQuizAdmin,
+  saveMajorQuizAdmin,
+  resetMajorQuizAdmin,
 } from "../../../lib/major-quiz";
 import type { QuizQuestion } from "../../../lib/major-quiz";
 import { useToast } from "../../../lib/toast-context";
@@ -47,21 +47,33 @@ export default function AdminMajorQuizPage() {
   const [editingMajor, setEditingMajor] = useState<string | null>(null);
   const [draft, setDraft] = useState<QuizQuestion[]>([]);
   const [skillFilter, setSkillFilter] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [loadedCount, setLoadedCount] = useState(0);
 
-  const skills = useMemo(() => {
-    if (!editingMajor) return [] as string[];
-    const set: string[] = [];
-    draft.forEach((q) => {
-      if (q.skill && !set.includes(q.skill)) set.push(q.skill);
-    });
-    return set;
-  }, [editingMajor, draft]);
+  const skills = editingMajor
+    ? [...new Set(draft.filter((q) => q.skill).map((q) => q.skill))]
+    : [];
 
-  const openEditor = (major: string) => {
-    const quiz = getMajorQuizForAdmin(major) || [];
-    setDraft(JSON.parse(JSON.stringify(quiz)));
-    setSkillFilter("");
+  const openEditor = async (major: string) => {
+    setLoading(true);
     setEditingMajor(major);
+    setSkillFilter("");
+    try {
+      const backendQuiz = await fetchMajorQuizAdmin(major);
+      if (backendQuiz.length > 0) {
+        setDraft(backendQuiz);
+        setLoadedCount(backendQuiz.length);
+      } else {
+        setDraft([]);
+        setLoadedCount(0);
+      }
+    } catch {
+      setDraft([]);
+      setLoadedCount(0);
+    } finally {
+      setLoading(false);
+    }
   };
 
   const closeEditor = () => setEditingMajor(null);
@@ -119,7 +131,7 @@ export default function AdminMajorQuizPage() {
     setDraft((prev) => prev.filter((_, i) => i !== index));
   };
 
-  const handleSave = () => {
+  const handleSave = async () => {
     if (!editingMajor) return;
     const errors: string[] = [];
     draft.forEach((q, i) => {
@@ -135,23 +147,31 @@ export default function AdminMajorQuizPage() {
       toast(errors.slice(0, 3).join(" · "), "error");
       return;
     }
-    const clean = draft.map((q) => ({
-      ...q,
-      question: q.question.trim(),
-      options: q.options.map((o) => o.trim()),
-      skill: q.skill.trim(),
-    }));
-    saveMajorQuiz(editingMajor, clean);
-    toast(`Soal tes jurusan diperbarui (${clean.length} soal)`);
+    setSaving(true);
+    try {
+      await saveMajorQuizAdmin(editingMajor, draft);
+      toast(`Soal tes jurusan diperbarui (${draft.length} soal)`);
+    } catch (err) {
+      toast(err instanceof Error ? err.message : "Gagal menyimpan soal", "warning");
+    } finally {
+      setSaving(false);
+    }
   };
 
-  const handleReset = () => {
+  const handleReset = async () => {
     if (!editingMajor) return;
     if (!window.confirm("Kembalikan soal tes jurusan ini ke versi default?")) return;
-    resetMajorQuiz(editingMajor);
-    const quiz = getMajorQuizForAdmin(editingMajor) || [];
-    setDraft(JSON.parse(JSON.stringify(quiz)));
-    toast("Soal dikembalikan ke versi default");
+    setSaving(true);
+    try {
+      await resetMajorQuizAdmin(editingMajor);
+      const fresh = await fetchMajorQuizAdmin(editingMajor);
+      setDraft(fresh.length > 0 ? fresh : []);
+      toast("Soal dikembalikan ke versi default");
+    } catch {
+      toast("Gagal mereset soal", "warning");
+    } finally {
+      setSaving(false);
+    }
   };
 
   if (editingMajor) {
@@ -175,13 +195,15 @@ export default function AdminMajorQuizPage() {
         <div className="flex flex-wrap gap-3 mb-6">
           <button
             onClick={handleSave}
-            className="flex items-center gap-2 px-4 py-2 text-sm bg-primary text-white rounded-xl hover:bg-primary-dark transition-colors"
+            disabled={saving}
+            className="flex items-center gap-2 px-4 py-2 text-sm bg-primary text-white rounded-xl hover:bg-primary-dark transition-colors disabled:opacity-60"
           >
-            <Save className="w-4 h-4" />
+            {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
             Simpan Perubahan
           </button>
           <button
             onClick={addQuestion}
+            disabled={saving}
             className="flex items-center gap-2 px-4 py-2 text-sm bg-card border border-border rounded-xl hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors text-foreground"
           >
             <Plus className="w-4 h-4" />
@@ -189,6 +211,7 @@ export default function AdminMajorQuizPage() {
           </button>
           <button
             onClick={handleReset}
+            disabled={saving}
             className="flex items-center gap-2 px-4 py-2 text-sm bg-card border border-border rounded-xl hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors text-foreground"
           >
             <RotateCcw className="w-4 h-4" />
@@ -213,7 +236,12 @@ export default function AdminMajorQuizPage() {
           )}
         </div>
 
-        {visibleDraft.length === 0 ? (
+        {loading ? (
+          <Card className="text-center py-16">
+            <Loader2 className="w-8 h-8 text-primary mx-auto mb-3 animate-spin" />
+            <p className="text-muted text-sm">Memuat {loadedCount ? `${loadedCount} soal dari` : ""} server...</p>
+          </Card>
+        ) : visibleDraft.length === 0 ? (
           <Card className="text-center py-16">
             <FileQuestion className="w-12 h-12 text-muted mx-auto mb-3" />
             <p className="text-foreground font-medium">Belum ada soal untuk jurusan ini</p>
@@ -363,31 +391,25 @@ export default function AdminMajorQuizPage() {
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
-        {MAJORS.filter((major) => !filterMajor || major.name === filterMajor).map((major) => {
-          const count = getMajorQuizForAdmin(major.name).length;
-          const edited = hasMajorQuizOverride(major.name);
-          return (
+        {MAJORS.filter((major) => !filterMajor || major.name === filterMajor).map((major) => (
             <Card key={major.name} className="flex flex-col">
               <div className="flex items-start justify-between mb-3">
                 <div className="w-11 h-11 rounded-xl bg-primary/10 text-primary flex items-center justify-center flex-shrink-0">
                   <Target className="w-5 h-5" />
                 </div>
-                <div className="flex flex-col items-end gap-1">
-                  <Badge variant={edited ? "warning" : "secondary"}>{edited ? "Diedit" : "Default"}</Badge>
-                </div>
+                <Badge variant="secondary">{major.short}</Badge>
               </div>
               <h4 className="font-semibold text-foreground mb-1">{major.name}</h4>
-              <p className="text-xs text-muted mb-4 flex-1">{count} soal Tes Jurusan</p>
+              <p className="text-xs text-muted mb-4 flex-1">Bank soal tes jurusan · backend</p>
               <button
                 onClick={() => openEditor(major.name)}
                 className="w-full flex items-center justify-center gap-2 px-4 py-2 text-sm bg-primary text-white rounded-xl hover:bg-primary-dark transition-colors"
               >
                 <ListChecks className="w-4 h-4" />
-                Kelola 100 Soal
+                Kelola Bank Soal
               </button>
             </Card>
-          );
-        })}
+        ))}
       </div>
 
       <Card className="mt-6 flex flex-col sm:flex-row items-center gap-4 p-5">
@@ -397,7 +419,7 @@ export default function AdminMajorQuizPage() {
         <div className="text-center sm:text-left">
           <p className="text-sm font-medium text-foreground">Catatan soal Tes Jurusan</p>
           <p className="text-xs text-muted mt-1">
-            Soal asesmen "Know Yourself" menuntun pencocokan karier (career match). Setiap kali soal diubah atau di-reset,
+            Soal asesmen &quot;Know Yourself&quot; menuntun pencocokan karier (career match). Setiap kali soal diubah atau di-reset,
             hasil asesmen murid dinonaktifkan agar data karier tetap sinkron dengan soal terbaru.
           </p>
         </div>

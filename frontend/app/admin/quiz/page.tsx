@@ -10,16 +10,16 @@ import {
   FileQuestion,
   ListChecks,
   BookOpen,
+  Loader2,
 } from "lucide-react";
 import Card from "../../components/ui/card";
 import Badge from "../../components/ui/badge";
 import DashboardHeader from "../../components/layout/dashboardheader";
 import { MAJORS, materiList } from "../../lib/materi-catalog";
 import {
-  getQuizForMateri,
-  saveMateriQuiz,
-  resetMateriQuiz,
-  hasMateriQuizOverride,
+  fetchMateriQuizAdmin,
+  saveMateriQuizAdmin,
+  resetMateriQuizAdmin,
 } from "../../lib/materi-quiz";
 import type { QuizQuestion } from "../../lib/major-quiz";
 import { useToast } from "../../lib/toast-context";
@@ -40,14 +40,27 @@ export default function AdminQuizPage() {
   const [selectedMajor, setSelectedMajor] = useState(MAJORS[0].name);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [draft, setDraft] = useState<QuizQuestion[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [saving, setSaving] = useState(false);
 
   const tiles = materiList.filter((m) => m.major === selectedMajor);
   const editingMateri = editingId ? materiList.find((m) => m.id === editingId) : undefined;
 
-  const openEditor = (materiId: string) => {
-    const quiz = getQuizForMateri(materiId) || [];
-    setDraft(JSON.parse(JSON.stringify(quiz)));
+  const openEditor = async (materiId: string) => {
+    setLoading(true);
     setEditingId(materiId);
+    try {
+      const backendQuiz = await fetchMateriQuizAdmin(materiId);
+      if (backendQuiz.length > 0) {
+        setDraft(backendQuiz);
+      } else {
+        setDraft([]);
+      }
+    } catch {
+      setDraft([]);
+    } finally {
+      setLoading(false);
+    }
   };
 
   const closeEditor = () => setEditingId(null);
@@ -103,7 +116,7 @@ export default function AdminQuizPage() {
     setDraft((prev) => prev.filter((_, i) => i !== index));
   };
 
-  const handleSave = () => {
+  const handleSave = async () => {
     if (!editingId) return;
     const errors: string[] = [];
     draft.forEach((q, i) => {
@@ -119,23 +132,31 @@ export default function AdminQuizPage() {
       toast(errors.slice(0, 3).join(" · "), "error");
       return;
     }
-    const clean = draft.map((q) => ({
-      ...q,
-      question: q.question.trim(),
-      options: q.options.map((o) => o.trim()),
-      skill: q.skill.trim(),
-    }));
-    saveMateriQuiz(editingId, clean);
-    toast(`Soal materi diperbarui (${clean.length} soal)`);
+    setSaving(true);
+    try {
+      await saveMateriQuizAdmin(editingId, draft);
+      toast(`Soal materi diperbarui (${draft.length} soal)`);
+    } catch (err) {
+      toast(err instanceof Error ? err.message : "Gagal menyimpan soal", "warning");
+    } finally {
+      setSaving(false);
+    }
   };
 
-  const handleReset = () => {
+  const handleReset = async () => {
     if (!editingId) return;
     if (!window.confirm("Kembalikan soal materi ini ke versi default?")) return;
-    resetMateriQuiz(editingId);
-    const quiz = getQuizForMateri(editingId) || [];
-    setDraft(JSON.parse(JSON.stringify(quiz)));
-    toast("Soal dikembalikan ke versi default");
+    setSaving(true);
+    try {
+      await resetMateriQuizAdmin(editingId);
+      const fresh = await fetchMateriQuizAdmin(editingId);
+      setDraft(fresh.length > 0 ? fresh : []);
+      toast("Soal dikembalikan ke versi default");
+    } catch {
+      toast("Gagal mereset soal", "warning");
+    } finally {
+      setSaving(false);
+    }
   };
 
   if (editingId) {
@@ -158,13 +179,15 @@ export default function AdminQuizPage() {
         <div className="flex flex-wrap gap-3 mb-6">
           <button
             onClick={handleSave}
-            className="flex items-center gap-2 px-4 py-2 text-sm bg-primary text-white rounded-xl hover:bg-primary-dark transition-colors"
+            disabled={saving}
+            className="flex items-center gap-2 px-4 py-2 text-sm bg-primary text-white rounded-xl hover:bg-primary-dark transition-colors disabled:opacity-60"
           >
-            <Save className="w-4 h-4" />
+            {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
             Simpan Perubahan
           </button>
           <button
             onClick={addQuestion}
+            disabled={saving}
             className="flex items-center gap-2 px-4 py-2 text-sm bg-card border border-border rounded-xl hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors text-foreground"
           >
             <Plus className="w-4 h-4" />
@@ -172,6 +195,7 @@ export default function AdminQuizPage() {
           </button>
           <button
             onClick={handleReset}
+            disabled={saving}
             className="flex items-center gap-2 px-4 py-2 text-sm bg-card border border-border rounded-xl hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors text-foreground"
           >
             <RotateCcw className="w-4 h-4" />
@@ -179,7 +203,12 @@ export default function AdminQuizPage() {
           </button>
         </div>
 
-        {draft.length === 0 ? (
+        {loading ? (
+          <Card className="text-center py-16">
+            <Loader2 className="w-8 h-8 text-primary mx-auto mb-3 animate-spin" />
+            <p className="text-muted text-sm">Memuat soal dari server...</p>
+          </Card>
+        ) : draft.length === 0 ? (
           <Card className="text-center py-16">
             <FileQuestion className="w-12 h-12 text-muted mx-auto mb-3" />
             <p className="text-foreground font-medium">Belum ada soal untuk materi ini</p>
@@ -332,23 +361,19 @@ export default function AdminQuizPage() {
         </Card>
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4">
-          {tiles.map((materi) => {
-            const count = getQuizForMateri(materi.id)?.length ?? 0;
-            const edited = hasMateriQuizOverride(materi.id);
-            return (
+          {tiles.map((materi) => (
               <Card key={materi.id} className="flex flex-col">
                 <div className="flex items-start justify-between mb-3">
                   <div className="w-11 h-11 rounded-xl bg-primary/10 text-primary flex items-center justify-center flex-shrink-0">
                     <ListChecks className="w-5 h-5" />
                   </div>
                   <div className="flex flex-col items-end gap-1">
-                    <Badge variant={edited ? "warning" : "secondary"}>{materi.grade}</Badge>
+                    <Badge variant="secondary">{materi.grade}</Badge>
                   </div>
                 </div>
                 <h4 className="font-semibold text-foreground mb-1">{materi.title}</h4>
                 <p className="text-xs text-muted mb-4 flex-1">
-                  {count} soal
-                  {edited ? " · sudah diedit" : " · default"}
+                  Kelola bank soal materi ini
                 </p>
                 <button
                   onClick={() => openEditor(materi.id)}
@@ -358,8 +383,7 @@ export default function AdminQuizPage() {
                   Kelola Soal
                 </button>
               </Card>
-            );
-          })}
+          ))}
         </div>
       )}
     </div>

@@ -15,6 +15,7 @@ class AssessmentResult extends Model
         'student_id',
         'major_id',
         'score',
+        'percentage',
         'level',
         'skill_scores',
         'answered_at',

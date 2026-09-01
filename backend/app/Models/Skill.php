@@ -3,7 +3,6 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 
 class Skill extends Model
@@ -16,14 +15,6 @@ class Skill extends Model
         'level',
         'description',
     ];
-
-    /**
-     * The category of the skill (hard/soft).
-     */
-    public function category(): \Illuminate\Database\Eloquent\Relations\HasMany
-    {
-        return $this->hasMany(Skill::class);
-    }
 
     /**
      * The students who have this skill.

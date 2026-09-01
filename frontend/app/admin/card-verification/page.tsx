@@ -2,35 +2,49 @@
 
 import { useState, useEffect } from "react";
 import { createPortal } from "react-dom";
-import { Search, Check, X, IdCard, Users, Eye, BadgeCheck } from "lucide-react";
+import { Search, Check, X, IdCard, Users, Eye, BadgeCheck, Loader2 } from "lucide-react";
 import Card from "../../components/ui/card";
 import Badge from "../../components/ui/badge";
 import DashboardHeader from "../../components/layout/dashboardheader";
-import {
-  getRegisteredUsers,
-  approveStudentCard,
-  removeStudentCard,
-  majorCodeToName,
-  normalizeGrade,
-  type RegisteredUser,
-} from "../../lib/mock-data";
+import { api, BACKEND_ENDPOINTS } from "../../lib/api";
 import { useToast } from "../../lib/toast-context";
 import { addNotification } from "../../lib/notifications";
 
+type CardRow = {
+  id: number;
+  name: string;
+  email: string;
+  major_name?: string | null;
+  grade?: string | null;
+  studentCard?: string | null;
+  cardStatus: "none" | "pending" | "approved" | string;
+};
+
 export default function CardVerificationPage() {
   const { toast } = useToast();
-  const [rows, setRows] = useState<RegisteredUser[]>([]);
+  const [rows, setRows] = useState<CardRow[]>([]);
   const [search, setSearch] = useState("");
+  const [loading, setLoading] = useState(true);
+  const [busyEmail, setBusyEmail] = useState<string | null>(null);
   const [preview, setPreview] = useState<{ name: string; img: string } | null>(null);
 
-  const refresh = () => {
-    const all = getRegisteredUsers().filter((u) => u.role === "student" && !!u.studentCard);
-    all.sort((a, b) => {
-      const aApproved = a.cardStatus === "approved" ? 1 : 0;
-      const bApproved = b.cardStatus === "approved" ? 1 : 0;
-      return aApproved - bApproved;
-    });
-    setRows(all);
+  const refresh = async () => {
+    try {
+      const res = await api.get<{ success: boolean; data: CardRow[] }>(BACKEND_ENDPOINTS.registrations.list);
+      if (res.success) {
+        const all = res.data.filter((u) => !!u.studentCard);
+        all.sort((a, b) => {
+          const aApproved = a.cardStatus === "approved" ? 1 : 0;
+          const bApproved = b.cardStatus === "approved" ? 1 : 0;
+          return aApproved - bApproved;
+        });
+        setRows(all);
+      }
+    } catch {
+      // silently fail
+    } finally {
+      setLoading(false);
+    }
   };
 
   useEffect(() => {
@@ -45,42 +59,43 @@ export default function CardVerificationPage() {
   const filtered = rows.filter((r) => {
     const q = search.trim().toLowerCase();
     if (!q) return true;
-    const major = majorCodeToName(r.major || "");
-    const grade = normalizeGrade(r.grade || "");
     return (
-      r.name.toLowerCase().includes(q) ||
-      r.email.toLowerCase().includes(q) ||
-      major.toLowerCase().includes(q) ||
-      grade.toLowerCase().includes(q)
+      (r.name || "").toLowerCase().includes(q) ||
+      (r.email || "").toLowerCase().includes(q) ||
+      (r.major_name || "").toLowerCase().includes(q) ||
+      (r.grade || "").toLowerCase().includes(q)
     );
   });
 
-  const handleApprove = (email: string) => {
-    approveStudentCard(email);
-    refresh();
-    window.dispatchEvent(new CustomEvent("students-updated"));
-    addNotification({
-      text: "Kartu pelajarmu telah disetujui — semua fitur siswa kini terbuka.",
-      type: "card_approval",
-      targetRole: "student",
-      targetEmail: email,
-    });
-    window.dispatchEvent(new CustomEvent("notifications-updated"));
-    toast("Kartu pelajar disetujui — fitur siswa terbuka");
-  };
-
-  const handleReject = (email: string) => {
-    removeStudentCard(email);
-    refresh();
-    window.dispatchEvent(new CustomEvent("students-updated"));
-    addNotification({
-      text: "Kartu pelajarmu ditolak saat verifikasi. Silakan unggah ulang kartu yang jelas di halaman Profil.",
-      type: "card_approval",
-      targetRole: "student",
-      targetEmail: email,
-    });
-    window.dispatchEvent(new CustomEvent("notifications-updated"));
-    toast("Kartu pelajar ditolak — siswa dapat mengunggah ulang", "warning");
+  const runAction = async (email: string, kind: "approve" | "reject") => {
+    setBusyEmail(email);
+    try {
+      await api.post(BACKEND_ENDPOINTS.registrations[kind](email));
+      await refresh();
+      window.dispatchEvent(new CustomEvent("students-updated"));
+      if (kind === "approve") {
+        addNotification({
+          text: "Kartu pelajarmu telah disetujui — semua fitur siswa kini terbuka.",
+          type: "card_approval",
+          targetRole: "student",
+          targetEmail: email,
+        });
+        toast("Kartu pelajar disetujui — fitur siswa terbuka");
+      } else {
+        addNotification({
+          text: "Kartu pelajarmu ditolak saat verifikasi. Silakan unggah ulang kartu yang jelas di halaman Profil.",
+          type: "card_approval",
+          targetRole: "student",
+          targetEmail: email,
+        });
+        toast("Kartu pelajar ditolak — siswa dapat mengunggah ulang", "warning");
+      }
+      window.dispatchEvent(new CustomEvent("notifications-updated"));
+    } catch (err) {
+      if (err instanceof Error) toast(err.message, "warning");
+    } finally {
+      setBusyEmail(null);
+    }
   };
 
   return (
@@ -109,7 +124,11 @@ export default function CardVerificationPage() {
         />
       </div>
 
-      {filtered.length === 0 ? (
+      {loading ? (
+        <div className="flex justify-center py-12">
+          <div className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin" />
+        </div>
+      ) : filtered.length === 0 ? (
         <Card className="text-center py-12">
           <Users className="w-12 h-12 text-muted mx-auto mb-3" />
           <p className="text-foreground font-medium">Belum ada kartu pelajar ditemukan</p>
@@ -149,8 +168,8 @@ export default function CardVerificationPage() {
                       <p className="font-medium text-foreground">{p.name}</p>
                       <p className="text-xs text-muted break-all">{p.email}</p>
                       <div className="flex flex-wrap gap-2 mt-2">
-                        <Badge variant="primary">{majorCodeToName(p.major || "")}</Badge>
-                        <Badge variant="secondary">Kelas {normalizeGrade(p.grade || "")}</Badge>
+                        <Badge variant="primary">{p.major_name || "-"}</Badge>
+                        {p.grade && <Badge variant="secondary">Kelas {p.grade}</Badge>}
                         {pending ? (
                           <Badge variant="warning">Menunggu Verifikasi</Badge>
                         ) : (
@@ -165,16 +184,18 @@ export default function CardVerificationPage() {
                     {pending && (
                       <div className="flex gap-2 ml-auto sm:ml-0 flex-wrap">
                         <button
-                          onClick={() => handleApprove(p.email)}
-                          className="flex items-center gap-1.5 px-4 py-2 rounded-xl text-sm font-medium bg-emerald-600 text-white hover:bg-emerald-700 transition-colors"
+                          onClick={() => runAction(p.email, "approve")}
+                          disabled={busyEmail === p.email}
+                          className="flex items-center gap-1.5 px-4 py-2 rounded-xl text-sm font-medium bg-emerald-600 text-white hover:bg-emerald-700 transition-colors disabled:opacity-60"
                         >
-                          <Check className="w-4 h-4" /> Setujui
+                          {busyEmail === p.email ? <Loader2 className="w-4 h-4 animate-spin" /> : <Check className="w-4 h-4" />} Setujui
                         </button>
                         <button
-                          onClick={() => handleReject(p.email)}
-                          className="flex items-center gap-1.5 px-4 py-2 rounded-xl text-sm font-medium bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400 hover:bg-red-200 dark:hover:bg-red-900/50 transition-colors"
+                          onClick={() => runAction(p.email, "reject")}
+                          disabled={busyEmail === p.email}
+                          className="flex items-center gap-1.5 px-4 py-2 rounded-xl text-sm font-medium bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400 hover:bg-red-200 dark:hover:bg-red-900/50 transition-colors disabled:opacity-60"
                         >
-                          <X className="w-4 h-4" /> Tolak
+                          {busyEmail === p.email ? <Loader2 className="w-4 h-4 animate-spin" /> : <X className="w-4 h-4" />} Tolak
                         </button>
                       </div>
                     )}

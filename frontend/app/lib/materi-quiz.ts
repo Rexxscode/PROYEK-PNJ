@@ -3,6 +3,7 @@ import { rplMateriQuiz } from "./materi-quiz-rpl";
 import { dkvMateriQuiz } from "./materi-quiz-dkv";
 import { tkjMateriQuiz } from "./materi-quiz-tkj";
 import { transmisiMateriQuiz } from "./materi-quiz-tt";
+import { api, BACKEND_ENDPOINTS } from "./api";
 
 export const allMateriQuiz: Record<string, QuizQuestion[]> = {
   ...rplMateriQuiz,
@@ -49,4 +50,51 @@ export function getQuizForMateri(materiId: string): QuizQuestion[] | null {
   if (override) return override;
   const quiz = allMateriQuiz[materiId];
   return quiz && quiz.length > 0 ? quiz : null;
+}
+
+/* ------------------------------------------------------------------ */
+/*  Backend-backed admin helpers                                       */
+/* ------------------------------------------------------------------ */
+
+type ApiAdminQuestion = {
+  id: number;
+  materi_id?: string;
+  question: string;
+  options: string[] | string;
+  correct: number;
+  difficulty: string;
+  skill: string;
+};
+
+export async function fetchMateriQuizAdmin(materiId: string): Promise<QuizQuestion[]> {
+  const res = await api.get<{ success: boolean; data: ApiAdminQuestion[] }>(
+    BACKEND_ENDPOINTS.materiQuiz.adminQuestions(materiId),
+  );
+  if (!res.success) return [];
+  return res.data.map((q) => ({
+    id: String(q.id),
+    question: q.question,
+    options: Array.isArray(q.options) ? q.options : JSON.parse(q.options),
+    correct: q.correct,
+    difficulty: (q.difficulty || "basic") as QuizQuestion["difficulty"],
+    skill: q.skill || "",
+  }));
+}
+
+export async function saveMateriQuizAdmin(materiId: string, questions: QuizQuestion[]): Promise<boolean> {
+  await api.put(BACKEND_ENDPOINTS.materiQuiz.update(materiId), {
+    questions: questions.map((q) => ({
+      question: q.question.trim(),
+      options: q.options.map((o) => o.trim()),
+      correct: q.correct,
+      difficulty: q.difficulty,
+      skill: q.skill.trim(),
+    })),
+  });
+  return true;
+}
+
+export async function resetMateriQuizAdmin(materiId: string): Promise<boolean> {
+  await api.post(BACKEND_ENDPOINTS.materiQuiz.reset(materiId));
+  return true;
 }

@@ -214,7 +214,7 @@ Monitoring   : [Sentry / LogRocket / dll]
                                          └────────────┘
 ```
 
-> **Status integrasi:** Frontend berjalan penuh di atas lapisan data `app/lib` (mock/localStorage). Kontrak API backend sudah didefinisikan di `app/lib/api-contract.ts` dan siap diimplementasikan oleh tim Backend (Laravel).
+> **Status integrasi:** Frontend sepenuhnya terhubung ke backend Laravel (`/api/v1`) untuk semua alur inti: autentikasi, tes jurusan & asesmen, kuis materi & sertifikat, kartu pelajar, portofolio publik, notifikasi antar-role, statistik admin, dan pengelolaan soal/admin/industri/registrasi. Kontrak tipe & endpoint terpusat di `frontend/app/lib/api-contract.ts`.
 
 ### Database Schema (Target)
 
@@ -307,8 +307,8 @@ php artisan serve               # Server berjalan di http://localhost:8000
 Buat file `.env.local` di folder `frontend`:
 
 ```env
-# URL API backend
-NEXT_PUBLIC_API_URL=http://localhost:8000/api
+# URL API backend (tanpa trailing /api — kontrak sudah menyertakan /api/v1)
+NEXT_PUBLIC_API_URL=http://localhost:8000
 ```
 
 ---
@@ -431,7 +431,7 @@ const response = await fetch('/api/v1/auth/login', {
 
 📖 **[Dokumentasi API Lengkap](./backend/routes/api.php)** _(implementasi backend)_
 
-> **Catatan:** Saat ini aplikasi berjalan pada lapisan data mock (`app/lib/mock-data.ts`). Definisi endpoint & tipe data lengkap ada di **`frontend/app/lib/api-contract.ts`**.
+> **Catatan:** Definisi endpoint & tipe data terpusat di **`frontend/app/lib/api-contract.ts`**, dengan lapisan `api.ts` (JSON) dan `apiUpload.ts` (multipart untuk upload avatar/kartu).
 
 ---
 
@@ -448,9 +448,28 @@ npm run lint
 # Build produksi
 npm run build
 
+# Backend feature/unit tests (Laravel PHPUnit)
+cd backend
+composer test          # atau: php artisan test
+
 # E2E (28 skenario lintas role: siswa, admin, industry)
 $env:NODE_PATH="D:\...\frontend\node_modules"; node e2e.js
 ```
+
+### Cakupan Testing
+
+Selain E2E lintas role, backend menjalankan **PHPUnit (feature tests)** yang memvalidasi kontrak API:
+
+```
+Auth & role guard            : test login/logout/me, akses per role
+Assessment                   : soal per jurusan, submit, perhitungan skor server-side,
+                               validasi jawaban, penyimpanan hasil, jawaban parsial
+Admin integration            : daftar admin/industry/students, statistik, readiness,
+                               soal asesmen & materi (admin), notifikasi, persetujuan
+                               kartu, persetujuan industry, guard access
+```
+
+> Jalankan `cd backend && php artisan test` — seluruh suite hijau (25 tests / 225 assertions).
 
 ### Cakupan E2E
 

@@ -1,25 +1,39 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { UserPlus, Eye, EyeOff, Shield } from "lucide-react";
+import { UserPlus, Eye, EyeOff, Shield, Loader2 } from "lucide-react";
 import Card from "../../components/ui/card";
 import DashboardHeader from "../../components/layout/dashboardheader";
-import { getAllAdmins, registerAdmin } from "../../lib/mock-data";
+import { api, BACKEND_ENDPOINTS } from "../../lib/api";
 import { useToast } from "../../lib/toast-context";
+
+type AdminRow = { id: number; email: string; name: string; role: string };
 
 export default function AccountsPage() {
   const { toast } = useToast();
-  const [admins, setAdmins] = useState<{ email: string; name: string }[]>([]);
+  const [admins, setAdmins] = useState<AdminRow[]>([]);
   const [showForm, setShowForm] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [form, setForm] = useState({ name: "", email: "", password: "" });
+  const [loading, setLoading] = useState(true);
+  const [submitting, setSubmitting] = useState(false);
   const [refreshKey, setRefreshKey] = useState(0);
 
   useEffect(() => {
-    setAdmins(getAllAdmins().map((a) => ({ email: a.email, name: a.name })));
+    const load = async () => {
+      try {
+        const res = await api.get<{ success: boolean; data: AdminRow[] }>(BACKEND_ENDPOINTS.admins.list);
+        if (res.success) setAdmins(res.data);
+      } catch {
+        // silently fail
+      } finally {
+        setLoading(false);
+      }
+    };
+    load();
   }, [refreshKey]);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!form.name || !form.email || !form.password) {
       toast("Semua field wajib diisi", "warning");
@@ -29,15 +43,22 @@ export default function AccountsPage() {
       toast("Password minimal 8 karakter", "warning");
       return;
     }
-    const success = registerAdmin({ email: form.email, password: form.password, name: form.name });
-    if (!success) {
-      toast("Email sudah terdaftar", "warning");
-      return;
+    setSubmitting(true);
+    try {
+      await api.post(BACKEND_ENDPOINTS.admins.create, { name: form.name, email: form.email, password: form.password });
+      toast("Akun admin berhasil dibuat!", "success");
+      setForm({ name: "", email: "", password: "" });
+      setShowForm(false);
+      setRefreshKey((k) => k + 1);
+    } catch (err) {
+      if (err instanceof Error) {
+        toast(err.message, "warning");
+      } else {
+        toast("Gagal membuat akun admin", "warning");
+      }
+    } finally {
+      setSubmitting(false);
     }
-    toast("Akun admin berhasil dibuat!", "success");
-    setForm({ name: "", email: "", password: "" });
-    setShowForm(false);
-    setRefreshKey((k) => k + 1);
   };
 
   return (
@@ -107,8 +128,10 @@ export default function AccountsPage() {
             <div className="flex gap-2">
               <button
                 type="submit"
-                className="px-4 py-2 rounded-xl text-sm font-medium bg-purple-600 text-white hover:bg-purple-700 transition-colors"
+                disabled={submitting}
+                className="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium bg-purple-600 text-white hover:bg-purple-700 transition-colors disabled:opacity-60"
               >
+                {submitting && <Loader2 className="w-4 h-4 animate-spin" />}
                 Simpan
               </button>
               <button
@@ -125,32 +148,38 @@ export default function AccountsPage() {
 
       {/* Admin List */}
       <Card>
-        <div className="overflow-x-auto">
-          <table className="w-full text-sm">
-            <thead>
-              <tr className="border-b border-border">
-                <th className="text-left py-3 px-3 font-medium text-muted">No</th>
-                <th className="text-left py-3 px-3 font-medium text-muted">Nama</th>
-                <th className="text-left py-3 px-3 font-medium text-muted">Email</th>
-                <th className="text-left py-3 px-3 font-medium text-muted">Role</th>
-              </tr>
-            </thead>
-            <tbody>
-              {admins.map((admin, idx) => (
-                <tr key={admin.email} className="border-b border-border/50 hover:bg-gray-50 dark:hover:bg-gray-700/50">
-                  <td className="py-3 px-3 text-muted">{idx + 1}</td>
-                  <td className="py-3 px-3 font-medium text-foreground">{admin.name}</td>
-                  <td className="py-3 px-3 text-muted">{admin.email}</td>
-                  <td className="py-3 px-3">
-                    <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-medium bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300">
-                      <Shield className="w-3 h-3" /> Admin
-                    </span>
-                  </td>
+        {loading ? (
+          <div className="flex justify-center py-12">
+            <div className="w-8 h-8 border-2 border-purple-600 border-t-transparent rounded-full animate-spin" />
+          </div>
+        ) : (
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="border-b border-border">
+                  <th className="text-left py-3 px-3 font-medium text-muted">No</th>
+                  <th className="text-left py-3 px-3 font-medium text-muted">Nama</th>
+                  <th className="text-left py-3 px-3 font-medium text-muted">Email</th>
+                  <th className="text-left py-3 px-3 font-medium text-muted">Role</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+              </thead>
+              <tbody>
+                {admins.map((admin, idx) => (
+                  <tr key={admin.email} className="border-b border-border/50 hover:bg-gray-50 dark:hover:bg-gray-700/50">
+                    <td className="py-3 px-3 text-muted">{idx + 1}</td>
+                    <td className="py-3 px-3 font-medium text-foreground">{admin.name}</td>
+                    <td className="py-3 px-3 text-muted">{admin.email}</td>
+                    <td className="py-3 px-3">
+                      <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-medium bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300">
+                        <Shield className="w-3 h-3" /> Admin
+                      </span>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
         <p className="text-xs text-muted mt-4">Total {admins.length} akun admin</p>
       </Card>
     </div>

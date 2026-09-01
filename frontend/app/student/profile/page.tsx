@@ -9,9 +9,10 @@ import { SkeletonDashboard } from "../../components/ui/skeleton";
 import { useAuth } from "../../lib/auth-context";
 import { useToast } from "../../lib/toast-context";
 import { addNotification } from "../../lib/notifications";
+import { api, apiUpload, BACKEND_ENDPOINTS } from "../../lib/api";
 
 export default function StudentProfilePage() {
-  const { user } = useAuth();
+  const { user, refreshUser } = useAuth();
   const { toast } = useToast();
   const [mounted, setMounted] = useState(false);
   const [photo, setPhoto] = useState("");
@@ -23,32 +24,38 @@ export default function StudentProfilePage() {
   useEffect(() => { setMounted(true); }, []);
 
   useEffect(() => {
-    if (!mounted) return;
-    setPhoto(localStorage.getItem("profilePhoto") || "");
-    setCardStatus("approved");
-  }, [mounted]);
+    if (!mounted || !user) return;
+    setPhoto(user.student?.avatar || localStorage.getItem("profilePhoto") || "");
+    const status = user.student?.card_status ?? "pending";
+    setCardStatus(status);
+    setCard(user.student?.student_card || null);
+  }, [mounted, user]);
 
   if (!mounted || !user) return <div className="p-6 lg:pl-72"><SkeletonDashboard /></div>;
 
-  const profile = { name: user.name, email: user.email, major: user.student?.major || "", grade: user.student?.grade || "" };
+  const profile = { name: user.name, email: user.email, major: user.student?.major_name || user.student?.major || "", grade: user.student?.grade || "" };
   const email = user.email;
-  const isRegistered = false;
+  const isRegistered = cardStatus === "approved" && !card;
 
-  const handlePhoto = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handlePhoto = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
     if (file.size > 2 * 1024 * 1024) {
       toast("Ukuran foto maksimal 2MB", "error");
       return;
     }
-    const reader = new FileReader();
-    reader.onload = (ev) => {
-      const dataUrl = ev.target?.result as string;
-      setPhoto(dataUrl);
-      localStorage.setItem("profilePhoto", dataUrl);
-      toast(`Foto profil diperbarui`);
-    };
-    reader.readAsDataURL(file);
+    const formData = new FormData();
+    formData.append("avatar", file);
+    setPhoto(URL.createObjectURL(file));
+    try {
+      const res = await apiUpload.post<{ success: boolean; data: { avatar: string } }>(BACKEND_ENDPOINTS.students.avatar, formData);
+      await refreshUser();
+      toast("Foto profil diperbarui");
+      return res;
+    } catch {
+      setPhoto("");
+      toast("Gagal mengunggah foto profil", "error");
+    }
   };
 
   const handleCardFile = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -65,23 +72,30 @@ export default function StudentProfilePage() {
     reader.readAsDataURL(file);
   };
 
-  const handleSaveCard = () => {
+  const handleSaveCard = async () => {
     if (!cardPending) return;
     setSaving(true);
-    setCard(cardPending.dataUrl);
-    setCardStatus("pending");
-    setCardPending(null);
-    addNotification({ text: `${profile.name} mengunggah kartu pelajar untuk verifikasi.`, type: "card_approval", targetRole: "admin" });
-    window.dispatchEvent(new CustomEvent("notifications-updated"));
-    toast("Kartu pelajar dikirim untuk verifikasi admin.");
-    setSaving(false);
+    try {
+      await api.post(BACKEND_ENDPOINTS.registrations.cardUpload, { studentCard: cardPending.dataUrl });
+      setCard(cardPending.dataUrl);
+      setCardStatus("pending");
+      setCardPending(null);
+      addNotification({ text: `${profile.name} mengunggah kartu pelajar untuk verifikasi.`, type: "card_approval", targetRole: "admin" });
+      window.dispatchEvent(new CustomEvent("notifications-updated"));
+      toast("Kartu pelajar dikirim untuk verifikasi admin.");
+      await refreshUser();
+    } catch (err) {
+      toast(err instanceof Error ? err.message : "Gagal mengunggah kartu", "warning");
+    } finally {
+      setSaving(false);
+    }
   };
 
-  const handleRemoveCard = () => {
+  const handleRemoveCard = async () => {
     setCard(null);
     setCardStatus("none");
     setCardPending(null);
-    toast("Kartu pelajar dihapus", "warning");
+    toast("Kartu pelajar dihapus (lokal)", "warning");
   };
 
   return (
@@ -107,11 +121,9 @@ export default function StudentProfilePage() {
               <h3 className="font-semibold text-foreground">{profile.name}</h3>
               <p className="text-xs text-muted">{email}</p>
               <div className="flex flex-wrap gap-2 mt-2">
-                <Badge variant="primary">{profile.major}</Badge>
-                <Badge variant="secondary">Kelas {profile.grade}</Badge>
-                <Badge variant={isRegistered ? "warning" : "success"}>
-                  {isRegistered ? "Registrasi Baru" : "Siswa Terdaftar"}
-                </Badge>
+                <Badge variant="primary">{profile.major && profile.major !== "0" ? profile.major : "-"}</Badge>
+                <Badge variant="secondary">{profile.grade ? `Kelas ${profile.grade}` : "-"}</Badge>
+                {cardStatus === "approved" && <Badge variant="success">Kartu Terverifikasi</Badge>}
               </div>
             </div>
           </div>
@@ -127,7 +139,7 @@ export default function StudentProfilePage() {
             </div>
             <div className="flex items-center gap-3 p-3 bg-gray-50 dark:bg-gray-800/50 rounded-xl">
               <GraduationCap className="w-4 h-4 text-muted flex-shrink-0" />
-              <span className="text-foreground">Kelas {profile.grade}</span>
+              <span className="text-foreground">{profile.grade ? `Kelas ${profile.grade}` : "-"}</span>
             </div>
           </div>
         </Card>
@@ -168,6 +180,10 @@ export default function StudentProfilePage() {
             </div>
 
             {isRegistered ? (
+              <div className="p-3 bg-gray-50 dark:bg-gray-800/50 rounded-xl text-sm text-muted">
+                Akun siswa terverifikasi ini memiliki akses penuh tanpa perlu kartu pelajar.
+              </div>
+            ) : (
               <div className="space-y-4">
                 <p className="text-sm text-muted">
                   Fitur asesmen, sertifikat, roadmap, dan lowongan terbuka setelah kartu pelajar
@@ -211,12 +227,14 @@ export default function StudentProfilePage() {
                         <Upload className="w-4 h-4" /> Ganti Kartu
 <input id="card-upload" type="file" accept="image/*" onChange={handleCardFile} className="hidden" />
                       </label>
-                      <button
-                        onClick={handleRemoveCard}
-                        className="flex items-center gap-2 px-4 py-2 text-sm bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400 rounded-xl hover:bg-red-200 dark:hover:bg-red-900/50 transition-colors"
-                      >
-                        <Trash2 className="w-4 h-4" /> Hapus
-                      </button>
+                      {cardStatus !== "approved" && (
+                        <button
+                          onClick={handleRemoveCard}
+                          className="flex items-center gap-2 px-4 py-2 text-sm bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400 rounded-xl hover:bg-red-200 dark:hover:bg-red-900/50 transition-colors"
+                        >
+                          <Trash2 className="w-4 h-4" /> Hapus
+                        </button>
+                      )}
                     </div>
                   </div>
                 ) : (
@@ -227,10 +245,6 @@ export default function StudentProfilePage() {
                     <span className="ml-auto text-xs font-medium text-primary flex-shrink-0">Pilih</span>
                   </label>
                 )}
-              </div>
-            ) : (
-              <div className="p-3 bg-gray-50 dark:bg-gray-800/50 rounded-xl text-sm text-muted">
-                Akun siswa terdaftar ini memiliki akses penuh tanpa perlu kartu pelajar.
               </div>
             )}
           </Card>

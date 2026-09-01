@@ -2,31 +2,36 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\AssessmentQuestion;
-use Illuminate\Database\Eloquent\Collection;
+use App\Services\AssessmentService;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Validator;
 
 class AssessmentController extends Controller
 {
+    public function __construct(
+        private AssessmentService $assessment,
+    ) {}
+
     public function questions($major = null): JsonResponse
     {
-        $query = AssessmentQuestion::query();
-
-        if ($major) {
-            $query->where('major_id', $major);
-        }
-
-        $questions = $query->select('id', 'major_id', 'question', 'options', 'difficulty', 'skill')->get();
+        $data = $this->assessment->questions($major);
 
         return response()->json([
             'success' => true,
-            'data' => $questions,
-            'meta' => [
-                'total' => count($questions),
-                'major' => $major ?? 'all'
-            ]
+            'data' => $data['data'],
+            'meta' => $data['meta'],
+        ]);
+    }
+
+    public function adminQuestions(Request $request): JsonResponse
+    {
+        $data = $this->assessment->adminQuestions($request->query('major'));
+
+        return response()->json([
+            'success' => true,
+            'data' => $data['data'],
+            'meta' => $data['meta'],
         ]);
     }
 
@@ -46,125 +51,68 @@ class AssessmentController extends Controller
             ], 422);
         }
 
-        $major = $request->major;
-        $answers = $request->answers;
+        $result = $this->assessment->submit($request->all(), $request->user()->id);
 
-        // Validate that answers correspond to questions for this major
-        $totalQuestions = AssessmentQuestion::where('major_id', $major)->count();
-        $answeredQuestions = count($answers);
+        return response()->json([
+            'success' => true,
+            'data' => $result,
+        ]);
+    }
 
-        if ($answeredQuestions !== $totalQuestions) {
+    public function results(Request $request): JsonResponse
+    {
+        $results = $this->assessment->results($request->user()->id);
+
+        return response()->json([
+            'success' => true,
+            'data' => $results,
+        ]);
+    }
+
+    public function updateQuestions(Request $request): JsonResponse
+    {
+        $validator = Validator::make($request->all(), [
+            'major' => 'required|string|in:RPL,DKV,TKJ,TT',
+            'questions' => 'required|array',
+        ]);
+
+        if ($validator->fails()) {
             return response()->json([
                 'success' => false,
-                'message' => "Expected {$totalQuestions} answers, got {$answeredQuestions}",
+                'message' => 'Validation failed',
+                'errors' => $validator->errors(),
             ], 422);
         }
 
-        // Calculate score and results
-        $questions = AssessmentQuestion::where('major_id', $major)->get();
-        $correct = 0;
-        $skillScores = [];
-        $levelScores = [];
-
-        foreach ($questions as $idx => $question) {
-            $questionId = $question->id;
-            if (isset($answers[$question->id])) {
-                if ($answers[$question->id] == $question->correct) {
-                    $correct++;
-                }
-            }
-        }
-
-        $score = $totalQuestions > 0 ? round(($correct / $totalQuestions) * 100) : 0;
-        $level = $this->getLevel($score);
-
-        // Calculate skill scores
-        $skillScores = $this->calculateSkillScores($questions, $answers);
-
-        $levelMap = ['beginner' => 1, 'developing' => 2, 'intermediate' => 3, 'advanced' => 4, 'expert' => 5];
-
-        // Save assessment result
-        $student = auth()->user()->student;
-        $result = $student->assessmentResults()->create([
-            'major_id' => $major,
-            'score' => $correct,
-            'level' => $levelMap[$level] ?? 1,
-            'skill_scores' => json_encode($skillScores),
-            'answered_at' => now(),
-        ]);
+        $data = $this->assessment->adminUpdateQuestions($request->input('major'), $request->input('questions'));
 
         return response()->json([
             'success' => true,
-            'data' => [
-                'score' => $correct,
-                'total' => $totalQuestions,
-                'percentage' => round(($correct / $totalQuestions) * 100),
-                'level' => $level,
-                'skill_scores' => $skillScores,
-                'answered_at' => now(),
-            ],
+            'message' => 'Questions updated',
+            'data' => $data,
         ]);
     }
 
-    private function getLevel(int $score): string
+    public function resetQuestions(Request $request): JsonResponse
     {
-        if ($score <= 20) return 'beginner';
-        if ($score <= 40) return 'developing';
-        if ($score <= 60) return 'intermediate';
-        if ($score <= 80) return 'advanced';
-        return 'expert';
-    }
+        $validator = Validator::make($request->all(), [
+            'major' => 'required|string|in:RPL,DKV,TKJ,TT',
+        ]);
 
-    private function calculateSkillScores(Collection $questions, array $answers): array
-    {
-        $skillScores = [];
-
-        foreach ($questions as $question) {
-            $skill = $question->skill;
-            if (!isset($skillScores[$skill])) {
-                $skillScores[$skill] = [
-                    'correct' => 0,
-                    'total' => 0,
-                    'level' => 'beginner'
-                ];
-            }
-
-            $skillScores[$skill]['total']++;
-            if (isset($answers[$question->id]) && $answers[$question->id] == $question->correct) {
-                $skillScores[$skill]['correct']++;
-            }
+        if ($validator->fails()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Validation failed',
+                'errors' => $validator->errors(),
+            ], 422);
         }
 
-        // Calculate levels per skill
-        foreach ($skillScores as &$skill) {
-            $percentage = $skill['total'] > 0 ? round(($skill['correct'] / $skill['total']) * 100) : 0;
-            if ($skill['correct'] === 0) {
-                $skill['level'] = 'beginner';
-            } elseif ($skill['correct'] === $skill['total']) {
-                $skill['level'] = 'expert';
-            } elseif ($skill['correct'] >= $skill['total'] * 0.75) {
-                $skill['level'] = 'advanced';
-            } elseif ($skill['correct'] >= $skill['total'] * 0.5) {
-                $skill['level'] = 'intermediate';
-            } else {
-                $skill['level'] = 'beginner';
-            }
-        }
-
-        return $skillScores;
-    }
-
-    public function results(): JsonResponse
-    {
-        $student = auth()->user()->student;
-
-        $results = $student->assessmentResults()
-            ->latest()
-            ->get(['id', 'major_id', 'score', 'level', 'skill_scores', 'answered_at']);
+        $data = $this->assessment->adminResetQuestions($request->input('major'));
 
         return response()->json([
             'success' => true,
-            'data' => $results
+            'message' => 'Questions reset to default',
+            'data' => $data,
         ]);
     }
 }
