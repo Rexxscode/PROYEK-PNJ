@@ -190,16 +190,27 @@ class RoadmapController extends Controller
         $status = $request->post('status');
         $resourcesViewed = $request->post('resources_viewed') ?? [];
 
-        // jangan menyimpan status di roadmap_milestones
-        // simpan saja ke student_roadmap_progress
-        $progress = \App\Models\StudentRoadmapProgress::updateOrCreate(
-            ['student_id' => $student->id, 'milestone_id' => $milestoneId],
-            [
-                'status' => $status,
-                'resources_viewed' => $resourcesViewed,
-                'completed_at' => $status === 'completed' ? now() : null,
-            ]
-        );
+        $data = [
+            'student_id' => $student->id,
+            'milestone_id' => $milestoneId,
+            'status' => $status,
+            'resources_viewed' => json_encode($resourcesViewed),
+            'completed_at' => $status === 'completed' ? now() : null,
+            'updated_at' => now(),
+        ];
+
+        $exists = \App\Models\StudentRoadmapProgress::where('student_id', $student->id)
+            ->where('milestone_id', $milestoneId)
+            ->exists();
+
+        if ($exists) {
+            \App\Models\StudentRoadmapProgress::where('student_id', $student->id)
+                ->where('milestone_id', $milestoneId)
+                ->update($data);
+        } else {
+            $data['created_at'] = now();
+            \App\Models\StudentRoadmapProgress::insert($data);
+        }
 
         return response()->json([
             'success' => true,
