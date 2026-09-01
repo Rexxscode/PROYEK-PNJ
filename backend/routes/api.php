@@ -24,7 +24,7 @@ Route::prefix('v1/auth')->group(function () {
 
     Route::middleware('auth:sanctum')->group(function () {
         Route::post('logout', [AuthController::class, 'logout']);
-        Route::post('change-password', [AuthController::class, 'changePassword']);
+        Route::post('change-password', [AuthController::class, 'changePassword'])->middleware('throttle:5,1');
         Route::get('me', [AuthController::class, 'me']);
     });
 });
@@ -40,10 +40,11 @@ Route::prefix('v1/students')->middleware(['auth:sanctum', 'role:admin'])->group(
 });
 
 Route::prefix('v1/assessment')->group(function () {
+    Route::get('questions/admin/{major?}', [AssessmentController::class, 'adminQuestions'])->middleware(['auth:sanctum', 'role:admin']);
     Route::get('questions/{major?}', [AssessmentController::class, 'questions']);
 
     Route::middleware(['auth:sanctum', 'role:student'])->group(function () {
-        Route::post('submit', [AssessmentController::class, 'submit']);
+        Route::post('submit', [AssessmentController::class, 'submit'])->middleware('throttle:5,1');
         Route::get('results', [AssessmentController::class, 'results']);
     });
 
@@ -58,10 +59,11 @@ Route::prefix('v1/materi')->group(function () {
 
     Route::middleware(['auth:sanctum', 'role:student'])->group(function () {
         Route::get('{materiId}/questions', [MateriController::class, 'questions']);
-        Route::post('{materiId}/submit', [MateriController::class, 'submit']);
+        Route::post('{materiId}/submit', [MateriController::class, 'submit'])->middleware('throttle:5,1');
     });
 
     Route::middleware(['auth:sanctum', 'role:admin'])->group(function () {
+        Route::get('{materiId}/questions/admin', [MateriController::class, 'adminQuestions']);
         Route::put('{materiId}/questions', [MateriController::class, 'updateQuestions']);
         Route::post('{materiId}/questions/reset', [MateriController::class, 'resetQuestions']);
     });
@@ -113,6 +115,7 @@ Route::prefix('v1/jobs')->group(function () {
 Route::prefix('v1/notifications')->middleware('auth:sanctum')->group(function () {
     Route::get('', [NotificationController::class, 'index']);
     Route::get('unread-count', [NotificationController::class, 'unreadCount']);
+    Route::post('', [NotificationController::class, 'store']);
     Route::post('{id}/read', [NotificationController::class, 'markRead']);
     Route::post('read-all', [NotificationController::class, 'markAllRead']);
 });
@@ -137,11 +140,11 @@ Route::prefix('v1/registrations')->middleware(['auth:sanctum', 'role:admin'])->g
 
 // Student: upload their own card & avatar
 Route::prefix('v1/registrations')->middleware(['auth:sanctum', 'role:student'])->group(function () {
-    Route::post('students/card', [RegistrationController::class, 'uploadCard']);
+    Route::post('students/card', [RegistrationController::class, 'uploadCard'])->middleware('throttle:5,1');
 });
 
 Route::prefix('v1/students')->middleware(['auth:sanctum', 'role:student'])->group(function () {
-    Route::post('avatar', [StudentController::class, 'updateAvatar']);
+    Route::post('avatar', [StudentController::class, 'updateAvatar'])->middleware('throttle:5,1');
 });
 
 // Admin: majors & statistics

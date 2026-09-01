@@ -20,6 +20,9 @@ interface AuthUser {
     major: string;
     major_name: string;
     grade: string;
+    card_status: "none" | "pending" | "approved";
+    student_card?: string | null;
+    avatar?: string | null;
   };
   industry?: {
     company_name: string;

@@ -50,12 +50,14 @@ class AssessmentQuestionSeeder extends Seeder
             preg_match_all('/options:\s*\[([^\]]+)\]/', $quizContent, $optionsMatches);
             preg_match_all('/correct:\s*(\d+)/', $quizContent, $correctMatches);
             preg_match_all('/difficulty:\s*"([^"]+)"/', $quizContent, $difficultyMatches);
+            preg_match_all('/skill:\s*"([^"]+)"/', $quizContent, $skillMatches);
 
             $ids = $idMatches[1] ?? [];
             $questions = $questionMatches[1] ?? [];
             $optionsRaw = $optionsMatches[1] ?? [];
             $corrects = $correctMatches[1] ?? [];
             $difficulties = $difficultyMatches[1] ?? [];
+            $skills = $skillMatches[1] ?? [];
 
             // Parse options from raw string - extract option texts
             $parsedOptions = [];
@@ -79,7 +81,7 @@ class AssessmentQuestionSeeder extends Seeder
                     'options' => $parsedOptions[$i] ?? [],
                     'correct' => $correctVal,
                     'difficulty' => $difficulty,
-                    'skill' => '',
+                    'skill' => $skills[$i] ?? '',
                 ]);
 
                 $question->save();

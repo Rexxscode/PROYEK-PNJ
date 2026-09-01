@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useMemo } from "react";
 import { Search, ChevronDown, ChevronUp, Users } from "lucide-react";
 import Card from "../../components/ui/card";
 import Badge from "../../components/ui/badge";
@@ -14,6 +14,24 @@ type StudentRow = {
   grade: string;
 };
 
+type RawStudent = {
+  name: string;
+  user?: { email?: string } | null;
+  major?: { name?: string } | null;
+  major_id?: string | null;
+  grade?: string | null;
+  [k: string]: unknown;
+};
+
+function mapStudent(s: RawStudent): StudentRow {
+  return {
+    name: s.name ?? "",
+    email: s.user?.email ?? "",
+    major: s.major?.name ?? s.major_id ?? "-",
+    grade: s.grade ?? "",
+  };
+}
+
 export default function StudentsPage() {
   const [search, setSearch] = useState("");
   const [majorFilter, setMajorFilter] = useState("all");
@@ -25,9 +43,9 @@ export default function StudentsPage() {
   useEffect(() => {
     const fetchStudents = async () => {
       try {
-        const res = await api.get<{ success: boolean; data: StudentRow[] }>(BACKEND_ENDPOINTS.students.list);
+        const res = await api.get<{ success: boolean; data: RawStudent[] }>(BACKEND_ENDPOINTS.students.list);
         if (res.success) {
-          setRows(res.data);
+          setRows(res.data.map(mapStudent));
         }
       } catch {
         // silently fail
@@ -55,7 +73,7 @@ export default function StudentsPage() {
     return matchesSearch && matchesMajor;
   });
 
-  const majors = [...new Set(rows.map((s) => s.major))];
+  const majors = useMemo(() => [...new Set(rows.map((s) => s.major))], [rows]);
 
   return (
     <div>
@@ -125,7 +143,7 @@ export default function StudentsPage() {
                 </thead>
                 <tbody>
                   {filtered.map((student, index) => (
-                    <tr key={student.email} className="border-b border-border/50 hover:bg-gray-50 dark:hover:bg-gray-700/50">
+                    <tr key={student.email || index} className="border-b border-border/50 hover:bg-gray-50 dark:hover:bg-gray-700/50">
                       <td className="py-3 px-3 text-muted">{index + 1}</td>
                       <td className="py-3 px-3 font-medium text-foreground">{student.name}</td>
                       <td className="py-3 px-3 text-muted break-all">{student.email}</td>

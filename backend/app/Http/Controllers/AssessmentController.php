@@ -24,6 +24,17 @@ class AssessmentController extends Controller
         ]);
     }
 
+    public function adminQuestions(Request $request): JsonResponse
+    {
+        $data = $this->assessment->adminQuestions($request->query('major'));
+
+        return response()->json([
+            'success' => true,
+            'data' => $data['data'],
+            'meta' => $data['meta'],
+        ]);
+    }
+
     public function submit(Request $request): JsonResponse
     {
         $validator = Validator::make($request->all(), [

@@ -173,6 +173,11 @@ class AuthService
                 'major' => $user->student->major?->short_code,
                 'major_name' => $user->student->major?->name,
                 'grade' => $user->student->grade,
+                'card_status' => $user->student->card_status ?? 'none',
+                'student_card' => $user->student->student_card,
+                'avatar' => $user->student->avatar
+                    ? '/storage/avatars/' . $user->student->avatar
+                    : null,
             ];
         } elseif ($user->role === 'industry' && $user->industry) {
             $data['industry'] = [

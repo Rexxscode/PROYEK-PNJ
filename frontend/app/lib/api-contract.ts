@@ -21,11 +21,13 @@ export const BACKEND_ENDPOINTS = {
     register: "/api/v1/auth/register",
     logout: "/api/v1/auth/logout",
     me: "/api/v1/auth/me",
+    changePassword: "/api/v1/auth/change-password",
   },
   students: {
     list: "/api/v1/students",
     bySlug: (slug: string) => `/api/v1/students/${slug}`,
     updateGrade: (email: string) => `/api/v1/students/${email}/grade`,
+    avatar: "/api/v1/students/avatar",
   },
   industries: {
     list: "/api/v1/industries",
@@ -40,7 +42,9 @@ export const BACKEND_ENDPOINTS = {
     materi: (major: string) => `/api/v1/majors/${major}/materi`,
   },
   assessment: {
-    questions: (major: string) => `/api/v1/assessment/questions?major=${encodeURIComponent(major)}`,
+    questions: (major: string) => `/api/v1/assessment/questions/${encodeURIComponent(major)}`,
+    adminQuestions: (major?: string) =>
+      major ? `/api/v1/assessment/questions/admin/${encodeURIComponent(major)}` : "/api/v1/assessment/questions/admin",
     submit: "/api/v1/assessment/submit",
     results: "/api/v1/assessment/results",
     update: (major: string) => `/api/v1/assessment/questions?major=${encodeURIComponent(major)}`,
@@ -48,6 +52,7 @@ export const BACKEND_ENDPOINTS = {
   },
   materiQuiz: {
     questions: (materiId: string) => `/api/v1/materi/${materiId}/questions`,
+    adminQuestions: (materiId: string) => `/api/v1/materi/${materiId}/questions/admin`,
     submit: (materiId: string) => `/api/v1/materi/${materiId}/submit`,
     update: (materiId: string) => `/api/v1/materi/${materiId}/questions`,
     reset: (materiId: string) => `/api/v1/materi/${materiId}/questions/reset`,
@@ -57,6 +62,14 @@ export const BACKEND_ENDPOINTS = {
     approve: (email: string) => `/api/v1/registrations/students/${email}/approve`,
     reject: (email: string) => `/api/v1/registrations/students/${email}/reject`,
     cardUpload: "/api/v1/registrations/students/card",
+  },
+  admins: {
+    list: "/api/v1/admins",
+    create: "/api/v1/admins",
+  },
+  statistics: {
+    dashboard: "/api/v1/admin/statistics",
+    readiness: "/api/v1/admin/statistics/readiness",
   },
   certificates: {
     list: "/api/v1/certificates",
@@ -75,6 +88,7 @@ export const BACKEND_ENDPOINTS = {
   notifications: {
     list: "/api/v1/notifications",
     unreadCount: "/api/v1/notifications/unread-count",
+    create: "/api/v1/notifications",
     markRead: (id: string) => `/api/v1/notifications/${id}/read`,
     markAllRead: "/api/v1/notifications/read-all",
   },
@@ -98,7 +112,7 @@ export const CLIENT_STORAGE_KEYS = {
 
 export type QuizQuestionDTO = QuizQuestion;
 export type AssessmentSubmitPayload = { major: string; answers: Record<string, number> };
-export type MateriQuizSubmitPayload = { materiId: string; answers: number[] };
+export type MateriQuizSubmitPayload = { answers: Record<string, number> };
 export type CertificateIssuePayload = { materiId: string; studentEmail: string };
 export type StudentRegistrationPayload = {
   email: string;

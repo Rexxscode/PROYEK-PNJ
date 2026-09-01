@@ -27,6 +27,19 @@ class AssessmentService
         ];
     }
 
+    public function adminQuestions(?string $major): array
+    {
+        $questions = $this->assessments->adminQuestions($major);
+
+        return [
+            'data' => $questions,
+            'meta' => [
+                'total' => $questions->count(),
+                'major' => $major ?? 'all',
+            ],
+        ];
+    }
+
     public function submit(array $data, int $userId): array
     {
         $major = $data['major'];

@@ -35,6 +35,17 @@ class MateriController extends Controller
         ]);
     }
 
+    public function adminQuestions($materiId): JsonResponse
+    {
+        $data = $this->materi->adminQuestions($materiId);
+
+        return response()->json([
+            'success' => true,
+            'data' => $data['data'],
+            'meta' => $data['meta'],
+        ]);
+    }
+
     public function submit(Request $request, $materiId): JsonResponse
     {
         $validator = Validator::make($request->all(), [

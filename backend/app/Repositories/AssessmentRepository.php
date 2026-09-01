@@ -25,6 +25,17 @@ class AssessmentRepository extends Repository
         return $query->select('id', 'major_id', 'question', 'options', 'difficulty', 'skill')->get();
     }
 
+    public function adminQuestions(string $major = null): Collection
+    {
+        $query = AssessmentQuestion::query()->select('id', 'major_id', 'question', 'options', 'correct', 'difficulty', 'skill');
+
+        if ($major) {
+            $query->where('major_id', $major);
+        }
+
+        return $query->get();
+    }
+
     public function questionsForMajor(string $major): Collection
     {
         return AssessmentQuestion::where('major_id', $major)->get();

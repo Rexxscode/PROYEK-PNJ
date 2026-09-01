@@ -17,9 +17,47 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "SkillMatch - Career Readiness Platform",
+  metadataBase: new URL(process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"),
+  title: {
+    default: "SkillMatch - Career Readiness Platform",
+    template: "%s | SkillMatch",
+  },
   description:
-    "Platform career readiness yang menjembatani kesenjangan kompetensi antara siswa vokasi dan kebutuhan industri.",
+    "Platform career readiness yang menjembatani kesenjangan kompetensi antara siswa vokasi (SMK) dan kebutuhan industri. Tes jurusan, penilaian keterampilan, sertifikat, dan pemetaan karier.",
+  keywords: [
+    "career readiness",
+    "skill match",
+    "SMK",
+    "sekolah vokasi",
+    "tes jurusan",
+    "asesmen keterampilan",
+    "pemetaan karier",
+    "rekomendasi karier",
+  ],
+  authors: [{ name: "SkillMatch" }],
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: { index: true, follow: true, "max-image-preview": "large" },
+  },
+  openGraph: {
+    type: "website",
+    locale: "id_ID",
+    siteName: "SkillMatch",
+    title: "SkillMatch - Career Readiness Platform",
+    description:
+      "Jembatani kesenjangan kompetensi antara siswa vokasi dan kebutuhan industri.",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "SkillMatch - Career Readiness Platform",
+    description:
+      "Platform career readiness untuk siswa vokasi dan kebutuhan industri.",
+  },
+  viewport: {
+    width: "device-width",
+    initialScale: 1,
+  },
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {

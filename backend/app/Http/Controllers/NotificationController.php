@@ -22,6 +22,32 @@ class NotificationController extends Controller
         ]);
     }
 
+    public function store(Request $request): JsonResponse
+    {
+        $validator = \Illuminate\Support\Facades\Validator::make($request->all(), [
+            'text' => 'required|string|max:500',
+            'type' => 'required|string|max:50',
+            'role' => 'nullable|string|in:student,industry,admin',
+            'target_email' => 'nullable|string|email',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Validation failed',
+                'errors' => $validator->errors(),
+            ], 422);
+        }
+
+        $data = $this->notification->create($request->all(), $request->user()->id);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Notification created',
+            'data' => $data,
+        ]);
+    }
+
     public function unreadCount(Request $request): JsonResponse
     {
         $data = $this->notification->unreadCount($request->user()->id);

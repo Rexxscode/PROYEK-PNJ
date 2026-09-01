@@ -41,8 +41,50 @@ class MateriService
 
         $questions = $this->materis->questionsForMateri($materiId);
 
+        // Never expose correct answers to students.
+        $safe = $questions->map(fn ($q) => [
+            'id' => $q->id,
+            'materi_id' => $q->materi_id,
+            'skill' => $q->skill_name,
+            'question' => $q->question,
+            'options' => $q->options,
+            'difficulty' => $q->difficulty,
+        ]);
+
         return [
-            'data' => $questions,
+            'data' => $safe,
+            'meta' => [
+                'total' => $questions->count(),
+                'materi_id' => $materiId,
+                'major_id' => $materi->major_id,
+            ],
+        ];
+    }
+
+    public function adminQuestions($materiId): array
+    {
+        $materi = $this->materis->findById($materiId);
+
+        if (!$materi) {
+            throw ValidationException::withMessages([
+                'materi' => 'Materi tidak ditemukan',
+            ]);
+        }
+
+        $questions = $this->materis->questionsForMateri($materiId);
+
+        $full = $questions->map(fn ($q) => [
+            'id' => $q->id,
+            'materi_id' => $q->materi_id,
+            'skill' => $q->skill_name,
+            'question' => $q->question,
+            'options' => $q->options,
+            'correct' => $q->correct_index,
+            'difficulty' => $q->difficulty,
+        ]);
+
+        return [
+            'data' => $full,
             'meta' => [
                 'total' => $questions->count(),
                 'materi_id' => $materiId,
@@ -152,9 +194,16 @@ class MateriService
         $this->materis->deleteQuestionsForMateri($materiId);
 
         foreach ($questions as $q) {
+            $skillId = $q['skill_id'] ?? null;
+
+            if ($skillId === null && !empty($q['skill'])) {
+                $skill = \App\Models\Skill::where('name', $q['skill'])->first();
+                $skillId = $skill?->id ?? null;
+            }
+
             $this->materis->createQuestion([
                 'materi_id' => $materiId,
-                'skill_id' => $q['skill_id'] ?? null,
+                'skill_id' => $skillId,
                 'question' => $q['question'],
                 'options' => json_encode($q['options']),
                 'correct_index' => $q['correct'],

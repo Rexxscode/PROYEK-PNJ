@@ -20,6 +20,19 @@ class MateriQuestion extends Model
         'difficulty',
     ];
 
+    protected $casts = [
+        'options' => 'array',
+    ];
+
+    protected $appends = ['skill_name'];
+
+    public function getSkillNameAttribute(): ?string
+    {
+        return $this->relationLoaded('skill') && $this->skill
+            ? $this->skill->name
+            : ($this->skill?->name ?? null);
+    }
+
     /**     * The materi this question belongs to.
      */
     public function materi(): BelongsTo

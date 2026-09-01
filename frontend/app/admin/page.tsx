@@ -16,49 +16,92 @@ import ProgressBar from "../components/ui/progressbar";
 import { SkeletonDashboard } from "../components/ui/skeleton";
 import dynamic from "next/dynamic";
 import DashboardHeader from "../components/layout/dashboardheader";
-import {
-  getStudentStats,
-  getAllStudentsList,
-  getAllIndustries,
-  getStudentReadiness,
-  getStudentAssessmentStatus,
-  getPendingCardStudents,
-} from "../lib/mock-data";
+import { api, BACKEND_ENDPOINTS } from "../lib/api";
 import { useCountUp } from "../lib/use-count-up";
 
 const SkillBarChart = dynamic(() => import("../components/charts/barchart"), { ssr: false });
 
+type DashboardStats = {
+  totalStudents: number;
+  assessedStudents: number;
+  assessedPercentage: number;
+  avgReadinessScore: number;
+  totalIndustries: number;
+  pendingIndustries: number;
+  pendingCards: number;
+  topCareers: { name: string; count: number }[];
+  readinessByMajor: { major: string; score: number }[];
+  monthlyRegistrations: { month: string; count: number }[];
+};
+
+type StudentRow = {
+  name: string;
+  email: string;
+  major: string;
+  readiness: number;
+  assessed: boolean;
+};
+
 export default function AdminDashboard() {
   const [mounted, setMounted] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [stats, setStats] = useState<DashboardStats | null>(null);
+  const [recentStudents, setRecentStudents] = useState<StudentRow[]>([]);
+
   useEffect(() => { setMounted(true); }, []);
 
-  const [pendingCards, setPendingCards] = useState(0);
   useEffect(() => {
-    const refresh = () => setPendingCards(getPendingCardStudents().length);
-    refresh();
-    window.addEventListener("students-updated", refresh);
-    return () => window.removeEventListener("students-updated", refresh);
+    const load = async () => {
+      try {
+        const [statsRes, studentsRes] = await Promise.all([
+          api.get<{ success: boolean; data: DashboardStats }>(BACKEND_ENDPOINTS.statistics.dashboard),
+          api.get<{
+            success: boolean;
+            data: { name: string; user?: { email?: string } | null; major?: { name?: string } | null; readiness?: number | null; assessed?: boolean | null }[];
+          }>(BACKEND_ENDPOINTS.students.list),
+        ]);
+        if (statsRes.success) setStats(statsRes.data);
+        if (studentsRes.success) {
+          setRecentStudents(studentsRes.data.map((s) => ({
+            name: s.name ?? "",
+            email: s.user?.email ?? "",
+            major: s.major?.name ?? "-",
+            readiness: s.readiness ?? (s.assessed ? 0 : 0),
+            assessed: !!s.assessed,
+          })));
+        }
+      } catch {
+        // silently fail
+      } finally {
+        setLoading(false);
+      }
+    };
+    load();
   }, []);
 
-  const stats = getStudentStats();
-  const assessedPercentage = stats.totalStudents ? Math.round((stats.assessedStudents / stats.totalStudents) * 100) : 0;
-  const industries = getAllIndustries();
-  const pendingIndustries = industries.filter((i) => i.status === "pending").length;
-  const animTotal = useCountUp(stats.totalStudents);
-  const animAssessed = useCountUp(stats.assessedStudents);
-  const animAvgScore = useCountUp(stats.avgReadinessScore);
+  if (!mounted || loading) return <div className="p-6 lg:pl-72"><SkeletonDashboard /></div>;
+
+  const statsValue = stats || {
+    totalStudents: 0,
+    assessedStudents: 0,
+    assessedPercentage: 0,
+    avgReadinessScore: 0,
+    totalIndustries: 0,
+    pendingIndustries: 0,
+    pendingCards: 0,
+    topCareers: [],
+    readinessByMajor: [],
+    monthlyRegistrations: [],
+  };
+
+  const assessedPercentage = statsValue.totalStudents ? Math.round((statsValue.assessedStudents / statsValue.totalStudents) * 100) : 0;
+  const pendingIndustries = statsValue.pendingIndustries;
+  const pendingCards = statsValue.pendingCards;
+  const animTotal = useCountUp(statsValue.totalStudents);
+  const animAssessed = useCountUp(statsValue.assessedStudents);
+  const animAvgScore = useCountUp(statsValue.avgReadinessScore);
   const animPercentage = useCountUp(assessedPercentage);
-  const animIndustries = useCountUp(industries.length);
-
-  if (!mounted) return <div className="p-6 lg:pl-72"><SkeletonDashboard /></div>;
-
-  const recentStudents = getAllStudentsList().map((s) => ({
-    name: s.name,
-    email: s.email,
-    major: s.major,
-    score: getStudentReadiness(s.email) ?? 0,
-    status: getStudentAssessmentStatus(s.email),
-  }));
+  const animIndustries = useCountUp(statsValue.totalIndustries);
 
   return (
     <div>
@@ -173,16 +216,16 @@ export default function AdminDashboard() {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
         <Card>
           <SkillBarChart
-            labels={stats.topCareers.map((c) => c.name)}
-            data={stats.topCareers.map((c) => c.count)}
+            labels={statsValue.topCareers.map((c) => c.name)}
+            data={statsValue.topCareers.map((c) => c.count)}
             title="Top Karier Pilihan Siswa"
             color="rgba(37, 99, 235, 0.8)"
           />
         </Card>
         <Card>
           <SkillBarChart
-            labels={stats.readinessByMajor.map((m) => m.major)}
-            data={stats.readinessByMajor.map((m) => m.score)}
+            labels={statsValue.readinessByMajor.map((m) => m.major)}
+            data={statsValue.readinessByMajor.map((m) => m.score)}
             title="Readiness Score per Jurusan"
             color="rgba(124, 58, 237, 0.8)"
           />
@@ -198,61 +241,67 @@ export default function AdminDashboard() {
           </a>
         </div>
 
-        {/* Desktop table */}
-        <div className="hidden sm:block overflow-x-auto">
-          <table className="w-full text-sm">
-            <thead>
-              <tr className="border-b border-border">
-                <th className="text-left py-3 px-2 font-medium text-muted">Nama</th>
-                <th className="text-left py-3 px-2 font-medium text-muted">Jurusan</th>
-                <th className="text-left py-3 px-2 font-medium text-muted">Readiness</th>
-                <th className="text-left py-3 px-2 font-medium text-muted">Status</th>
-              </tr>
-            </thead>
-            <tbody>
-              {recentStudents.map((student) => (
-                <tr key={student.email} className="border-b border-border/50 hover:bg-gray-50 dark:hover:bg-gray-700/50">
-                  <td className="py-3 px-2 font-medium text-foreground">{student.name}</td>
-                  <td className="py-3 px-2 text-muted">{student.major}</td>
-                  <td className="py-3 px-2">
-                    {student.status === "assessed" ? (
-                      <span className={`font-semibold ${student.score >= 70 ? "text-emerald-600 dark:text-emerald-400" : student.score >= 50 ? "text-amber-600 dark:text-amber-400" : "text-red-500 dark:text-red-400"}`}>
-                        {student.score}%
-                      </span>
-                    ) : (
-                      <span className="text-muted">-</span>
-                    )}
-                  </td>
-                  <td className="py-3 px-2">
-                    <Badge variant={student.status === "assessed" ? "success" : "warning"}>
-                      {student.status === "assessed" ? "Dinilai" : "Belum"}
-                    </Badge>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-
-        {/* Mobile cards */}
-        <div className="sm:hidden space-y-3">
-          {recentStudents.map((student) => (
-            <div key={student.email} className="p-3 bg-gray-50 dark:bg-gray-700/50 rounded-lg">
-              <div className="flex items-center justify-between mb-1">
-                <p className="font-medium text-foreground text-sm">{student.name}</p>
-                <Badge variant={student.status === "assessed" ? "success" : "warning"}>
-                  {student.status === "assessed" ? "Dinilai" : "Belum"}
-                </Badge>
-              </div>
-              <p className="text-xs text-muted mb-1">{student.major}</p>
-              {student.status === "assessed" && (
-                <p className={`text-sm font-semibold ${student.score >= 70 ? "text-emerald-600 dark:text-emerald-400" : student.score >= 50 ? "text-amber-600 dark:text-amber-400" : "text-red-500 dark:text-red-400"}`}>
-                  Readiness: {student.score}%
-                </p>
-              )}
+        {recentStudents.length === 0 ? (
+          <div className="text-center py-10 text-sm text-muted">Belum ada data siswa.</div>
+        ) : (
+          <>
+            {/* Desktop table */}
+            <div className="hidden sm:block overflow-x-auto">
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="border-b border-border">
+                    <th className="text-left py-3 px-2 font-medium text-muted">Nama</th>
+                    <th className="text-left py-3 px-2 font-medium text-muted">Jurusan</th>
+                    <th className="text-left py-3 px-2 font-medium text-muted">Readiness</th>
+                    <th className="text-left py-3 px-2 font-medium text-muted">Status</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {recentStudents.map((student) => (
+                    <tr key={student.email} className="border-b border-border/50 hover:bg-gray-50 dark:hover:bg-gray-700/50">
+                      <td className="py-3 px-2 font-medium text-foreground">{student.name}</td>
+                      <td className="py-3 px-2 text-muted">{student.major}</td>
+                      <td className="py-3 px-2">
+                        {student.assessed ? (
+                          <span className={`font-semibold ${student.readiness >= 70 ? "text-emerald-600 dark:text-emerald-400" : student.readiness >= 50 ? "text-amber-600 dark:text-amber-400" : "text-red-500 dark:text-red-400"}`}>
+                            {student.readiness}%
+                          </span>
+                        ) : (
+                          <span className="text-muted">-</span>
+                        )}
+                      </td>
+                      <td className="py-3 px-2">
+                        <Badge variant={student.assessed ? "success" : "warning"}>
+                          {student.assessed ? "Dinilai" : "Belum"}
+                        </Badge>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
             </div>
-          ))}
-        </div>
+
+            {/* Mobile cards */}
+            <div className="sm:hidden space-y-3">
+              {recentStudents.map((student) => (
+                <div key={student.email} className="p-3 bg-gray-50 dark:bg-gray-700/50 rounded-lg">
+                  <div className="flex items-center justify-between mb-1">
+                    <p className="font-medium text-foreground text-sm">{student.name}</p>
+                    <Badge variant={student.assessed ? "success" : "warning"}>
+                      {student.assessed ? "Dinilai" : "Belum"}
+                    </Badge>
+                  </div>
+                  <p className="text-xs text-muted mb-1">{student.major}</p>
+                  {student.assessed && (
+                    <p className={`text-sm font-semibold ${student.readiness >= 70 ? "text-emerald-600 dark:text-emerald-400" : student.readiness >= 50 ? "text-amber-600 dark:text-amber-400" : "text-red-500 dark:text-red-400"}`}>
+                      Readiness: {student.readiness}%
+                    </p>
+                  )}
+                </div>
+              ))}
+            </div>
+          </>
+        )}
       </Card>
     </div>
   );

@@ -16,8 +16,7 @@ import Badge from "../../components/ui/badge";
 import ProgressBar from "../../components/ui/progressbar";
 import { SkeletonDashboard } from "../../components/ui/skeleton";
 import DashboardHeader from "../../components/layout/dashboardheader";
-import { MAJORS, materiList } from "../../lib/materi-catalog";
-import { getQuizForMateri } from "../../lib/materi-quiz";
+import { MAJORS, materiList, QUESTIONS_PER_MATERI } from "../../lib/materi-catalog";
 import { useAuth } from "../../lib/auth-context";
 import { api, BACKEND_ENDPOINTS } from "../../lib/api";
 
@@ -127,7 +126,7 @@ export default function SertifikatPage() {
               {items.map((materi) => {
                 const st = statusMap[materi.id];
                 const { result } = st;
-                const qCount = getQuizForMateri(materi.id)?.length ?? 20;
+                const qCount = QUESTIONS_PER_MATERI;
                 return (
                   <Card key={materi.id} className="flex flex-col">
                     <div className="flex items-start justify-between mb-3">
