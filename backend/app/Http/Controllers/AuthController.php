@@ -2,18 +2,18 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\User;
-use App\Models\Student;
-use App\Models\Industry;
-use App\Models\Major;
+use App\Services\AuthService;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
-use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\ValidationException;
 
 class AuthController extends Controller
 {
+    public function __construct(
+        private AuthService $auth,
+    ) {}
+
     public function login(Request $request): JsonResponse
     {
         $validator = Validator::make($request->all(), [
@@ -22,42 +22,27 @@ class AuthController extends Controller
         ]);
 
         if ($validator->fails()) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Validation failed',
-                'errors' => $validator->errors(),
-            ], 422);
+            return $this->validationError($validator->errors());
         }
 
-        $user = User::where('email', $request->email)->first();
-
-        if (!$user || !Hash::check($request->password, $user->password)) {
+        try {
+            $data = $this->auth->login($request->only('email', 'password'));
+        } catch (\Symfony\Component\HttpKernel\Exception\UnauthorizedHttpException $e) {
             return response()->json([
                 'success' => false,
                 'message' => 'Invalid credentials',
             ], 401);
+        } catch (\Symfony\Component\HttpKernel\Exception\AccessDeniedHttpException $e) {
+            return response()->json([
+                'success' => false,
+                'message' => $e->getMessage(),
+            ], 403);
         }
-
-        // Check industry approval status
-        if ($user->role === 'industry') {
-            $industry = $user->industry;
-            if ($industry && $industry->status !== 'approved') {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'Industry account not approved yet',
-                ], 403);
-            }
-        }
-
-        $token = $user->createToken('auth_token')->plainTextToken;
 
         return response()->json([
             'success' => true,
             'message' => 'Login successful',
-            'data' => [
-                'token' => $token,
-                'user' => $this->formatUserResponse($user),
-            ],
+            'data' => $data,
         ]);
     }
 
@@ -74,53 +59,21 @@ class AuthController extends Controller
         ]);
 
         if ($validator->fails()) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Validation failed',
-                'errors' => $validator->errors(),
-            ], 422);
+            return $this->validationError($validator->errors());
         }
 
-        $user = User::create([
-            'name' => $request->name,
-            'email' => $request->email,
-            'password' => Hash::make($request->password),
-            'role' => $request->role,
-        ]);
-
-        if ($request->role === 'student') {
-            $major = Major::where('short_code', $request->major)->firstOrFail();
-            Student::create([
-                'user_id' => $user->id,
-                'major_id' => $major->short_code,
-                'grade' => $request->grade,
-            ]);
-        } elseif ($request->role === 'industry') {
-            Industry::create([
-                'user_id' => $user->id,
-                'company' => $request->company,
-                'status' => 'pending',
-            ]);
-        }
-
-        // Reload user with relationships for response
-        $user->loadMissing(['student.major', 'industry']);
-
-        $token = $user->createToken('auth_token')->plainTextToken;
+        $data = $this->auth->register($request->all());
 
         return response()->json([
             'success' => true,
             'message' => 'Registration successful',
-            'data' => [
-                'token' => $token,
-                'user' => $this->formatUserResponse($user),
-            ],
+            'data' => $data,
         ], 201);
     }
 
     public function logout(Request $request): JsonResponse
     {
-        $request->user()->currentAccessToken()->delete();
+        $this->auth->logout($request->user());
 
         return response()->json([
             'success' => true,
@@ -133,34 +86,98 @@ class AuthController extends Controller
         return response()->json([
             'success' => true,
             'data' => [
-                'user' => $this->formatUserResponse($request->user()),
+                'user' => $this->auth->formatUser($request->user()),
             ],
         ]);
     }
 
-    private function formatUserResponse(User $user): array
+    public function changePassword(Request $request): JsonResponse
     {
-        $data = [
-            'id' => $user->id,
-            'name' => $user->name,
-            'email' => $user->email,
-            'role' => $user->role,
-            'created_at' => $user->created_at?->toISOString(),
-        ];
+        $validator = Validator::make($request->all(), [
+            'current_password' => 'required|string',
+            'new_password' => 'required|string|min:8|confirmed',
+        ]);
 
-        if ($user->role === 'student' && $user->student) {
-            $data['student'] = [
-                'major' => $user->student->major?->short_code,
-                'major_name' => $user->student->major?->name,
-                'grade' => $user->student->grade,
-            ];
-        } elseif ($user->role === 'industry' && $user->industry) {
-            $data['industry'] = [
-                'company_name' => $user->industry->company,
-                'status' => $user->industry->status,
-            ];
+        if ($validator->fails()) {
+            return $this->validationError($validator->errors());
         }
 
-        return $data;
+        try {
+            $this->auth->changePassword(
+                $request->user(),
+                $request->input('current_password'),
+                $request->input('new_password')
+            );
+        } catch (ValidationException $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Validation failed',
+                'errors' => $e->errors(),
+            ], 422);
+        }
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Password changed successfully',
+        ]);
+    }
+
+    public function forgotPassword(Request $request): JsonResponse
+    {
+        $validator = Validator::make($request->all(), [
+            'email' => 'required|email',
+        ]);
+
+        if ($validator->fails()) {
+            return $this->validationError($validator->errors());
+        }
+
+        $data = $this->auth->forgotPassword($request->input('email'));
+
+        return response()->json([
+            'success' => true,
+            'data' => $data,
+        ]);
+    }
+
+    public function resetPassword(Request $request): JsonResponse
+    {
+        $validator = Validator::make($request->all(), [
+            'email' => 'required|email',
+            'token' => 'required|string',
+            'password' => 'required|string|min:8|confirmed',
+        ]);
+
+        if ($validator->fails()) {
+            return $this->validationError($validator->errors());
+        }
+
+        try {
+            $this->auth->resetPassword(
+                $request->input('email'),
+                $request->input('token'),
+                $request->input('password')
+            );
+        } catch (ValidationException $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Validation failed',
+                'errors' => $e->errors(),
+            ], 422);
+        }
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Password reset successfully',
+        ]);
+    }
+
+    private function validationError($errors): JsonResponse
+    {
+        return response()->json([
+            'success' => false,
+            'message' => 'Validation failed',
+            'errors' => $errors,
+        ], 422);
     }
 }

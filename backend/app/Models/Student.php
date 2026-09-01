@@ -23,6 +23,8 @@ class Student extends Model
         'major_id',
         'grade',
         'avatar',
+        'student_card',
+        'card_status',
     ];
 
     /**

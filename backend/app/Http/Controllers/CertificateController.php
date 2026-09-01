@@ -2,47 +2,34 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Certificate;
-use App\Models\Student;
-use App\Models\Materi;
+use App\Services\CertificateService;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
-use Illuminate\Support\Facades\Validator;
 
 class CertificateController extends Controller
 {
-    public function list(): JsonResponse
+    public function __construct(
+        private CertificateService $certificate,
+    ) {}
+
+    public function list(Request $request): JsonResponse
     {
-        $certificates = Certificate::where('student_id', auth()->user()->student->id)
-            ->with(['materi', 'major'])
-            ->latest()
-            ->get();
+        $data = $this->certificate->list($request->user()->id);
 
         return response()->json([
             'success' => true,
-            'data' => $certificates,
-            'meta' => [
-                'total' => count($certificates),
-            ]
+            'data' => $data['data'],
+            'meta' => $data['meta'] ?? [],
         ]);
     }
 
-    public function detail(int|string $materiId): JsonResponse
+    public function detail(Request $request, $materiId): JsonResponse
     {
-        $certificate = Certificate::where('student_id', auth()->user()->student->id)
-            ->where('materi_id', $materiId)
-            ->first();
-
-        if (!$certificate) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Certificate not found',
-            ], 404);
-        }
+        $data = $this->certificate->detail($request->user()->id, $materiId);
 
         return response()->json([
             'success' => true,
-            'data' => $certificate,
+            'data' => $data['data'],
         ]);
     }
 }

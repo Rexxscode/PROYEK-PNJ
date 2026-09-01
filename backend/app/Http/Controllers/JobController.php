@@ -2,156 +2,116 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Job;
-use App\Models\Industry;
+use App\Services\JobService;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Support\Facades\Validator;
 
 class JobController extends Controller
 {
+    public function __construct(
+        private JobService $job,
+    ) {}
+
     public function index(Request $request): JsonResponse
     {
-        $typeFilter = $request->query('type');
-
-        $query = Job::with('industry', 'skills');
-
-        if ($typeFilter) {
-            $query->where('type', $typeFilter);
-        }
-
-        $jobs = $query->get();
+        $data = $this->job->publicList(
+            $request->query('type'),
+            $request->integer('page') ?: null,
+            $request->integer('per_page') ?: null,
+            (string) $request->query('search', '')
+        );
 
         return response()->json([
             'success' => true,
-            'data' => $jobs->map(function ($job) {
-                return [
-                    'id' => $job->id,
-                    'title' => $job->title,
-                    'company' => $job->industry->company ?? 'Unknown',
-                    'location' => $job->location,
-                    'type' => $job->type,
-                    'description' => $job->description,
-                    'skills' => $job->skills->pluck('name')->toArray(),
-                    'matchPercentage' => $job->match_percentage ?? 0,
-                    'postedAt' => $job->posted_at,
-                    'deadline' => $job->deadline,
-                ];
-            }),
-        ]);
-    }
-
-    public function mine(Request $request): JsonResponse
-    {
-        $user = $request->user();
-
-        if ($user->role !== 'industry') {
-            return response()->json([
-                'success' => false,
-                'message' => 'Unauthorized: industry account required',
-            ], 403);
-        }
-
-        $industry = $user->industry;
-        if (!$industry) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Industry profile not found',
-            ], 404);
-        }
-
-        $jobs = Job::where('industry_id', $industry->id)->with('skills')->get();
-
-        return response()->json([
-            'success' => true,
-            'data' => $jobs->map(function ($job) {
-                return [
-                    'id' => $job->id,
-                    'title' => $job->title,
-                    'location' => $job->location,
-                    'type' => $job->type,
-                    'description' => $job->description,
-                    'skills' => $job->skills->pluck('name')->toArray(),
-                    'matchPercentage' => $job->match_percentage ?? 0,
-                    'postedAt' => $job->posted_at,
-                    'deadline' => $job->deadline,
-                ];
-            }),
-        ]);
-    }
-
-    public function store(Request $request): JsonResponse
-    {
-        $user = $request->user();
-
-        if ($user->role !== 'industry') {
-            return response()->json([
-                'success' => false,
-                'message' => 'Unauthorized: industry account required',
-            ], 403);
-        }
-
-        $industry = $user->industry;
-        if (!$industry) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Industry profile not found',
-            ], 404);
-        }
-
-        $job = Job::create([
-            'industry_id' => $industry->id,
-            'title' => $request->post('title'),
-            'location' => $request->post('location'),
-            'type' => $request->post('type'),
-            'description' => $request->post('description'),
-            'match_percentage' => 0,
-            'posted_at' => now(),
-            'deadline' => $request->post('deadline'),
-        ]);
-
-        $skillNames = $request->post('skills', []);
-        foreach ($skillNames as $skillName) {
-            $skill = \App\Models\Skill::where('name', $skillName)->first();
-            if ($skill) {
-                $job->skills()->attach($skill->id, ['required_level' => 1]);
-            }
-        }
-
-        return response()->json([
-            'success' => true,
-            'message' => 'Job created successfully',
-            'data' => [
-                'id' => $job->id,
-                'title' => $job->title,
-                'location' => $job->location,
-                'type' => $job->type,
-                'description' => $job->description,
-                'skills' => $job->skills->pluck('name')->toArray(),
-                'matchPercentage' => $job->match_percentage ?? 0,
-                'postedAt' => $job->posted_at,
-                'deadline' => $job->deadline,
-            ],
+            'data' => $data['data'],
+            'meta' => $data['meta'] ?? [],
         ]);
     }
 
     public function show(string $id): JsonResponse
     {
-        $job = Job::with('industry', 'skills')->findOrFail($id);
+        $data = $this->job->show($id);
 
         return response()->json([
             'success' => true,
-            'data' => [
-                'id' => $job->id,
-                'title' => $job->title,
-                'company' => $job->industry->company ?? 'Unknown',
-                'location' => $job->location,
-                'type' => $job->type,
-                'description' => $job->description,
-                'skills' => $job->skills->pluck('name')->toArray(),
-                'matchPercentage' => $job->match_percentage ?? 0,
-                'postedAt' => $job->posted_at,
-                'deadline' => $job->deadline,
-            ],
+            'data' => $data['data'],
+        ]);
+    }
+
+    public function mine(Request $request): JsonResponse
+    {
+        $data = $this->job->mine($request->user()->id);
+
+        return response()->json([
+            'success' => true,
+            'data' => $data['data'],
+        ]);
+    }
+
+    public function store(Request $request): JsonResponse
+    {
+        $validator = Validator::make($request->all(), [
+            'title' => 'required|string|max:255',
+            'location' => 'required|string',
+            'type' => 'required|in:magang,fulltime,parttime,freelance',
+            'description' => 'required|string',
+            'skills' => 'required|array',
+            'deadline' => 'nullable|date',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Validation failed',
+                'errors' => $validator->errors(),
+            ], 422);
+        }
+
+        $data = $this->job->store($request->user()->id, $request->all());
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Job posted successfully',
+            'data' => $data['data'],
+        ], 201);
+    }
+
+    public function update(Request $request, string $id): JsonResponse
+    {
+        $validator = Validator::make($request->all(), [
+            'title' => 'sometimes|required|string|max:255',
+            'location' => 'sometimes|required|string',
+            'type' => 'sometimes|required|in:magang,fulltime,parttime,freelance',
+            'description' => 'sometimes|required|string',
+            'skills' => 'sometimes|required|array',
+            'deadline' => 'sometimes|nullable|date',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Validation failed',
+                'errors' => $validator->errors(),
+            ], 422);
+        }
+
+        $data = $this->job->update($request->user()->id, $id, $request->all());
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Job updated successfully',
+            'data' => $data['data'],
+        ]);
+    }
+
+    public function delete(Request $request, string $id): JsonResponse
+    {
+        $this->job->delete($request->user()->id, $id);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Job deleted successfully',
         ]);
     }
 }
