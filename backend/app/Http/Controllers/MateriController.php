@@ -82,7 +82,6 @@ class MateriController extends Controller
 
         $validator = Validator::make($request->all(), [
             'answers' => 'required|array',
-            'answers.*' => 'exists:materi_questions,id',
         ]);
 
         if ($validator->fails()) {
@@ -103,6 +102,17 @@ class MateriController extends Controller
                 'success' => false,
                 'message' => 'No questions found for this materi',
             ], 404);
+        }
+
+        // Validate that all keys are valid question IDs for this materi
+        $validIds = $questions->pluck('id')->map(fn($id) => (string) $id)->toArray();
+        foreach (array_keys($answers) as $key) {
+            if (!in_array($key, $validIds)) {
+                return response()->json([
+                    'success' => false,
+                    'message' => "Invalid question ID: {$key}",
+                ], 422);
+            }
         }
 
         // Calculate score server-side

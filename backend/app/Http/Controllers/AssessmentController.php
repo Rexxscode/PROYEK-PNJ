@@ -3,7 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\AssessmentQuestion;
-use App\Models\Student;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Validator;
@@ -18,7 +18,7 @@ class AssessmentController extends Controller
             $query->where('major_id', $major);
         }
 
-        $questions = $query->get();
+        $questions = $query->select('id', 'major_id', 'question', 'options', 'difficulty', 'skill')->get();
 
         return response()->json([
             'success' => true,
@@ -53,10 +53,10 @@ class AssessmentController extends Controller
         $totalQuestions = AssessmentQuestion::where('major_id', $major)->count();
         $answeredQuestions = count($answers);
 
-        if ($answeredQuestions === 0 || $answeredQuestions > $totalQuestions) {
+        if ($answeredQuestions !== $totalQuestions) {
             return response()->json([
                 'success' => false,
-                'message' => 'Invalid answers format',
+                'message' => "Expected {$totalQuestions} answers, got {$answeredQuestions}",
             ], 422);
         }
 
@@ -81,12 +81,14 @@ class AssessmentController extends Controller
         // Calculate skill scores
         $skillScores = $this->calculateSkillScores($questions, $answers);
 
+        $levelMap = ['beginner' => 1, 'developing' => 2, 'intermediate' => 3, 'advanced' => 4, 'expert' => 5];
+
         // Save assessment result
         $student = auth()->user()->student;
         $result = $student->assessmentResults()->create([
             'major_id' => $major,
             'score' => $correct,
-            'level' => $level,
+            'level' => $levelMap[$level] ?? 1,
             'skill_scores' => json_encode($skillScores),
             'answered_at' => now(),
         ]);
@@ -113,7 +115,7 @@ class AssessmentController extends Controller
         return 'expert';
     }
 
-    private function calculateSkillScores(array $questions, array $answers): array
+    private function calculateSkillScores(Collection $questions, array $answers): array
     {
         $skillScores = [];
 

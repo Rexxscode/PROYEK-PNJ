@@ -3,24 +3,17 @@
 namespace App\Http\Controllers;
 
 use App\Models\Job;
-use App\Models\Skill;
-use App\Models\User;
+use App\Models\Industry;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
-use Illuminate\Support\Facades\Validator;
 
 class JobController extends Controller
 {
-    public function __construct()
-    {
-        $this->middleware('auth:sanctum');
-    }
-
     public function index(Request $request): JsonResponse
     {
         $typeFilter = $request->query('type');
 
-        $query = Job::query();
+        $query = Job::with('industry', 'skills');
 
         if ($typeFilter) {
             $query->where('type', $typeFilter);
@@ -34,13 +27,13 @@ class JobController extends Controller
                 return [
                     'id' => $job->id,
                     'title' => $job->title,
-                    'company' => $job->company ?? 'Unknown',
+                    'company' => $job->industry->company ?? 'Unknown',
                     'location' => $job->location,
                     'type' => $job->type,
                     'description' => $job->description,
-                    'skills' => $job->skills ? json_decode($job->skills, true) : [],
+                    'skills' => $job->skills->pluck('name')->toArray(),
                     'matchPercentage' => $job->match_percentage ?? 0,
-                    'postedAt' => $job->created_at,
+                    'postedAt' => $job->posted_at,
                     'deadline' => $job->deadline,
                 ];
             }),
@@ -58,7 +51,15 @@ class JobController extends Controller
             ], 403);
         }
 
-        $jobs = Job::where('user_id', $user->id)->get();
+        $industry = $user->industry;
+        if (!$industry) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Industry profile not found',
+            ], 404);
+        }
+
+        $jobs = Job::where('industry_id', $industry->id)->with('skills')->get();
 
         return response()->json([
             'success' => true,
@@ -66,13 +67,12 @@ class JobController extends Controller
                 return [
                     'id' => $job->id,
                     'title' => $job->title,
-                    'company' => $job->company ?? 'Unknown',
                     'location' => $job->location,
                     'type' => $job->type,
                     'description' => $job->description,
-                    'skills' => $job->skills ? json_decode($job->skills, true) : [],
+                    'skills' => $job->skills->pluck('name')->toArray(),
                     'matchPercentage' => $job->match_percentage ?? 0,
-                    'postedAt' => $job->created_at,
+                    'postedAt' => $job->posted_at,
                     'deadline' => $job->deadline,
                 ];
             }),
@@ -90,34 +90,32 @@ class JobController extends Controller
             ], 403);
         }
 
-        $validator = Validator::make($request->all(), [
-            'title' => 'required|string|max:255',
-            'company' => 'required|string|max:255',
-            'location' => 'required|string',
-            'type' => 'required|in:magang,fulltime,parttime,freelance',
-            'description' => 'required|string',
-            'skills' => 'required|array',
-            'deadline' => 'nullable|date',
-        ]);
-
-        if ($validator->fails()) {
+        $industry = $user->industry;
+        if (!$industry) {
             return response()->json([
                 'success' => false,
-                'message' => 'Validation failed',
-                'errors' => $validator->errors(),
-            ], 422);
+                'message' => 'Industry profile not found',
+            ], 404);
         }
 
         $job = Job::create([
-            'user_id' => $user->id,
+            'industry_id' => $industry->id,
             'title' => $request->post('title'),
-            'company' => $request->post('company'),
             'location' => $request->post('location'),
             'type' => $request->post('type'),
             'description' => $request->post('description'),
-            'skills' => json_encode($request->post('skills')),
             'match_percentage' => 0,
+            'posted_at' => now(),
+            'deadline' => $request->post('deadline'),
         ]);
+
+        $skillNames = $request->post('skills', []);
+        foreach ($skillNames as $skillName) {
+            $skill = \App\Models\Skill::where('name', $skillName)->first();
+            if ($skill) {
+                $job->skills()->attach($skill->id, ['required_level' => 1]);
+            }
+        }
 
         return response()->json([
             'success' => true,
@@ -125,13 +123,12 @@ class JobController extends Controller
             'data' => [
                 'id' => $job->id,
                 'title' => $job->title,
-                'company' => $job->company,
                 'location' => $job->location,
                 'type' => $job->type,
                 'description' => $job->description,
-                'skills' => json_decode($job->skills, true) ?? [],
+                'skills' => $job->skills->pluck('name')->toArray(),
                 'matchPercentage' => $job->match_percentage ?? 0,
-                'postedAt' => $job->created_at,
+                'postedAt' => $job->posted_at,
                 'deadline' => $job->deadline,
             ],
         ]);
@@ -139,20 +136,20 @@ class JobController extends Controller
 
     public function show(string $id): JsonResponse
     {
-        $job = Job::findOrFail($id);
+        $job = Job::with('industry', 'skills')->findOrFail($id);
 
         return response()->json([
             'success' => true,
             'data' => [
                 'id' => $job->id,
                 'title' => $job->title,
-                'company' => $job->company ?? 'Unknown',
+                'company' => $job->industry->company ?? 'Unknown',
                 'location' => $job->location,
                 'type' => $job->type,
                 'description' => $job->description,
-                'skills' => $job->skills ? json_decode($job->skills, true) : [],
+                'skills' => $job->skills->pluck('name')->toArray(),
                 'matchPercentage' => $job->match_percentage ?? 0,
-                'postedAt' => $job->created_at,
+                'postedAt' => $job->posted_at,
                 'deadline' => $job->deadline,
             ],
         ]);

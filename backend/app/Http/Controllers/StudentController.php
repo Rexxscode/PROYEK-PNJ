@@ -32,8 +32,12 @@ class StudentController extends Controller
 
     public function show(string $slug): JsonResponse
     {
+        $nameSearch = str_replace('-', ' ', $slug);
+
         $student = Student::with(['user', 'major'])
-            ->where('slug', $slug)
+            ->whereHas('user', function ($q) use ($nameSearch) {
+                $q->whereRaw('LOWER(name) = ?', [strtolower($nameSearch)]);
+            })
             ->firstOrFail();
 
         return response()->json([

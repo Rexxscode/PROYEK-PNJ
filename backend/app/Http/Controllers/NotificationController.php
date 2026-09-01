@@ -9,11 +9,6 @@ use Illuminate\Support\Facades\Validator;
 
 class NotificationController extends Controller
 {
-    public function __construct()
-    {
-        $this->middleware('auth:sanctum');
-    }
-
     public function index(Request $request): JsonResponse
     {
         $user = $request->user();

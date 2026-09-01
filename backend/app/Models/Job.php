@@ -2,6 +2,8 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 
@@ -36,7 +38,6 @@ class Job extends Model
     public function skills(): BelongsToMany
     {
         return $this->belongsToMany(Skill::class, 'job_skills')
-            ->withPivot('required_level')
-            ->withTimestamps();
+            ->withPivot('required_level');
     }
 }

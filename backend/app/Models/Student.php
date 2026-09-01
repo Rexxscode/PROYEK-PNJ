@@ -34,14 +34,25 @@ class Student extends Model
         'grade' => 'string',
     ];
 
+    protected $appends = ['name', 'slug'];
+
+    public function getNameAttribute(): string
+    {
+        return $this->user->name ?? '';
+    }
+
+    public function getSlugAttribute(): string
+    {
+        return $this->user ? strtolower(str_replace(' ', '-', $this->user->name)) : '';
+    }
+
     /**
      * The skills for the student (via pivot).
      */
     public function skills(): BelongsToMany
     {
         return $this->belongsToMany(Skill::class, 'student_skills')
-            ->withPivot('level')
-            ->withTimestamps();
+            ->withPivot('level', 'achieved_at');
     }
 
     /**

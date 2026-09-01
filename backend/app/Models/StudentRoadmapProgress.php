@@ -2,6 +2,8 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class StudentRoadmapProgress extends Model
@@ -14,6 +16,11 @@ class StudentRoadmapProgress extends Model
         'status',
         'resources_viewed',
         'completed_at',
+    ];
+
+    protected $casts = [
+        'resources_viewed' => 'array',
+        'completed_at' => 'datetime',
     ];
 
     /**

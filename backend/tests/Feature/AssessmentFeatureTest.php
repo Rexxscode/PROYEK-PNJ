@@ -3,24 +3,45 @@
 namespace Tests\Feature;
 
 use App\Models\AssessmentQuestion;
+use App\Models\Student;
 use Tests\TestCase;
 use Illuminate\Foundation\Testing\WithFaker;
-use Illuminate\Support\Facades\DB;
 
 class AssessmentFeatureTest extends TestCase
 {
     use WithFaker;
 
-    public function test_get_questions_without_token()
+    private function studentUser()
+    {
+        $student = Student::first();
+        return $student->user;
+    }
+
+    private function allAnswersForMajor(string $major): array
+    {
+        $questions = AssessmentQuestion::where('major_id', $major)->get();
+        $answers = [];
+        foreach ($questions as $question) {
+            $answers[(string) $question->id] = $question->correct;
+        }
+        return $answers;
+    }
+
+    public function test_get_questions_public_no_token()
     {
         $response = $this->get('/api/v1/assessment/questions');
 
-        $response->assertStatus(401);
+        $response->assertStatus(200);
+        $response->assertJsonStructure([
+            'success',
+            'data',
+            'meta'
+        ]);
     }
 
     public function test_get_questions_with_token()
     {
-        $this->actingAs($this->student());
+        $this->actingAs($this->studentUser());
 
         $response = $this->get('/api/v1/assessment/questions');
 
@@ -34,7 +55,7 @@ class AssessmentFeatureTest extends TestCase
 
     public function test_get_questions_by_major()
     {
-        $this->actingAs($this->student());
+        $this->actingAs($this->studentUser());
 
         $response = $this->get('/api/v1/assessment/questions/RPL');
 
@@ -44,7 +65,7 @@ class AssessmentFeatureTest extends TestCase
 
     public function test_correct_answer_not_in_response()
     {
-        $this->actingAs($this->student());
+        $this->actingAs($this->studentUser());
 
         $response = $this->get('/api/v1/assessment/questions/RPL');
 
@@ -58,18 +79,11 @@ class AssessmentFeatureTest extends TestCase
 
     public function test_submit_assessment_valid()
     {
-        $this->actingAs($this->student());
+        $this->actingAs($this->studentUser());
 
-        $answers = [];
-        $questions = AssessmentQuestion::where('major_id', 'RPL')
-            ->take(5)
-            ->get();
+        $answers = $this->allAnswersForMajor('RPL');
 
-        foreach ($questions as $question) {
-            $answers[$question->id] = $question->correct;
-        }
-
-        $response = $this->post('/api/v1/assessment/submit', [
+        $response = $this->postJson('/api/v1/assessment/submit', [
             'major' => 'RPL',
             'answers' => $answers,
         ]);
@@ -90,18 +104,11 @@ class AssessmentFeatureTest extends TestCase
 
     public function test_score_calculated_server_side()
     {
-        $this->actingAs($this->student());
+        $this->actingAs($this->studentUser());
 
-        $answers = [];
-        $questions = AssessmentQuestion::where('major_id', 'RPL')
-            ->take(10)
-            ->get();
+        $answers = $this->allAnswersForMajor('RPL');
 
-        foreach ($questions as $question) {
-            $answers[$question->id] = $question->correct;
-        }
-
-        $response = $this->post('/api/v1/assessment/submit', [
+        $response = $this->postJson('/api/v1/assessment/submit', [
             'major' => 'RPL',
             'answers' => $answers,
         ]);
@@ -110,35 +117,31 @@ class AssessmentFeatureTest extends TestCase
         $data = $response->json('data');
         $this->assertIsNumeric($data['score']);
         $this->assertIsNumeric($data['percentage']);
+        $this->assertEquals(100, $data['score']);
+        $this->assertEquals(100, $data['percentage']);
     }
 
     public function test_result_saved_to_assessment_results()
     {
-        $this->actingAs($this->student());
+        $this->actingAs($this->studentUser());
 
-        $answers = [];
-        $questions = AssessmentQuestion::where('major_id', 'RPL')
-            ->take(5)
-            ->get();
+        $answers = $this->allAnswersForMajor('RPL');
 
-        foreach ($questions as $question) {
-            $answers[$question->id] = $question->correct;
-        }
-
-        $this->post('/api/v1/assessment/submit', [
+        $this->postJson('/api/v1/assessment/submit', [
             'major' => 'RPL',
             'answers' => $answers,
         ]);
 
+        $student = Student::first();
         $this->assertDatabaseHas('assessment_results', [
-            'student_id' => $this->student()->id,
+            'student_id' => $student->id,
             'major_id' => 'RPL',
         ]);
     }
 
     public function test_result_student_lain_tidak_boleh_diakses()
     {
-        $this->actingAs($this->student());
+        $this->actingAs($this->studentUser());
 
         $response = $this->get('/api/v1/assessment/results');
 
@@ -147,13 +150,13 @@ class AssessmentFeatureTest extends TestCase
         $this->assertIsArray($data);
     }
 
-    public function test_invalid_question_id_422()
+    public function test_partial_answers_rejected()
     {
-        $this->actingAs($this->student());
+        $this->actingAs($this->studentUser());
 
-        $response = $this->post('/api/v1/assessment/submit', [
+        $response = $this->postJson('/api/v1/assessment/submit', [
             'major' => 'RPL',
-            'answers' => [999 => 1],
+            'answers' => [1 => 0, 2 => 1],
         ]);
 
         $response->assertStatus(422);
@@ -161,7 +164,7 @@ class AssessmentFeatureTest extends TestCase
 
     public function test_question_dari_major_lain_ditolak()
     {
-        $this->actingAs($this->student());
+        $this->actingAs($this->studentUser());
 
         $response = $this->get('/api/v1/assessment/questions/DKV');
 
@@ -171,18 +174,11 @@ class AssessmentFeatureTest extends TestCase
 
     public function test_hasil_assessment_dapat_didapat()
     {
-        $this->actingAs($this->student());
+        $this->actingAs($this->studentUser());
 
-        $answers = [];
-        $questions = AssessmentQuestion::where('major_id', 'RPL')
-            ->take(3)
-            ->get();
+        $answers = $this->allAnswersForMajor('RPL');
 
-        foreach ($questions as $question) {
-            $answers[$question->id] = $question->correct;
-        }
-
-        $this->post('/api/v1/assessment/submit', [
+        $this->postJson('/api/v1/assessment/submit', [
             'major' => 'RPL',
             'answers' => $answers,
         ]);
@@ -192,10 +188,5 @@ class AssessmentFeatureTest extends TestCase
         $response->assertStatus(200);
         $data = $response->json('data');
         $this->assertIsArray($data);
-    }
-
-    private function student()
-    {
-        return \App\Models\Student::first();
     }
 }

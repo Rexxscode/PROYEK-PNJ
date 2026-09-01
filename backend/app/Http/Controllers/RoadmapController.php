@@ -13,11 +13,6 @@ use Illuminate\Support\Facades\Validator;
 
 class RoadmapController extends Controller
 {
-    public function __construct()
-    {
-        $this->middleware('auth:sanctum');
-    }
-
     public function index(Request $request): JsonResponse
     {
         $user = $request->user();
@@ -179,8 +174,8 @@ class RoadmapController extends Controller
 
         $validator = Validator::make($request->all(), [
             'milestone_id' => 'required|string',
-            'status' => 'required|in:locked,available,in_progress,completed',
-            'resources_viewed' => 'nullable|integer',
+            'status' => 'required|in:not_started,in_progress,completed',
+            'resources_viewed' => 'nullable|array',
         ]);
 
         if ($validator->fails()) {
@@ -193,7 +188,7 @@ class RoadmapController extends Controller
 
         $milestoneId = $request->post('milestone_id');
         $status = $request->post('status');
-        $resourcesViewed = $request->post('resources_viewed') ?? 0;
+        $resourcesViewed = $request->post('resources_viewed') ?? [];
 
         // jangan menyimpan status di roadmap_milestones
         // simpan saja ke student_roadmap_progress

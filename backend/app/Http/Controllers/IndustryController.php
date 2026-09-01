@@ -12,11 +12,6 @@ use Illuminate\Support\Facades\Validator;
 
 class IndustryController extends Controller
 {
-    public function __construct()
-    {
-        $this->middleware('auth:sanctum');
-    }
-
     public function me(Request $request): JsonResponse
     {
         $user = $request->user();
@@ -184,7 +179,7 @@ class IndustryController extends Controller
         $skillFilter = $request->query('skills');
 
         // ambil semua students
-        $students = Student::with('user', 'major')
+        $students = Student::with('user', 'major', 'skills')
             ->when($skillFilter, function ($query, $skills) {
                 $skillNames = is_array($skills) ? $skills : explode(',', $skills);
                 $query->whereHas('skills', function ($q) use ($skillNames) {
@@ -195,7 +190,6 @@ class IndustryController extends Controller
             })
             ->get();
 
-        $allStudents = []; // dari mock-data atau database
         $matchedStudents = [];
 
         foreach ($students as $student) {
@@ -212,23 +206,12 @@ class IndustryController extends Controller
                 $matchedSkills = $studentSkillNames;
             }
 
-            $matchCount = count($matchedSkills);
-            $score = count($skillFilter) > 0
-                ? round(count($matchedSkills) / count($skillFilter) * 100)
+            $filterCount = is_array($skillFilter) ? count($skillFilter) : 0;
+            $score = $filterCount > 0
+                ? round(count($matchedSkills) / $filterCount * 100)
                 : 100;
 
-            $topSkill = $matchedSkills[0] ?? $student->hardSkills[0]?->name ?? "-";
-
-            $matchFor = null;
-            if (count($student->careerMatches) > 0) {
-                $best = $student->careerMatches[0];
-                foreach ($student->careerMatches as $cm) {
-                    if ($cm->matchPercentage > $best->matchPercentage) {
-                        $best = $cm;
-                    }
-                }
-                $matchFor = $best;
-            }
+            $topSkill = $matchedSkills[0] ?? "-";
 
             $matchedStudents[] = [
                 'name' => $student->user->name,
@@ -236,7 +219,6 @@ class IndustryController extends Controller
                 'score' => $score,
                 'matchedSkills' => $matchedSkills,
                 'topSkill' => $topSkill,
-                'matchFor' => $matchFor,
             ];
         }
 
@@ -260,7 +242,15 @@ class IndustryController extends Controller
             ], 403);
         }
 
-        $jobs = \App\Models\Job::where('user_id', $user->id)->get();
+        $industry = $user->industry;
+        if (!$industry) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Industry profile not found',
+            ], 404);
+        }
+
+        $jobs = \App\Models\Job::where('industry_id', $industry->id)->with('skills')->get();
 
         return response()->json([
             'success' => true,
@@ -268,13 +258,12 @@ class IndustryController extends Controller
                 return [
                     'id' => $job->id,
                     'title' => $job->title,
-                    'company' => $job->company,
                     'location' => $job->location,
                     'type' => $job->type,
                     'description' => $job->description,
-                    'skills' => $job->skills ? json_decode($job->skills, true) : [],
+                    'skills' => $job->skills->pluck('name')->toArray(),
                     'matchPercentage' => $job->match_percentage ?? 0,
-                    'postedAt' => $job->created_at,
+                    'postedAt' => $job->posted_at,
                     'deadline' => $job->deadline,
                 ];
             }),
@@ -294,7 +283,6 @@ class IndustryController extends Controller
 
         $validator = Validator::make($request->all(), [
             'title' => 'required|string|max:255',
-            'company' => 'required|string|max:255',
             'location' => 'required|string',
             'type' => 'required|in:magang,fulltime,parttime,freelance',
             'description' => 'required|string',
@@ -310,17 +298,33 @@ class IndustryController extends Controller
             ], 422);
         }
 
+        $industry = $user->industry;
+        if (!$industry) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Industry profile not found',
+            ], 404);
+        }
+
         $job = \App\Models\Job::create([
-            'user_id' => $user->id,
+            'industry_id' => $industry->id,
             'title' => $request->post('title'),
-            'company' => $request->post('company'),
             'location' => $request->post('location'),
             'type' => $request->post('type'),
             'description' => $request->post('description'),
-            'skills' => json_encode($request->post('skills')),
             'match_percentage' => 0,
+            'posted_at' => now(),
             'deadline' => $request->post('deadline'),
         ]);
+
+        // Attach skills
+        $skillNames = $request->post('skills');
+        foreach ($skillNames as $skillName) {
+            $skill = \App\Models\Skill::where('name', $skillName)->first();
+            if ($skill) {
+                $job->skills()->attach($skill->id, ['required_level' => 1]);
+            }
+        }
 
         return response()->json([
             'success' => true,
@@ -328,13 +332,12 @@ class IndustryController extends Controller
             'data' => [
                 'id' => $job->id,
                 'title' => $job->title,
-                'company' => $job->company,
                 'location' => $job->location,
                 'type' => $job->type,
                 'description' => $job->description,
-                'skills' => json_decode($job->skills, true) ?? [],
+                'skills' => $job->skills->pluck('name')->toArray(),
                 'matchPercentage' => $job->match_percentage ?? 0,
-                'postedAt' => $job->created_at,
+                'postedAt' => $job->posted_at,
                 'deadline' => $job->deadline,
             ],
         ]);
@@ -351,18 +354,25 @@ class IndustryController extends Controller
             ], 403);
         }
 
+        $industry = $user->industry;
+        if (!$industry) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Industry profile not found',
+            ], 404);
+        }
+
         $job = \App\Models\Job::where('id', $id)
-            ->where('user_id', $user->id)
+            ->where('industry_id', $industry->id)
             ->firstOrFail();
 
         $validator = Validator::make($request->all(), [
             'title' => 'sometimes|required|string|max:255',
-            'company' => 'sometimes|required|string|max:255',
             'location' => 'sometimes|required|string',
             'type' => 'sometimes|required|in:magang,fulltime,parttime,freelance',
             'description' => 'sometimes|required|string',
             'skills' => 'sometimes|required|array',
-            'deadline' => 'nullable|date',
+            'deadline' => 'sometimes|nullable|date',
         ]);
 
         if ($validator->fails()) {
@@ -375,13 +385,23 @@ class IndustryController extends Controller
 
         $job->update([
             'title' => $request->post('title') ?? $job->title,
-            'company' => $request->post('company') ?? $job->company,
             'location' => $request->post('location') ?? $job->location,
             'type' => $request->post('type') ?? $job->type,
             'description' => $request->post('description') ?? $job->description,
-            'skills' => $request->post('skills') ?? json_encode($job->skills),
             'deadline' => $request->post('deadline') ?? $job->deadline,
         ]);
+
+        // Sync skills if provided
+        if ($request->has('skills')) {
+            $skillIds = [];
+            foreach ($request->post('skills') as $skillName) {
+                $skill = \App\Models\Skill::where('name', $skillName)->first();
+                if ($skill) {
+                    $skillIds[$skill->id] = ['required_level' => 1];
+                }
+            }
+            $job->skills()->sync($skillIds);
+        }
 
         return response()->json([
             'success' => true,
@@ -389,13 +409,12 @@ class IndustryController extends Controller
             'data' => [
                 'id' => $job->id,
                 'title' => $job->title,
-                'company' => $job->company,
                 'location' => $job->location,
                 'type' => $job->type,
                 'description' => $job->description,
-                'skills' => json_decode($job->skills, true) ?? [],
+                'skills' => $job->fresh('skills')->skills->pluck('name')->toArray(),
                 'matchPercentage' => $job->match_percentage ?? 0,
-                'postedAt' => $job->created_at,
+                'postedAt' => $job->posted_at,
                 'deadline' => $job->deadline,
             ],
         ]);
@@ -412,8 +431,16 @@ class IndustryController extends Controller
             ], 403);
         }
 
+        $industry = $user->industry;
+        if (!$industry) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Industry profile not found',
+            ], 404);
+        }
+
         $job = \App\Models\Job::where('id', $id)
-            ->where('user_id', $user->id)
+            ->where('industry_id', $industry->id)
             ->firstOrFail();
 
         $job->delete();

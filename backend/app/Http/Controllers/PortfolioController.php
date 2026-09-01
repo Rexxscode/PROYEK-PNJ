@@ -11,11 +11,6 @@ use Illuminate\Support\Facades\Validator;
 
 class PortfolioController extends Controller
 {
-    public function __construct()
-    {
-        $this->middleware('auth:sanctum');
-    }
-
     public function projects(Request $request): JsonResponse
     {
         $user = $request->user();
@@ -116,11 +111,11 @@ class PortfolioController extends Controller
 
     public function public(string $slug): JsonResponse
     {
-        // ambil student berdasarkan slug (name lowercase dash)
-        $student = Student::where('user_id', function ($query) use ($slug) {
-            $query->from('users')
-                ->whereRaw('LOWER(name) = ?', [str_replace('-', ' ', $slug)]);
-        })->firstOrFail();
+        $nameSearch = str_replace('-', ' ', $slug);
+
+        $student = Student::whereHas('user', function ($q) use ($nameSearch) {
+            $q->whereRaw('LOWER(name) = ?', [strtolower($nameSearch)]);
+        })->with(['user', 'major'])->firstOrFail();
 
         $projects = $student->projects()->get();
 
@@ -130,7 +125,7 @@ class PortfolioController extends Controller
                 'user' => [
                     'name' => $student->user->name,
                     'email' => $student->user->email,
-                    'major' => $student->user->role === 'student' ? $student->major->name : null,
+                    'major' => $student->major->name ?? null,
                 ],
                 'projects' => $projects->map(function ($project) {
                     return [

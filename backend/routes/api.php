@@ -48,13 +48,13 @@ Route::prefix('v1/certificates')->middleware('auth:sanctum')->group(function () 
     Route::get('{materiId}', [CertificateController::class, 'detail']);
 });
 
-Route::prefix('v1/roadmap')->group(function () {
+Route::prefix('v1/roadmap')->middleware('auth:sanctum')->group(function () {
     Route::get('', [RoadmapController::class, 'index']);
     Route::get('progress', [RoadmapController::class, 'progress']);
     Route::post('progress', [RoadmapController::class, 'updateProgress']);
 });
 
-Route::prefix('v1/portfolios')->group(function () {
+Route::prefix('v1/portfolios')->middleware('auth:sanctum')->group(function () {
     Route::get('{email}/projects', [PortfolioController::class, 'projects']);
     Route::post('', [PortfolioController::class, 'save']);
 });
@@ -63,7 +63,7 @@ Route::prefix('v1/portfolios/public')->group(function () {
     Route::get('{slug}', [PortfolioController::class, 'public']);
 });
 
-Route::prefix('v1/industries')->group(function () {
+Route::prefix('v1/industries')->middleware('auth:sanctum')->group(function () {
     Route::get('me', [IndustryController::class, 'me']);
     Route::put('profile', [IndustryController::class, 'profile']);
     Route::patch('profile', [IndustryController::class, 'updateProfile']);
@@ -76,12 +76,14 @@ Route::prefix('v1/industries')->group(function () {
 
 Route::prefix('v1/jobs')->group(function () {
     Route::get('', [JobController::class, 'index']);
-    Route::get('mine', [JobController::class, 'mine']);
-    Route::post('', [JobController::class, 'store']);
+    Route::middleware('auth:sanctum')->group(function () {
+        Route::get('mine', [JobController::class, 'mine']);
+        Route::post('', [JobController::class, 'store']);
+    });
     Route::get('{id}', [JobController::class, 'show']);
 });
 
-Route::prefix('v1/notifications')->group(function () {
+Route::prefix('v1/notifications')->middleware('auth:sanctum')->group(function () {
     Route::get('', [NotificationController::class, 'index']);
     Route::get('unread-count', [NotificationController::class, 'unreadCount']);
     Route::post('{id}/read', [NotificationController::class, 'markRead']);

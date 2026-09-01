@@ -31,8 +31,7 @@ class Skill extends Model
     public function students(): BelongsToMany
     {
         return $this->belongsToMany(Student::class, 'student_skills')
-            ->withPivot('level')
-            ->withTimestamps();
+            ->withPivot('level', 'achieved_at');
     }
 
     /**
@@ -41,7 +40,6 @@ class Skill extends Model
     public function jobs(): BelongsToMany
     {
         return $this->belongsToMany(Job::class, 'job_skills')
-            ->withPivot('required_level')
-            ->withTimestamps();
+            ->withPivot('required_level');
     }
 }
