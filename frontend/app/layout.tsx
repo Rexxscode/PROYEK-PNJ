@@ -68,14 +68,12 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased dark`}
       style={{ background: "#0f172a", color: "#e2e8f0" }}
     >
-      <head>
+      <body className="min-h-full flex flex-col">
         <script
           dangerouslySetInnerHTML={{
             __html: `(function(){try{var t=localStorage.getItem('theme');var d=t==='dark'||(!t&&window.matchMedia('(prefers-color-scheme:dark)').matches);if(d){document.documentElement.classList.add('dark');document.documentElement.style.background='#0f172a';document.documentElement.style.color='#e2e8f0'}else{document.documentElement.classList.remove('dark');document.documentElement.style.background='#f8fafc';document.documentElement.style.color='#0f172a'}}catch(e){}})();`,
           }}
         />
-      </head>
-      <body className="min-h-full flex flex-col">
         <ThemeProvider>
           <AuthProvider>
             <ToastProvider>{children}</ToastProvider>
