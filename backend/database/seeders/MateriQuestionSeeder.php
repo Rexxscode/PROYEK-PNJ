@@ -45,7 +45,7 @@ class MateriQuestionSeeder extends Seeder
 
             preg_match_all('/id:\s*"([^"]+-[^"]+)"/', $quizContent, $idMatches);
             preg_match_all('/question:\s*"([^"]+)"/', $quizContent, $questionMatches);
-            preg_match_all('/options:\s*\[([^\]]+)\]/', $quizContent, $optionsMatches);
+            preg_match_all('/options:\s*\[((?:\s*"[^"]*"\s*,?\s*)+)\]/', $quizContent, $optionsMatches);
             preg_match_all('/correct:\s*(\d+)/', $quizContent, $correctMatches);
             preg_match_all('/difficulty:\s*"([^"]+)"/', $quizContent, $difficultyMatches);
             preg_match_all('/skill:\s*"([^"]+)"/', $quizContent, $skillMatches);
