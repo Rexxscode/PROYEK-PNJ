@@ -344,7 +344,7 @@ export default function AssessmentPage() {
       {/* Step 3: Results */}
       {currentStep === 3 && (resultSkills.length > 0 || quizResult) && (
         <div className="animate-fade-in">
-          <Card className="mb-6 bg-gradient-to-r from-emerald-50 to-teal-50 dark:from-emerald-900/20 dark:to-teal-900/20 border-emerald-200 dark:border-emerald-800">
+          <Card className="mb-6 bg-primary/5 border-primary/20">
             <div className="flex items-center gap-3">
               <CheckCircle2 className="w-8 h-8 text-emerald-600 dark:text-emerald-400" />
               <div>

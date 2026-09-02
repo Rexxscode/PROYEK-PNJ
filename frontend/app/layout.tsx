@@ -76,7 +76,9 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
         />
         <ThemeProvider>
           <AuthProvider>
-            <ToastProvider>{children}</ToastProvider>
+            <ToastProvider>
+            <div className="animate-page-in">{children}</div>
+          </ToastProvider>
           </AuthProvider>
         </ThemeProvider>
         <ScrollToTop />

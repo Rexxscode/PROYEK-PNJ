@@ -157,7 +157,7 @@ export default function StudentDashboard() {
       {/* Quick Stats */}
       <div className="grid grid-cols-2 lg:grid-cols-3 gap-4 mb-8 stagger-in">
         {[
-          { label: "Career Matches", value: animMatches.toString(), icon: Target, color: "bg-purple-100 dark:bg-purple-900/50 text-purple-600 dark:text-purple-400" },
+          { label: "Career Matches", value: animMatches.toString(), icon: Target, color: "bg-primary/10 text-primary" },
           { label: "Skills Dinilai", value: animSkills.toString(), icon: ClipboardCheck, color: "bg-blue-100 dark:bg-blue-900/50 text-blue-600 dark:text-blue-400" },
           { label: "Proyek Selesai", value: animProjects.toString(), icon: Star, color: "bg-amber-100 dark:bg-amber-900/50 text-amber-600 dark:text-amber-400" },
         ].map((stat) => (

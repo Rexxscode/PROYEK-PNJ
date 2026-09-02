@@ -83,7 +83,7 @@ export default function PublicPortfolioPage({ params }: { params: Promise<{ slug
   return (
     <div className="min-h-screen bg-background">
       {/* Header */}
-      <div className="bg-gradient-to-r from-primary to-secondary">
+      <div className="bg-primary">
         <div className="max-w-3xl mx-auto px-4 py-10 text-center">
           <div className="w-20 h-20 rounded-full bg-white/20 backdrop-blur-sm flex items-center justify-center mx-auto mb-4 border-2 border-white/40">
             <span className="text-2xl font-bold text-white">{getInitials(name)}</span>

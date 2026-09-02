@@ -157,7 +157,7 @@ export default function PortfolioPage() {
       const html = `
         <div style="font-family:system-ui,-apple-system,sans-serif;background:#ffffff;color:#1e293b;padding:20px;width:700px;">
           <div style="display:flex;align-items:center;gap:16px;margin-bottom:16px;padding-bottom:14px;border-bottom:1.5px solid #e2e8f0;">
-            <div style="width:48px;height:48px;border-radius:50%;background:linear-gradient(135deg,#2563eb,#7c3aed);display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+            <div style="width:48px;height:48px;border-radius:50%;background:#2563eb;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
               <span style="color:#fff;font-size:18px;font-weight:700;">${esc(getInitials(user.name))}</span>
             </div>
             <div style="flex:1;">
@@ -249,7 +249,7 @@ export default function PortfolioPage() {
       />
 
       {/* Portfolio Preview Card */}
-      <Card className="mb-8 bg-gradient-to-br from-primary/5 to-secondary/5 border-primary/20">
+      <Card className="mb-8 bg-primary/5 border-primary/20">
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4">
           <h3 className="font-semibold text-foreground">Portfolio Public URL</h3>
           <div className="flex gap-2">
@@ -286,7 +286,7 @@ export default function PortfolioPage() {
         <div ref={portfolioRef} className="bg-card dark:bg-gray-800 rounded-xl p-6 text-foreground">
         {/* Profile Header */}
         <div className="flex flex-wrap items-center gap-4 mb-6 pb-6 border-b border-border dark:border-gray-700">
-          <div className="w-16 h-16 rounded-full bg-gradient-to-br from-blue-600 to-purple-600 flex items-center justify-center flex-shrink-0">
+          <div className="w-16 h-16 rounded-full bg-primary flex items-center justify-center flex-shrink-0">
             <span className="text-xl font-bold text-white">{getInitials(user.name)}</span>
           </div>
           <div>
@@ -413,7 +413,7 @@ export default function PortfolioPage() {
         <h3 className="text-sm font-bold text-foreground uppercase tracking-wider mb-4">Interactive Preview</h3>
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           <Card className="text-center">
-            <div className="w-20 h-20 rounded-full bg-gradient-to-br from-primary to-secondary flex items-center justify-center mx-auto mb-4">
+            <div className="w-20 h-20 rounded-full bg-primary flex items-center justify-center mx-auto mb-4">
               <span className="text-2xl font-bold text-white">{getInitials(user.name)}</span>
             </div>
             <h2 className="text-xl font-bold text-foreground">{user.name}</h2>

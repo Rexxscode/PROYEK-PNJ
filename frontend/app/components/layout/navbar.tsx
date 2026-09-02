@@ -2,9 +2,27 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { Menu, X, Sun, Moon } from "lucide-react";
+import {
+  Menu,
+  X,
+  Sun,
+  Moon,
+  Sparkles,
+  Route,
+  BarChart,
+  TrendingUp,
+  Mail,
+} from "lucide-react";
 
 import { useTheme } from "../../lib/theme-context";
+
+const navLinks = [
+  { href: "#features", label: "Fitur", icon: Sparkles },
+  { href: "#about", label: "Cara Kerja", icon: Route },
+  { href: "#stats", label: "Statistik", icon: BarChart },
+  { href: "#impact", label: "Dampak", icon: TrendingUp },
+  { href: "#contact", label: "Kontak", icon: Mail },
+];
 
 export default function Navbar() {
   const [isOpen, setIsOpen] = useState(false);
@@ -16,21 +34,22 @@ export default function Navbar() {
         <div className="flex items-center justify-between h-16">
           <Link href="/" className="flex items-center gap-2">
             <img src="/logo-skillmatch-baru.png" alt="SkillMatch" className="w-8 h-8 rounded-lg object-contain" />
-            <span className="text-xl font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
+            <span className="text-xl font-bold text-primary">
               SkillMatch
             </span>
           </Link>
 
-          <div className="hidden md:flex items-center gap-8">
-            <a href="#features" className="text-sm font-medium text-muted hover:text-foreground transition-colors">
-              Fitur
-            </a>
-            <a href="#about" className="text-sm font-medium text-muted hover:text-foreground transition-colors">
-              Tentang
-            </a>
-            <a href="#impact" className="text-sm font-medium text-muted hover:text-foreground transition-colors">
-              Dampak
-            </a>
+          <div className="hidden md:flex items-center gap-6">
+            {navLinks.map((link) => (
+              <a
+                key={link.href}
+                href={link.href}
+                className="flex items-center gap-1.5 text-sm font-medium text-muted hover:text-foreground transition-colors"
+              >
+                <link.icon className="w-4 h-4" />
+                {link.label}
+              </a>
+            ))}
           </div>
 
           <div className="hidden md:flex items-center gap-3">
@@ -62,35 +81,38 @@ export default function Navbar() {
           </button>
         </div>
 
-        {isOpen && (
-          <div className="md:hidden pb-4 animate-fade-in">
-            <div className="flex flex-col gap-2">
-              <a href="#features" className="px-3 py-2 text-sm font-medium text-muted hover:bg-gray-50 dark:hover:bg-gray-800 rounded-lg transition-colors">
-                Fitur
-              </a>
-              <a href="#about" className="px-3 py-2 text-sm font-medium text-muted hover:bg-gray-50 dark:hover:bg-gray-800 rounded-lg transition-colors">
-                Tentang
-              </a>
-              <a href="#impact" className="px-3 py-2 text-sm font-medium text-muted hover:bg-gray-50 dark:hover:bg-gray-800 rounded-lg transition-colors">
-                Dampak
-              </a>
-              <hr className="my-2 border-border" />
-              <button
-                onClick={toggleTheme}
-                className="px-3 py-2 text-sm font-medium text-muted hover:bg-gray-50 dark:hover:bg-gray-800 rounded-lg transition-colors text-left flex items-center gap-2"
+        <div
+          className="md:hidden overflow-hidden transition-all duration-300 ease-in-out"
+          style={{ maxHeight: isOpen ? "560px" : "0px", opacity: isOpen ? 1 : 0 }}
+        >
+          <div className="flex flex-col gap-1 pb-4 pt-2">
+            {navLinks.map((link) => (
+              <a
+                key={link.href}
+                href={link.href}
+                onClick={() => setIsOpen(false)}
+                className="flex items-center gap-2.5 px-3 py-2 text-sm font-medium text-muted hover:bg-gray-50 dark:hover:bg-gray-800 hover:text-foreground rounded-lg transition-colors"
               >
-                {theme === "light" ? <Moon className="w-4 h-4" /> : <Sun className="w-4 h-4" />}
-                {theme === "light" ? "Mode Gelap" : "Mode Terang"}
-              </button>
-              <Link href="/auth/login" className="px-3 py-2 text-sm font-medium text-muted hover:bg-gray-50 dark:hover:bg-gray-800 rounded-lg transition-colors">
-                Masuk
-              </Link>
-              <Link href="/auth/register" className="px-3 py-2 text-sm font-medium text-white bg-primary rounded-lg hover:bg-primary-dark transition-colors text-center">
-                Daftar Sekarang
-              </Link>
-            </div>
+                <link.icon className="w-4 h-4" />
+                {link.label}
+              </a>
+            ))}
+            <div className="my-2 border-t border-border" />
+            <button
+              onClick={toggleTheme}
+              className="flex items-center gap-2.5 px-3 py-2 text-sm font-medium text-muted hover:bg-gray-50 dark:hover:bg-gray-800 hover:text-foreground rounded-lg transition-colors"
+            >
+              {theme === "light" ? <Moon className="w-4 h-4" /> : <Sun className="w-4 h-4" />}
+              {theme === "light" ? "Mode Gelap" : "Mode Terang"}
+            </button>
+            <Link href="/auth/login" className="px-3 py-2 text-sm font-medium text-muted hover:bg-gray-50 dark:hover:bg-gray-800 rounded-lg transition-colors">
+              Masuk
+            </Link>
+            <Link href="/auth/register" className="px-3 py-2 text-sm font-medium text-white bg-primary rounded-lg hover:bg-primary-dark transition-colors text-center">
+              Daftar Sekarang
+            </Link>
           </div>
-        )}
+        </div>
       </div>
     </nav>
   );

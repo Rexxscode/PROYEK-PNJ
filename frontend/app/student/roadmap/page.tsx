@@ -36,7 +36,7 @@ const levelConfig: Record<string, { label: string; color: string }> = {
 const resourceTypeLabel: Record<string, { label: string; color: string }> = {
   article: { label: "Artikel", color: "bg-blue-100 dark:bg-blue-900/50 text-blue-600 dark:text-blue-400" },
   video: { label: "Video", color: "bg-red-100 dark:bg-red-900/50 text-red-600 dark:text-red-400" },
-  course: { label: "Kursus", color: "bg-purple-100 dark:bg-purple-900/50 text-purple-600 dark:text-purple-400" },
+  course: { label: "Kursus", color: "bg-primary/10 text-primary" },
   practice: { label: "Praktik", color: "bg-emerald-100 dark:bg-emerald-900/50 text-emerald-600 dark:text-emerald-400" },
 };
 
@@ -112,7 +112,7 @@ export default function RoadmapPage() {
 
       {/* Quiz Result Summary */}
       {quizResult && (
-        <Card className="mb-6 bg-gradient-to-r from-primary/5 to-secondary/5 border-primary/20">
+        <Card className="mb-6 bg-primary/5 border-primary/20">
           <div className="flex items-center gap-3 mb-3">
             <BarChart3 className="w-5 h-5 text-primary" />
             <h3 className="font-semibold text-foreground">Hasil Tes Jurusan</h3>
@@ -195,7 +195,7 @@ export default function RoadmapPage() {
                   <div className="grid grid-cols-2 gap-3">
                     <div className="p-3 bg-gray-50 dark:bg-gray-700/50 rounded-lg text-center">
                       <p className="text-xs text-muted mb-1">Career Match</p>
-                      <p className="text-lg font-bold text-purple-600 dark:text-purple-400">{selectedCareer.matchPercentage}%</p>
+                      <p className="text-lg font-bold text-primary">{selectedCareer.matchPercentage}%</p>
                     </div>
                     <div className="p-3 bg-gray-50 dark:bg-gray-700/50 rounded-lg text-center">
                       <p className="text-xs text-muted mb-1">Readiness</p>

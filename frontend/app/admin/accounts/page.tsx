@@ -72,7 +72,7 @@ export default function AccountsPage() {
       <div className="flex justify-end mb-6">
         <button
           onClick={() => setShowForm(!showForm)}
-          className="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium bg-purple-600 text-white hover:bg-purple-700 transition-colors"
+          className="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium bg-primary text-white hover:bg-primary-dark transition-colors"
         >
           <UserPlus className="w-4 h-4" />
           Buat Akun Admin
@@ -129,7 +129,7 @@ export default function AccountsPage() {
               <button
                 type="submit"
                 disabled={submitting}
-                className="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium bg-purple-600 text-white hover:bg-purple-700 transition-colors disabled:opacity-60"
+                className="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium bg-primary text-white hover:bg-primary-dark transition-colors disabled:opacity-60"
               >
                 {submitting && <Loader2 className="w-4 h-4 animate-spin" />}
                 Simpan
@@ -150,7 +150,7 @@ export default function AccountsPage() {
       <Card>
         {loading ? (
           <div className="flex justify-center py-12">
-            <div className="w-8 h-8 border-2 border-purple-600 border-t-transparent rounded-full animate-spin" />
+            <div className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin" />
           </div>
         ) : (
           <div className="overflow-x-auto">
@@ -170,7 +170,7 @@ export default function AccountsPage() {
                     <td className="py-3 px-3 font-medium text-foreground">{admin.name}</td>
                     <td className="py-3 px-3 text-muted">{admin.email}</td>
                     <td className="py-3 px-3">
-                      <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-medium bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300">
+                      <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-medium bg-primary/10 text-primary">
                         <Shield className="w-3 h-3" /> Admin
                       </span>
                     </td>

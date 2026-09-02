@@ -108,7 +108,7 @@ export default function CareerMatchPage() {
         {/* Detail Panel */}
         <div className="lg:col-span-2 space-y-6">
           {/* Career Header */}
-          <Card className="bg-gradient-to-br from-primary/5 to-secondary/5 border-primary/20">
+          <Card className="bg-primary/5 border-primary/20">
             <div className="flex items-start justify-between">
               <div>
                 <Badge variant="primary" className="mb-2">{activeCareer.category}</Badge>
@@ -128,8 +128,8 @@ export default function CareerMatchPage() {
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <Card>
               <div className="flex items-center gap-3 mb-3">
-                <div className="w-10 h-10 rounded-lg bg-purple-100 dark:bg-purple-900/50 flex items-center justify-center">
-                  <Target className="w-5 h-5 text-purple-600 dark:text-purple-400" />
+                <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center">
+                  <Target className="w-5 h-5 text-primary" />
                 </div>
                 <div>
                   <h3 className="font-semibold text-foreground text-sm">Career Match</h3>

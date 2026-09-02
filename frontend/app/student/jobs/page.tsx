@@ -41,13 +41,7 @@ const typeBadgeVariant = {
   freelance: "warning" as const,
 };
 
-const companyColors = [
-  "from-blue-500 to-cyan-500",
-  "from-purple-500 to-pink-500",
-  "from-emerald-500 to-teal-500",
-  "from-amber-500 to-orange-500",
-  "from-red-500 to-rose-500",
-];
+
 
 export default function JobsPage() {
   const { toast } = useToast();
@@ -203,7 +197,7 @@ export default function JobsPage() {
             <div className="flex flex-col md:flex-row">
               {/* Company Logo */}
               <div className="p-6 md:w-24 flex items-start justify-center">
-                <div className={`w-16 h-16 rounded-2xl bg-gradient-to-br ${companyColors[index % companyColors.length]} flex items-center justify-center flex-shrink-0`}>
+                <div className="w-16 h-16 rounded-2xl bg-primary flex items-center justify-center flex-shrink-0">
                   <span className="text-lg font-bold text-white">
                     {job.company.split(" ").slice(0, 2).map((w) => w[0]).join("")}
                   </span>

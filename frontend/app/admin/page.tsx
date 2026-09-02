@@ -18,6 +18,7 @@ import dynamic from "next/dynamic";
 import DashboardHeader from "../components/layout/dashboardheader";
 import { api, BACKEND_ENDPOINTS } from "../lib/api";
 import { useCountUp } from "../lib/use-count-up";
+import { useAuth } from "../lib/auth-context";
 
 const SkillBarChart = dynamic(() => import("../components/charts/barchart"), { ssr: false });
 
@@ -43,6 +44,7 @@ type StudentRow = {
 };
 
 export default function AdminDashboard() {
+  const { user } = useAuth();
   const [mounted, setMounted] = useState(false);
   const [loading, setLoading] = useState(true);
   const [stats, setStats] = useState<DashboardStats | null>(null);
@@ -79,8 +81,6 @@ export default function AdminDashboard() {
     load();
   }, []);
 
-  if (!mounted || loading) return <div className="p-6 lg:pl-72"><SkeletonDashboard /></div>;
-
   const statsValue = stats || {
     totalStudents: 0,
     assessedStudents: 0,
@@ -95,18 +95,21 @@ export default function AdminDashboard() {
   };
 
   const assessedPercentage = statsValue.totalStudents ? Math.round((statsValue.assessedStudents / statsValue.totalStudents) * 100) : 0;
-  const pendingIndustries = statsValue.pendingIndustries;
-  const pendingCards = statsValue.pendingCards;
   const animTotal = useCountUp(statsValue.totalStudents);
   const animAssessed = useCountUp(statsValue.assessedStudents);
   const animAvgScore = useCountUp(statsValue.avgReadinessScore);
   const animPercentage = useCountUp(assessedPercentage);
   const animIndustries = useCountUp(statsValue.totalIndustries);
 
+  if (!mounted || loading) return <div className="p-6 lg:pl-72"><SkeletonDashboard /></div>;
+
+  const pendingIndustries = statsValue.pendingIndustries;
+  const pendingCards = statsValue.pendingCards;
+
   return (
     <div>
       <DashboardHeader
-        title="Dashboard Admin"
+        title={`Selamat datang, ${user?.name || "Admin"}!`}
         subtitle="Pantau kesiapan kerja siswa secara keseluruhan"
         role="admin"
         showNotifications
@@ -183,8 +186,8 @@ export default function AdminDashboard() {
         </Card>
         <Card>
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-lg bg-purple-100 dark:bg-purple-900/50 flex items-center justify-center">
-              <GraduationCap className="w-5 h-5 text-purple-600 dark:text-purple-400" />
+            <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center">
+              <GraduationCap className="w-5 h-5 text-primary" />
             </div>
             <div>
               <p className="text-sm text-muted">% Dinilai</p>

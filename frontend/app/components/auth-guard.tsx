@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "../lib/auth-context";
 
@@ -12,6 +13,19 @@ export default function AuthGuard({ allowedRoles, children }: AuthGuardProps) {
   const router = useRouter();
   const { user, loading } = useAuth();
 
+  useEffect(() => {
+    if (loading) return;
+    if (!user) {
+      router.replace("/auth/login");
+      return;
+    }
+    if (!allowedRoles.includes(user.role)) {
+      if (user.role === "admin") router.replace("/admin");
+      else if (user.role === "industry") router.replace("/industry");
+      else router.replace("/student");
+    }
+  }, [loading, user, allowedRoles, router]);
+
   if (loading) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
@@ -21,14 +35,10 @@ export default function AuthGuard({ allowedRoles, children }: AuthGuardProps) {
   }
 
   if (!user) {
-    router.replace("/auth/login");
     return null;
   }
 
   if (!allowedRoles.includes(user.role)) {
-    if (user.role === "admin") router.replace("/admin");
-    else if (user.role === "industry") router.replace("/industry");
-    else router.replace("/student");
     return null;
   }
 

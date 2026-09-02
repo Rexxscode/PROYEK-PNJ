@@ -12,7 +12,7 @@ function PendingContent() {
   const isStudent = role !== "industry";
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-primary/5 via-background to-secondary/5 px-4">
+    <div className="min-h-screen flex items-center justify-center bg-primary/5 px-4">
       <div className="w-full max-w-md text-center">
         <div className="bg-card rounded-2xl border border-border p-8 shadow-sm">
           <div className="w-16 h-16 rounded-2xl bg-amber-100 dark:bg-amber-900/30 flex items-center justify-center mx-auto mb-6">

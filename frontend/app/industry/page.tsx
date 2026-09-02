@@ -14,6 +14,7 @@ import {
   CheckCircle2,
   MapPin,
   Globe,
+  Building2,
 } from "lucide-react";
 import Link from "next/link";
 import Card from "../components/ui/card";
@@ -61,13 +62,7 @@ function getAllStudentsWithMatch(jobSkills: string[]) {
   return [];
 }
 
-const candidateColors = [
-  "from-blue-500 to-cyan-500",
-  "from-purple-500 to-pink-500",
-  "from-emerald-500 to-teal-500",
-  "from-amber-500 to-orange-500",
-  "from-red-500 to-rose-500",
-];
+
 
 export default function IndustryDashboard() {
   const { toast } = useToast();
@@ -169,7 +164,7 @@ export default function IndustryDashboard() {
   return (
     <div>
       <DashboardHeader
-        title="Dashboard Industri"
+        title={`Selamat datang, ${user.name}!`}
         subtitle="Temukan kandidat terbaik berdasarkan kebutuhan skill"
         role="industry"
         showNotifications
@@ -178,10 +173,8 @@ export default function IndustryDashboard() {
       {/* Company Profile Card */}
       <Card className="mb-8">
         <div className="flex flex-col sm:flex-row items-start gap-5">
-          <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-primary to-secondary flex items-center justify-center flex-shrink-0 shadow-lg shadow-primary/20">
-            <span className="text-xl font-bold text-white">
-              {getInitials(profile?.company || "P")}
-            </span>
+          <div className="w-16 h-16 rounded-2xl bg-primary flex items-center justify-center flex-shrink-0 shadow-lg shadow-primary/20">
+            <Building2 className="w-8 h-8 text-white" />
           </div>
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-3 mb-1">
@@ -253,8 +246,8 @@ export default function IndustryDashboard() {
         </Card>
         <Card>
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-lg bg-purple-100 dark:bg-purple-900/50 flex items-center justify-center">
-              <TrendingUp className="w-5 h-5 text-purple-600 dark:text-purple-400" />
+            <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center">
+              <TrendingUp className="w-5 h-5 text-primary" />
             </div>
             <div>
               <p className="text-sm text-muted">Avg Match</p>
@@ -280,7 +273,7 @@ export default function IndustryDashboard() {
             <div key={candidate.name} className="p-4 bg-gray-50 dark:bg-gray-700/50 rounded-xl hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors">
               <div className="flex items-center justify-between gap-3">
                 <div className="flex items-center gap-3 min-w-0">
-                  <div className={`w-10 h-10 rounded-full bg-gradient-to-br ${candidateColors[index % candidateColors.length]} flex items-center justify-center flex-shrink-0`}>
+                  <div className="w-10 h-10 rounded-full bg-primary flex items-center justify-center flex-shrink-0">
                     <span className="text-xs font-bold text-white">{getInitials(candidate.name)}</span>
                   </div>
                   <div className="min-w-0">

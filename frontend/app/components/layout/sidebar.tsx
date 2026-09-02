@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import {
   LayoutDashboard,
   ClipboardCheck,
@@ -19,9 +20,12 @@ import {
   Lock,
   Award,
   IdCard,
+  LogOut,
+  User,
 } from "lucide-react";
-import { cn, getInitials } from "../../lib/utils";
+import { cn } from "../../lib/utils";
 import { useAuth } from "../../lib/auth-context";
+import { useToast } from "../../lib/toast-context";
 
 interface SidebarProps {
   role: "student" | "admin" | "industry";
@@ -67,7 +71,7 @@ const roleLabels = {
 
 const roleColors = {
   student: "bg-blue-100 dark:bg-blue-900/50 text-blue-700 dark:text-blue-300",
-  admin: "bg-purple-100 dark:bg-purple-900/50 text-purple-700 dark:text-purple-300",
+  admin: "bg-primary/10 text-primary",
   industry: "bg-emerald-100 dark:bg-emerald-900/50 text-emerald-700 dark:text-emerald-300",
 };
 
@@ -85,7 +89,16 @@ export function MobileMenuButton({ onClick }: { onClick: () => void }) {
 export default function Sidebar({ role, currentPath, isCollapsed = false, onToggle }: SidebarProps) {
   const [mounted, setMounted] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
-  const { user: authUser } = useAuth();
+  const { user: authUser, logout } = useAuth();
+  const router = useRouter();
+  const { toast } = useToast();
+
+  const handleLogout = async () => {
+    await logout();
+    toast("Berhasil keluar", "info");
+    router.replace("/auth/login");
+    setMobileOpen(false);
+  };
 
   useEffect(() => {
     window.dispatchEvent(new CustomEvent("sidebar-toggle", { detail: { open: mobileOpen } }));
@@ -130,7 +143,7 @@ export default function Sidebar({ role, currentPath, isCollapsed = false, onTogg
 
       <aside
         className={cn(
-          "h-screen bg-sidebar-bg border-r border-border flex flex-col transition-all duration-300 fixed left-0 top-0 z-40",
+          "h-screen bg-sidebar-bg border-r border-border flex flex-col transition-all duration-300 sticky top-0 self-start z-40 overflow-y-auto",
           isCollapsed ? "w-[72px]" : "w-64",
           "max-lg:hidden"
         )}
@@ -139,7 +152,7 @@ export default function Sidebar({ role, currentPath, isCollapsed = false, onTogg
           <Link href="/" className={cn("flex items-center gap-2", isCollapsed && "justify-center flex-1")}>
             <img src="/logo-skillmatch-baru.png" alt="SkillMatch" className="w-8 h-8 rounded-lg object-contain flex-shrink-0" />
             {!isCollapsed && (
-              <span className="text-lg font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent whitespace-nowrap">
+              <span className="text-lg font-bold text-primary whitespace-nowrap">
                 SkillMatch
               </span>
             )}
@@ -184,11 +197,11 @@ export default function Sidebar({ role, currentPath, isCollapsed = false, onTogg
 
         <div className="p-3 border-t border-border">
           <div className={cn("flex items-center gap-3 p-2 rounded-lg bg-gray-50 dark:bg-gray-800", isCollapsed && "justify-center")}>
-            <div className="w-9 h-9 rounded-full bg-gradient-to-br from-primary to-secondary flex items-center justify-center flex-shrink-0 overflow-hidden">
+            <div className="w-9 h-9 rounded-full bg-primary flex items-center justify-center flex-shrink-0 overflow-hidden">
               {profilePhoto ? (
                 <img src={profilePhoto} alt="Profile" className="w-full h-full object-cover" />
               ) : (
-                <span className="text-xs font-bold text-white">{getInitials(userName)}</span>
+                <User className="w-4 h-4 text-white" />
               )}
             </div>
             {!isCollapsed && (
@@ -200,6 +213,15 @@ export default function Sidebar({ role, currentPath, isCollapsed = false, onTogg
               </div>
             )}
           </div>
+          <button
+            type="button"
+            onClick={handleLogout}
+            className="mt-2 w-full flex items-center justify-center gap-2 px-3 py-2 rounded-lg text-sm font-medium text-white bg-red-500 hover:bg-red-600 dark:hover:bg-red-600 transition-colors"
+            title="Keluar"
+          >
+            <LogOut className="w-4 h-4 flex-shrink-0" />
+            {!isCollapsed && <span>Keluar</span>}
+          </button>
         </div>
       </aside>
 
@@ -213,7 +235,7 @@ export default function Sidebar({ role, currentPath, isCollapsed = false, onTogg
         <div className="flex items-center justify-between h-16 px-4 border-b border-border">
           <Link href="/" className="flex items-center gap-2">
             <img src="/logo-skillmatch-baru.png" alt="SkillMatch" className="w-8 h-8 rounded-lg object-contain" />
-            <span className="text-lg font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
+            <span className="text-lg font-bold text-primary">
               SkillMatch
             </span>
           </Link>
@@ -255,11 +277,11 @@ export default function Sidebar({ role, currentPath, isCollapsed = false, onTogg
 
         <div className="p-3 border-t border-border">
           <div className="flex items-center gap-3 p-2 rounded-lg bg-gray-50 dark:bg-gray-800">
-            <div className="w-9 h-9 rounded-full bg-gradient-to-br from-primary to-secondary flex items-center justify-center flex-shrink-0 overflow-hidden">
+            <div className="w-9 h-9 rounded-full bg-primary flex items-center justify-center flex-shrink-0 overflow-hidden">
               {profilePhoto ? (
                 <img src={profilePhoto} alt="Profile" className="w-full h-full object-cover" />
               ) : (
-                <span className="text-xs font-bold text-white">{getInitials(userName)}</span>
+                <User className="w-4 h-4 text-white" />
               )}
             </div>
             <div className="flex-1 min-w-0">
@@ -269,6 +291,14 @@ export default function Sidebar({ role, currentPath, isCollapsed = false, onTogg
               </span>
             </div>
           </div>
+          <button
+            type="button"
+            onClick={handleLogout}
+            className="mt-2 w-full flex items-center justify-center gap-2 px-3 py-2 rounded-lg text-sm font-medium text-white bg-red-500 hover:bg-red-600 dark:hover:bg-red-600 transition-colors"
+          >
+            <LogOut className="w-4 h-4 flex-shrink-0" />
+            <span>Keluar</span>
+          </button>
         </div>
       </aside>
     </>

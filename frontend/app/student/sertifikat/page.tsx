@@ -78,7 +78,7 @@ export default function SertifikatPage() {
 
       {/* Ringkasan */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8">
-        <Card className="bg-gradient-to-br from-primary/5 to-secondary/5 border-primary/20">
+        <Card className="bg-primary/5 border-primary/20">
           <div className="flex items-center gap-4">
             <div className="w-12 h-12 rounded-xl bg-primary/10 text-primary flex items-center justify-center">
               <BookOpen className="w-6 h-6" />
@@ -116,7 +116,7 @@ export default function SertifikatPage() {
         return (
           <div key={major.name} className="mb-8">
             <div className="flex items-center gap-3 mb-4">
-              <span className="px-3 py-1 rounded-lg bg-gradient-to-r from-primary to-secondary text-white text-xs font-bold uppercase tracking-wider">
+              <span className="px-3 py-1 rounded-lg bg-primary text-white text-xs font-bold uppercase tracking-wider">
                 {major.short}
               </span>
               <h3 className="text-lg font-bold text-foreground">{major.name}</h3>
