@@ -53,6 +53,7 @@ interface AuthContextType {
   register: (data: RegisterData) => Promise<AuthUser>;
   logout: () => Promise<void>;
   refreshUser: () => Promise<void>;
+  changePassword: (currentPassword: string, newPassword: string) => Promise<void>;
   isAuthenticated: boolean;
 }
 
@@ -123,6 +124,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     setUser(null);
   }, []);
 
+  const changePassword = useCallback(async (currentPassword: string, newPassword: string) => {
+    await api.post(BACKEND_ENDPOINTS.auth.changePassword, {
+      current_password: currentPassword,
+      new_password: newPassword,
+      new_password_confirmation: newPassword,
+    });
+  }, []);
+
   return (
     <AuthContext.Provider
       value={{
@@ -132,6 +141,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         register,
         logout,
         refreshUser,
+        changePassword,
         isAuthenticated: !!user,
       }}
     >

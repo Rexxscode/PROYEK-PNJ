@@ -135,8 +135,7 @@ export default function StudentRegisterPage() {
                     <option value="">Pilih</option>
                     <option value="rpl">Rekayasa Perangkat Lunak</option>
                     <option value="dkv">Desain Komunikasi Visual</option>
-                    <option value="tt">Teknik Transmisi</option>
-                    <option value="tkj">Teknik Komputer dan Jaringan</option>
+                    <option value="tjkt">Teknik Jaringan, Komputer, dan Telekomunikasi</option>
                   </select>
                 </div>
               </div>

@@ -26,6 +26,8 @@ class DatabaseSeeder extends Seeder
             AssessmentQuestionSeeder::class,
             RoadmapSeeder::class,
             UserSeeder::class,
+            JobSeeder::class,
+            DummyDataSeeder::class,
         ]);
     }
 }

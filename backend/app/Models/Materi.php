@@ -14,8 +14,12 @@ class Materi extends Model
 
     protected $fillable = [
         'name',
+        'slug',
+        'title',
         'description',
         'major_id',
+        'skills',
+        'icon',
     ];
 
     /**

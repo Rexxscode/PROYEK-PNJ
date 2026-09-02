@@ -24,7 +24,7 @@ export const skillGroups: Record<string, string[]> = {
     "Copywriting",
     "Digital Marketing",
   ],
-  TKJ: [
+  TJKT: [
     "Cisco Networking",
     "MikroTik",
     "Linux Administration",
@@ -33,8 +33,6 @@ export const skillGroups: Record<string, string[]> = {
     "Networking",
     "Cybersecurity Basics",
     "Virtualization",
-  ],
-  Transmisi: [
     "Fiber Optik",
     "Radio Frequency",
     "Network Engineering",

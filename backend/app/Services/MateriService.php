@@ -20,8 +20,17 @@ class MateriService
     {
         $materiList = $this->materis->listByMajor($major);
 
+        $formatted = $materiList->map(fn ($m) => [
+            'id' => $m->id,
+            'slug' => $m->slug,
+            'major_id' => $m->major_id,
+            'title' => $m->title,
+            'description' => $m->description,
+            'icon' => $m->icon,
+        ]);
+
         return [
-            'data' => $materiList,
+            'data' => $formatted,
             'meta' => [
                 'total' => $materiList->count(),
                 'major_id' => $major,
@@ -31,7 +40,7 @@ class MateriService
 
     public function questions($materiId): array
     {
-        $materi = $this->materis->findById($materiId);
+        $materi = $this->materis->findBySlug($materiId) ?? $this->materis->findById($materiId);
 
         if (!$materi) {
             throw ValidationException::withMessages([
@@ -39,7 +48,7 @@ class MateriService
             ]);
         }
 
-        $questions = $this->materis->questionsForMateri($materiId);
+        $questions = $this->materis->questionsForMateri($materi->id);
 
         // Never expose correct answers to students.
         $safe = $questions->map(fn ($q) => [
@@ -55,7 +64,8 @@ class MateriService
             'data' => $safe,
             'meta' => [
                 'total' => $questions->count(),
-                'materi_id' => $materiId,
+                'materi_id' => $materi->id,
+                'slug' => $materi->slug,
                 'major_id' => $materi->major_id,
             ],
         ];
@@ -63,7 +73,7 @@ class MateriService
 
     public function adminQuestions($materiId): array
     {
-        $materi = $this->materis->findById($materiId);
+        $materi = $this->materis->findBySlug($materiId) ?? $this->materis->findById($materiId);
 
         if (!$materi) {
             throw ValidationException::withMessages([
@@ -71,7 +81,7 @@ class MateriService
             ]);
         }
 
-        $questions = $this->materis->questionsForMateri($materiId);
+        $questions = $this->materis->questionsForMateri($materi->id);
 
         $full = $questions->map(fn ($q) => [
             'id' => $q->id,
@@ -87,7 +97,8 @@ class MateriService
             'data' => $full,
             'meta' => [
                 'total' => $questions->count(),
-                'materi_id' => $materiId,
+                'materi_id' => $materi->id,
+                'slug' => $materi->slug,
                 'major_id' => $materi->major_id,
             ],
         ];
@@ -95,7 +106,7 @@ class MateriService
 
     public function submit(int $userId, $materiId, array $answers): array
     {
-        $materi = $this->materis->findById($materiId);
+        $materi = $this->materis->findBySlug($materiId) ?? $this->materis->findById($materiId);
 
         if (!$materi) {
             throw ValidationException::withMessages([
@@ -103,7 +114,7 @@ class MateriService
             ]);
         }
 
-        $questions = $this->materis->questionsForMateri($materiId);
+        $questions = $this->materis->questionsForMateri($materi->id);
 
         if ($questions->isEmpty()) {
             throw ValidationException::withMessages([
@@ -146,7 +157,7 @@ class MateriService
         $student = $this->students->findById($userId);
 
         if ($student) {
-            $this->saveCertificate($student, $materiId, $materi->major_id, $correctCount, $totalQuestions, $passed);
+            $this->saveCertificate($student, $materi->id, $materi->major_id, $correctCount, $totalQuestions, $passed);
         }
 
         return [
@@ -155,7 +166,8 @@ class MateriService
             'percentage' => $scorePercentage,
             'passed' => $passed,
             'required_correct' => $requiredCorrect,
-            'materi_id' => $materiId,
+            'materi_id' => $materi->id,
+            'slug' => $materi->slug,
             'answered' => $answeredMap,
         ];
     }
@@ -183,7 +195,7 @@ class MateriService
 
     public function adminUpdateQuestions($materiId, array $questions): array
     {
-        $materi = $this->materis->findById($materiId);
+        $materi = $this->materis->findBySlug($materiId) ?? $this->materis->findById($materiId);
 
         if (!$materi) {
             throw ValidationException::withMessages([
@@ -191,7 +203,7 @@ class MateriService
             ]);
         }
 
-        $this->materis->deleteQuestionsForMateri($materiId);
+        $this->materis->deleteQuestionsForMateri($materi->id);
 
         foreach ($questions as $q) {
             $skillId = $q['skill_id'] ?? null;
@@ -202,7 +214,7 @@ class MateriService
             }
 
             $this->materis->createQuestion([
-                'materi_id' => $materiId,
+                'materi_id' => $materi->id,
                 'skill_id' => $skillId,
                 'question' => $q['question'],
                 'options' => json_encode($q['options']),
@@ -212,14 +224,15 @@ class MateriService
         }
 
         return [
-            'materi_id' => $materiId,
+            'materi_id' => $materi->id,
+            'slug' => $materi->slug,
             'total' => count($questions),
         ];
     }
 
     public function adminResetQuestions($materiId): array
     {
-        $materi = $this->materis->findById($materiId);
+        $materi = $this->materis->findBySlug($materiId) ?? $this->materis->findById($materiId);
 
         if (!$materi) {
             throw ValidationException::withMessages([
@@ -227,12 +240,13 @@ class MateriService
             ]);
         }
 
-        $this->materis->deleteQuestionsForMateri($materiId);
+        $this->materis->deleteQuestionsForMateri($materi->id);
 
         (new \Database\Seeders\MateriQuestionSeeder())->run();
 
         return [
-            'materi_id' => $materiId,
+            'materi_id' => $materi->id,
+            'slug' => $materi->slug,
             'reset' => true,
         ];
     }

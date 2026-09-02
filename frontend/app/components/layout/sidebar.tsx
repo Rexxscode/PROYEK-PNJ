@@ -41,7 +41,7 @@ const navItems = {
     { label: "Know Yourself", href: "/student/assessment", icon: ClipboardCheck },
     { label: "Know Your Path", href: "/student/career-match", icon: Target },
     { label: "Roadmap Belajar", href: "/student/roadmap", icon: Map },
-    { label: "Portfolio", href: "/student/portofolio", icon: GraduationCap },
+    { label: "Portfolio", href: "/student/portfolio", icon: GraduationCap },
     { label: "Sertifikat", href: "/student/sertifikat", icon: Award },
     { label: "Lowongan", href: "/student/jobs", icon: Briefcase },
     { label: "Lamaran Saya", href: "/student/applications", icon: Send },
@@ -56,6 +56,7 @@ const navItems = {
     { label: "Data Industry", href: "/admin/industries", icon: Building2 },
     { label: "Kelola Admin", href: "/admin/accounts", icon: UserPlus },
     { label: "Statistik", href: "/admin/statistics", icon: BarChart3 },
+    { label: "Profil", href: "/admin/profile", icon: User },
   ],
   industry: [
     { label: "Dashboard", href: "/industry", icon: LayoutDashboard },

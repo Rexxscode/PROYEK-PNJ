@@ -24,6 +24,11 @@ class MateriRepository extends Repository
         return Materi::where('id', $materiId)->first();
     }
 
+    public function findBySlug(string $slug): ?Materi
+    {
+        return Materi::where('slug', $slug)->first();
+    }
+
     public function questionsForMateri($materiId): Collection
     {
         return MateriQuestion::where('materi_id', $materiId)->get();

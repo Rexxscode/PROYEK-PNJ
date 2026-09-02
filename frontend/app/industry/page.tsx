@@ -48,6 +48,14 @@ const industryOptions = [
   "E-Commerce",
   "Media & Entertainment",
   "Konsultan",
+  "Pendidikan",
+  "Kesehatan",
+  "Otomotif",
+  "Logistik",
+  "Energi",
+  "Pariwisata",
+  "Retail",
+  "Startup",
 ];
 
 const employeeOptions = [

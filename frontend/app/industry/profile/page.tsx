@@ -9,6 +9,7 @@ import DashboardHeader from "../../components/layout/dashboardheader";
 import { useAuth } from "../../lib/auth-context";
 import { useToast } from "../../lib/toast-context";
 import { api, BACKEND_ENDPOINTS } from "../../lib/api";
+import ChangePasswordForm from "../../components/change-password-form";
 
 interface IndustryProfile {
   company: string;
@@ -22,11 +23,21 @@ interface IndustryProfile {
 
 const industryOptions = [
   "Teknologi Informasi",
-  "Manufaktur",
-  "Perbankan",
+  "Telekomunikasi",
+  "Design & Kreatif",
+  "Manufacturing",
+  "Financial Services",
   "E-Commerce",
   "Media & Entertainment",
   "Konsultan",
+  "Pendidikan",
+  "Kesehatan",
+  "Otomotif",
+  "Logistik",
+  "Energi",
+  "Pariwisata",
+  "Retail",
+  "Startup",
 ];
 
 const employeeOptions = ["1-10", "11-50", "51-200", "201-500", "500+"];
@@ -251,6 +262,10 @@ export default function IndustryProfilePage() {
             </button>
           </div>
         </Card>
+      </div>
+
+      <div className="mt-8 grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <ChangePasswordForm />
       </div>
     </div>
   );
