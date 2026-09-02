@@ -79,6 +79,10 @@ export const BACKEND_ENDPOINTS = {
     list: "/api/v1/jobs",
     mine: "/api/v1/jobs/mine",
     create: "/api/v1/jobs",
+    apply: (id: string) => `/api/v1/jobs/${id}/apply`,
+    myApplications: "/api/v1/jobs/applications/mine",
+    jobApplicants: (id: string) => `/api/v1/jobs/${id}/applications`,
+    setApplicationStatus: (jobId: string, applicationId: string) => `/api/v1/jobs/${jobId}/applications/${applicationId}/status`,
   },
   portfolios: {
     list: (email: string) => `/api/v1/portfolios/${email}/projects`,

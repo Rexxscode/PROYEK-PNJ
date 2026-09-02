@@ -124,7 +124,7 @@ export default function SertifikatPage() {
             </div>
             <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4">
               {items.map((materi) => {
-                const st = statusMap[materi.id];
+                const st = statusMap[materi.id] ?? { status: "not-started" as const };
                 const { result } = st;
                 const qCount = QUESTIONS_PER_MATERI;
                 return (

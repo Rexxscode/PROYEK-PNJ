@@ -104,8 +104,7 @@ class UserSeeder extends Seeder
                 // Assign major based on email
                 $majorCode = 'RPL';
                 if (str_contains($userData['email'], 'rina')) $majorCode = 'DKV';
-                if (str_contains($userData['email'], 'hendra')) $majorCode = 'TT';
-                if (str_contains($userData['email'], 'fajar') || str_contains($userData['email'], 'dedi')) $majorCode = 'TKJ';
+                if (str_contains($userData['email'], 'hendra') || str_contains($userData['email'], 'fajar') || str_contains($userData['email'], 'dedi')) $majorCode = 'TJKT';
 
                 $major = Major::where('short_code', $majorCode)->first();
                 Student::create([

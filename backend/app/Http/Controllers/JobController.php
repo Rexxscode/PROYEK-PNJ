@@ -19,7 +19,8 @@ class JobController extends Controller
             $request->query('type'),
             $request->integer('page') ?: null,
             $request->integer('per_page') ?: null,
-            (string) $request->query('search', '')
+            (string) $request->query('search', ''),
+            $this->studentId($request),
         );
 
         return response()->json([
@@ -29,9 +30,9 @@ class JobController extends Controller
         ]);
     }
 
-    public function show(string $id): JsonResponse
+    public function show(Request $request, string $id): JsonResponse
     {
-        $data = $this->job->show($id);
+        $data = $this->job->show($id, $this->studentId($request));
 
         return response()->json([
             'success' => true,
@@ -58,6 +59,7 @@ class JobController extends Controller
             'description' => 'required|string',
             'skills' => 'required|array',
             'deadline' => 'nullable|date',
+            'salary' => 'nullable|string|max:255',
         ]);
 
         if ($validator->fails()) {
@@ -86,6 +88,7 @@ class JobController extends Controller
             'description' => 'sometimes|required|string',
             'skills' => 'sometimes|required|array',
             'deadline' => 'sometimes|nullable|date',
+            'salary' => 'sometimes|nullable|string|max:255',
         ]);
 
         if ($validator->fails()) {
@@ -113,5 +116,89 @@ class JobController extends Controller
             'success' => true,
             'message' => 'Job deleted successfully',
         ]);
+    }
+
+    public function apply(Request $request, string $id): JsonResponse
+    {
+        $student = $request->user()->student;
+
+        if (!$student) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Student profile not found',
+            ], 422);
+        }
+
+        $data = $this->job->apply($student->id, $id);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Application submitted successfully',
+            'data' => $data['data'],
+        ], 201);
+    }
+
+    public function myApplications(Request $request): JsonResponse
+    {
+        $student = $request->user()->student;
+
+        if (!$student) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Student profile not found',
+            ], 422);
+        }
+
+        $data = $this->job->applicationsForStudent($student->id);
+
+        return response()->json([
+            'success' => true,
+            'data' => $data['data'],
+        ]);
+    }
+
+    public function jobApplicants(Request $request, string $id): JsonResponse
+    {
+        $data = $this->job->applicationsForJob($request->user()->id, $id);
+
+        return response()->json([
+            'success' => true,
+            'data' => $data['data'],
+            'job' => $data['job'],
+        ]);
+    }
+
+    public function updateApplicationStatus(Request $request, string $id, string $applicationId): JsonResponse
+    {
+        $validator = Validator::make($request->all(), [
+            'status' => 'required|in:pending,accepted,rejected',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Validation failed',
+                'errors' => $validator->errors(),
+            ], 422);
+        }
+
+        $data = $this->job->setApplicationStatus($request->user()->id, $id, $applicationId, $request->input('status'));
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Application status updated',
+            'data' => $data['data'],
+        ]);
+    }
+
+    private function studentId(Request $request): ?int
+    {
+        $user = $request->user();
+
+        if ($user && $user->role === 'student' && $user->student) {
+            return $user->student->id;
+        }
+
+        return null;
     }
 }

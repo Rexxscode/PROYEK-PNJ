@@ -381,8 +381,11 @@ const transmisiRoadmap: MajorRoadmap = {
 export const majorRoadmapMap: Record<string, MajorRoadmap> = {
   "Rekayasa Perangkat Lunak": rplRoadmap,
   "Desain Komunikasi Visual": dkvRoadmap,
-  "Teknik Komputer dan Jaringan": tkjRoadmap,
-  "Teknik Transmisi": transmisiRoadmap,
+  "Teknik Jaringan, Komputer, dan Telekomunikasi": {
+    fundamental: [...tkjRoadmap.fundamental, ...transmisiRoadmap.fundamental],
+    intermediate: [...tkjRoadmap.intermediate, ...transmisiRoadmap.intermediate],
+    advanced: [...tkjRoadmap.advanced, ...transmisiRoadmap.advanced],
+  },
 };
 
 export function getScoreLevel(score: number): { level: number; label: string; trackLabel: string } {

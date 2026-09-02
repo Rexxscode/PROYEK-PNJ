@@ -81,7 +81,7 @@ export default function StudentDashboard() {
   const animProjects = useCountUp(mounted ? projects.length : 0);
   const animReadiness = useCountUp(mounted ? readinessScore : 0);
   const animMatches = useCountUp(mounted ? careerMatches.length : 0);
-  const animSkills = useCountUp(mounted && assessmentResult ? Object.keys(assessmentResult.answers).length : 0);
+  const animSkills = useCountUp(mounted && assessmentResult ? Object.keys(assessmentResult.answers || {}).length : 0);
 
   const doughnutLabels = useMemo(() => careerMatches.map((c) => c.title), [careerMatches]);
   const doughnutData = useMemo(() => careerMatches.map((c) => c.matchPercentage), [careerMatches]);
@@ -229,7 +229,7 @@ export default function StudentDashboard() {
         <Card>
           <div className="flex items-center justify-between mb-4">
             <h3 className="font-semibold text-foreground">Recent Projects</h3>
-            <a href="/student/portofolio" className="text-sm text-primary hover:text-primary-dark flex items-center gap-1">
+            <a href="/student/portfolio" className="text-sm text-primary hover:text-primary-dark flex items-center gap-1">
               Lihat semua <ArrowRight className="w-3 h-3" />
             </a>
           </div>

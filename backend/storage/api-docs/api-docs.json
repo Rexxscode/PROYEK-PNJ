@@ -1,0 +1,2359 @@
+{
+    "openapi": "3.0.0",
+    "info": {
+        "title": "SkillMatch API — Dokumentasi Swagger",
+        "description": "Dokumentasi REST API resmi untuk platform SkillMatch (Platform Kesiapan Kerja Siswa SMK).\n\nLayanan: Autentikasi, Jurusan, Asesmen, Materi, Sertifikat, Roadmap, Portofolio, Industri, Lowongan Kerja, Notifikasi, dan Admin.\n\nAutentikasi menggunakan Bearer Token (Sanctum). Setelah login, gunakan tombol Authorize dan isi token dengan format: Bearer <token>.",
+        "contact": {
+            "name": "Tim SkillMatch"
+        },
+        "version": "1.0.0"
+    },
+    "servers": [
+        {
+            "url": "/api",
+            "description": "Server API default (prefix /api)"
+        }
+    ],
+    "paths": {
+        "/v1/auth/login": {
+            "post": {
+                "tags": [
+                    "Autentikasi"
+                ],
+                "summary": "Login pengguna",
+                "description": "Melakukan autentikasi dengan email dan kata sandi untuk mendapatkan token akses.",
+                "operationId": "authLogin",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "email",
+                                    "password"
+                                ],
+                                "properties": {
+                                    "email": {
+                                        "type": "string",
+                                        "format": "email",
+                                        "example": "budi@student.smk.id"
+                                    },
+                                    "password": {
+                                        "type": "string",
+                                        "format": "password",
+                                        "example": "Budi@2026!"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Login berhasil. Token diberikan untuk akses endpoint terlindungi."
+                    },
+                    "401": {
+                        "description": "Kredensial tidak valid."
+                    },
+                    "403": {
+                        "description": "Akses ditolak (mis. akun belum disetujui)."
+                    }
+                }
+            }
+        },
+        "/v1/auth/register": {
+            "post": {
+                "tags": [
+                    "Autentikasi"
+                ],
+                "summary": "Registrasi pengguna baru",
+                "description": "Membuat akun baru untuk siswa atau perusahaan.",
+                "operationId": "authRegister",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "description": "Data pendaftaran (siswa atau perusahaan).",
+                                "properties": {
+                                    "name": {
+                                        "description": "Nama lengkap.",
+                                        "type": "string"
+                                    },
+                                    "email": {
+                                        "description": "Alamat email unik.",
+                                        "type": "string",
+                                        "format": "email"
+                                    },
+                                    "password": {
+                                        "type": "string",
+                                        "format": "password",
+                                        "minLength": 8
+                                    },
+                                    "password_confirmation": {
+                                        "type": "string",
+                                        "format": "password"
+                                    },
+                                    "role": {
+                                        "type": "string",
+                                        "enum": [
+                                            "student",
+                                            "industry"
+                                        ]
+                                    },
+                                    "major": {
+                                        "description": "Kode jurusan (wajib untuk siswa).",
+                                        "type": "string"
+                                    },
+                                    "grade": {
+                                        "description": "Tingkat/kelas (wajib untuk siswa).",
+                                        "type": "string"
+                                    },
+                                    "company": {
+                                        "description": "Nama perusahaan (wajib untuk industri).",
+                                        "type": "string"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Registrasi berhasil."
+                    },
+                    "422": {
+                        "description": "Validasi gagal."
+                    }
+                }
+            }
+        },
+        "/v1/auth/logout": {
+            "post": {
+                "tags": [
+                    "Autentikasi"
+                ],
+                "summary": "Keluar dari sesi",
+                "description": "Menghapus token akses pengguna saat ini.",
+                "operationId": "authLogout",
+                "responses": {
+                    "200": {
+                        "description": "Logout berhasil."
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/v1/auth/me": {
+            "get": {
+                "tags": [
+                    "Autentikasi"
+                ],
+                "summary": "Profil pengguna saat ini",
+                "description": "Mengembalikan data pengguna yang terautentikasi.",
+                "operationId": "authMe",
+                "responses": {
+                    "200": {
+                        "description": "Data pengguna saat ini."
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/v1/auth/change-password": {
+            "post": {
+                "tags": [
+                    "Autentikasi"
+                ],
+                "summary": "Ubah kata sandi",
+                "description": "Mengubah kata sandi pengguna saat ini. Berlaku untuk semua peran.",
+                "operationId": "authChangePassword",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "current_password",
+                                    "new_password",
+                                    "new_password_confirmation"
+                                ],
+                                "properties": {
+                                    "current_password": {
+                                        "description": "Kata sandi lama.",
+                                        "type": "string",
+                                        "format": "password"
+                                    },
+                                    "new_password": {
+                                        "description": "Kata sandi baru (minimal 8 karakter).",
+                                        "type": "string",
+                                        "format": "password",
+                                        "minLength": 8
+                                    },
+                                    "new_password_confirmation": {
+                                        "type": "string",
+                                        "format": "password"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Kata sandi berhasil diubah."
+                    },
+                    "422": {
+                        "description": "Validasi gagal atau kata sandi lama salah."
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/v1/auth/forgot-password": {
+            "post": {
+                "tags": [
+                    "Autentikasi"
+                ],
+                "summary": "Lupa kata sandi",
+                "description": "Mengirim tautan/instruksi reset kata sandi ke email pengguna.",
+                "operationId": "authForgotPassword",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "email"
+                                ],
+                                "properties": {
+                                    "email": {
+                                        "type": "string",
+                                        "format": "email"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Instruksi reset terkirim."
+                    }
+                }
+            }
+        },
+        "/v1/auth/reset-password": {
+            "post": {
+                "tags": [
+                    "Autentikasi"
+                ],
+                "summary": "Atur ulang kata sandi",
+                "description": "Mengatur ulang kata sandi menggunakan token yang dikirim ke email.",
+                "operationId": "authResetPassword",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "email",
+                                    "token",
+                                    "password",
+                                    "password_confirmation"
+                                ],
+                                "properties": {
+                                    "email": {
+                                        "type": "string",
+                                        "format": "email"
+                                    },
+                                    "token": {
+                                        "type": "string"
+                                    },
+                                    "password": {
+                                        "type": "string",
+                                        "format": "password",
+                                        "minLength": 8
+                                    },
+                                    "password_confirmation": {
+                                        "type": "string",
+                                        "format": "password"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Kata sandi berhasil diatur ulang."
+                    },
+                    "422": {
+                        "description": "Validasi gagal."
+                    }
+                }
+            }
+        },
+        "/v1/assessment/questions/{major}": {
+            "get": {
+                "tags": [
+                    "Asesmen"
+                ],
+                "summary": "Daftar soal asesmen",
+                "description": "Mengembalikan daftar soal asesmen kesiapan kerja, opsional difilter per jurusan.",
+                "operationId": "assessmentQuestions",
+                "parameters": [
+                    {
+                        "name": "major",
+                        "in": "path",
+                        "description": "Kode jurusan (opsional).",
+                        "required": false,
+                        "schema": {
+                            "type": "string",
+                            "enum": [
+                                "RPL",
+                                "DKV",
+                                "TJKT"
+                            ]
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Daftar soal asesmen."
+                    }
+                }
+            }
+        },
+        "/v1/assessment/questions/admin/{major}": {
+            "get": {
+                "tags": [
+                    "Asesmen"
+                ],
+                "summary": "Daftar soal asesmen (versi admin)",
+                "description": "Mengembalikan daftar soal beserta kunci jawaban untuk administrasi.",
+                "operationId": "assessmentAdminQuestions",
+                "parameters": [
+                    {
+                        "name": "major",
+                        "in": "path",
+                        "description": "Kode jurusan (opsional).",
+                        "required": false,
+                        "schema": {
+                            "type": "string",
+                            "enum": [
+                                "RPL",
+                                "DKV",
+                                "TJKT"
+                            ]
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Daftar soal versi admin."
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/v1/assessment/submit": {
+            "post": {
+                "tags": [
+                    "Asesmen"
+                ],
+                "summary": "Kirim jawaban asesmen",
+                "description": "Mengirim jawaban asesmen untuk mendapatkan skor kesiapan kerja.",
+                "operationId": "assessmentSubmit",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "major",
+                                    "answers"
+                                ],
+                                "properties": {
+                                    "major": {
+                                        "type": "string",
+                                        "enum": [
+                                            "RPL",
+                                            "DKV",
+                                            "TJKT"
+                                        ]
+                                    },
+                                    "answers": {
+                                        "description": "Map id-soal ke pilihan jawaban.",
+                                        "type": "object",
+                                        "additionalProperties": {
+                                            "type": "integer"
+                                        }
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Hasil asesmen."
+                    },
+                    "422": {
+                        "description": "Validasi gagal."
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/v1/assessment/results": {
+            "get": {
+                "tags": [
+                    "Asesmen"
+                ],
+                "summary": "Hasil asesmen pengguna",
+                "description": "Mengembalikan riwayat hasil asesmen pengguna saat ini.",
+                "operationId": "assessmentResults",
+                "responses": {
+                    "200": {
+                        "description": "Hasil asesmen."
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/v1/assessment/questions": {
+            "put": {
+                "tags": [
+                    "Asesmen"
+                ],
+                "summary": "Perbarui soal asesmen (admin)",
+                "description": "Memperbarui daftar soal asesmen untuk suatu jurusan.",
+                "operationId": "assessmentUpdateQuestions",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "major",
+                                    "questions"
+                                ],
+                                "properties": {
+                                    "major": {
+                                        "type": "string",
+                                        "enum": [
+                                            "RPL",
+                                            "DKV",
+                                            "TJKT"
+                                        ]
+                                    },
+                                    "questions": {
+                                        "description": "Daftar soal.",
+                                        "type": "array",
+                                        "items": {
+                                            "type": "object"
+                                        }
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Soal berhasil diperbarui."
+                    },
+                    "422": {
+                        "description": "Validasi gagal."
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/v1/assessment/questions/reset": {
+            "post": {
+                "tags": [
+                    "Asesmen"
+                ],
+                "summary": "Reset soal asesmen (admin)",
+                "description": "Mengembalikan soal asesmen ke setelan default untuk suatu jurusan.",
+                "operationId": "assessmentResetQuestions",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "major"
+                                ],
+                                "properties": {
+                                    "major": {
+                                        "type": "string",
+                                        "enum": [
+                                            "RPL",
+                                            "DKV",
+                                            "TJKT"
+                                        ]
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Soal berhasil direset."
+                    },
+                    "422": {
+                        "description": "Validasi gagal."
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/v1/majors": {
+            "get": {
+                "tags": [
+                    "Jurusan"
+                ],
+                "summary": "Daftar jurusan (kompetensi keahlian)",
+                "description": "Mengembalikan daftar jurusan yang tersedia. Memerlukan autentikasi admin.",
+                "operationId": "majorsList",
+                "responses": {
+                    "200": {
+                        "description": "Daftar jurusan."
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/v1/majors/{major}/materi": {
+            "get": {
+                "tags": [
+                    "Jurusan"
+                ],
+                "summary": "Mata pelajaran per jurusan",
+                "description": "Mengembalikan daftar mata pelajaran (materi) untuk suatu jurusan.",
+                "operationId": "majorsMateri",
+                "parameters": [
+                    {
+                        "name": "major",
+                        "in": "path",
+                        "description": "Kode jurusan.",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "enum": [
+                                "RPL",
+                                "DKV",
+                                "TJKT"
+                            ]
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Daftar materi jurusan."
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/v1/materi/majors/{major}": {
+            "get": {
+                "tags": [
+                    "Materi"
+                ],
+                "summary": "Materi per jurusan",
+                "description": "Mengembalikan daftar materi untuk suatu jurusan berdasarkan kode jurusan.",
+                "operationId": "materiListByMajor",
+                "parameters": [
+                    {
+                        "name": "major",
+                        "in": "path",
+                        "description": "Kode jurusan.",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "enum": [
+                                "RPL",
+                                "DKV",
+                                "TJKT"
+                            ]
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Daftar materi."
+                    }
+                }
+            }
+        },
+        "/v1/materi/{materiId}/questions": {
+            "get": {
+                "tags": [
+                    "Materi"
+                ],
+                "summary": "Soal quiz per materi",
+                "description": "Mengembalikan daftar soal quiz untuk suatu materi. materiId dapat berupa id atau slug materi.",
+                "operationId": "materiQuestions",
+                "parameters": [
+                    {
+                        "name": "materiId",
+                        "in": "path",
+                        "description": "ID atau slug materi.",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Daftar soal materi."
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            },
+            "put": {
+                "tags": [
+                    "Materi"
+                ],
+                "summary": "Perbarui soal materi (admin)",
+                "description": "Memperbarui daftar soal untuk suatu materi.",
+                "operationId": "materiUpdateQuestions",
+                "parameters": [
+                    {
+                        "name": "materiId",
+                        "in": "path",
+                        "description": "ID atau slug materi.",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "questions"
+                                ],
+                                "properties": {
+                                    "questions": {
+                                        "description": "Daftar soal.",
+                                        "type": "array",
+                                        "items": {
+                                            "type": "object"
+                                        }
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Soal berhasil diperbarui."
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/v1/materi/{materiId}/questions/admin": {
+            "get": {
+                "tags": [
+                    "Materi"
+                ],
+                "summary": "Soal materi (versi admin)",
+                "description": "Mengembalikan soal materi beserta kunci jawaban.",
+                "operationId": "materiAdminQuestions",
+                "parameters": [
+                    {
+                        "name": "materiId",
+                        "in": "path",
+                        "description": "ID atau slug materi.",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Soal materi versi admin."
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/v1/materi/{materiId}/submit": {
+            "post": {
+                "tags": [
+                    "Materi"
+                ],
+                "summary": "Kirim jawaban quiz materi",
+                "description": "Mengirim jawaban quiz materi untuk menilai kelulusan.",
+                "operationId": "materiSubmit",
+                "parameters": [
+                    {
+                        "name": "materiId",
+                        "in": "path",
+                        "description": "ID atau slug materi.",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "answers"
+                                ],
+                                "properties": {
+                                    "answers": {
+                                        "description": "Map id-soal ke pilihan jawaban.",
+                                        "type": "object",
+                                        "additionalProperties": {
+                                            "type": "integer"
+                                        }
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Hasil pengiriman (lulus/tidak lulus)."
+                    },
+                    "422": {
+                        "description": "Validasi gagal."
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/v1/materi/{materiId}/questions/reset": {
+            "post": {
+                "tags": [
+                    "Materi"
+                ],
+                "summary": "Reset soal materi (admin)",
+                "description": "Mengembalikan soal materi ke setelan default.",
+                "operationId": "materiResetQuestions",
+                "parameters": [
+                    {
+                        "name": "materiId",
+                        "in": "path",
+                        "description": "ID atau slug materi.",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Soal berhasil direset."
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/v1/certificates": {
+            "get": {
+                "tags": [
+                    "Sertifikat"
+                ],
+                "summary": "Daftar sertifikat siswa",
+                "description": "Mengembalikan daftar sertifikat yang diperoleh pengguna siswa saat ini.",
+                "operationId": "certificatesList",
+                "responses": {
+                    "200": {
+                        "description": "Daftar sertifikat."
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/v1/certificates/{materiId}": {
+            "get": {
+                "tags": [
+                    "Sertifikat"
+                ],
+                "summary": "Detail sertifikat per materi",
+                "description": "Mengembalikan detail sertifikat untuk suatu materi.",
+                "operationId": "certificateDetail",
+                "parameters": [
+                    {
+                        "name": "materiId",
+                        "in": "path",
+                        "description": "ID materi.",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Detail sertifikat."
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/v1/roadmap": {
+            "get": {
+                "tags": [
+                    "Roadmap"
+                ],
+                "summary": "Roadmap kesiapan kerja",
+                "description": "Mengembalikan roadmap belajar untuk pengguna siswa, opsional difilter berdasarkan skor asesmen.",
+                "operationId": "roadmapIndex",
+                "parameters": [
+                    {
+                        "name": "score",
+                        "in": "query",
+                        "description": "Skor asesmen.",
+                        "required": false,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Roadmap dan rekomendasi."
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/v1/roadmap/progress": {
+            "get": {
+                "tags": [
+                    "Roadmap"
+                ],
+                "summary": "Progres milestone",
+                "description": "Mengembalikan progres pengguna siswa pada roadmap, opsional untuk satu milestone.",
+                "operationId": "roadmapProgress",
+                "parameters": [
+                    {
+                        "name": "milestone_id",
+                        "in": "query",
+                        "description": "ID milestone (opsional).",
+                        "required": false,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Progres roadmap."
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            },
+            "post": {
+                "tags": [
+                    "Roadmap"
+                ],
+                "summary": "Perbarui progres milestone",
+                "description": "Memperbarui status progres suatu milestone.",
+                "operationId": "roadmapUpdateProgress",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "milestone_id",
+                                    "status"
+                                ],
+                                "properties": {
+                                    "milestone_id": {
+                                        "type": "string"
+                                    },
+                                    "status": {
+                                        "type": "string",
+                                        "enum": [
+                                            "not_started",
+                                            "in_progress",
+                                            "completed"
+                                        ]
+                                    },
+                                    "resources_viewed": {
+                                        "description": "Daftar id sumber daya yang telah dilihat.",
+                                        "type": "array",
+                                        "items": {
+                                            "type": "string"
+                                        }
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Progres berhasil diperbarui."
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/v1/portfolios/{email}/projects": {
+            "get": {
+                "tags": [
+                    "Portofolio"
+                ],
+                "summary": "Proyek siswa (portofolio)",
+                "description": "Mengembalikan daftar proyek portofolio untuk pengguna yang terautentikasi.",
+                "operationId": "portfolioProjects",
+                "parameters": [
+                    {
+                        "name": "email",
+                        "in": "path",
+                        "description": "Email pengguna siswa.",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "format": "email"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Daftar proyek."
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/v1/portfolios": {
+            "post": {
+                "tags": [
+                    "Portofolio"
+                ],
+                "summary": "Simpan proyek portofolio",
+                "description": "Menambah atau memperbarui proyek pada portofolio.",
+                "operationId": "portfolioSave",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "title",
+                                    "description"
+                                ],
+                                "properties": {
+                                    "title": {
+                                        "type": "string",
+                                        "maxLength": 255
+                                    },
+                                    "description": {
+                                        "type": "string"
+                                    },
+                                    "skills": {
+                                        "type": "array",
+                                        "items": {
+                                            "type": "string"
+                                        }
+                                    },
+                                    "projectUrl": {
+                                        "type": "string",
+                                        "format": "url"
+                                    },
+                                    "completedAt": {
+                                        "type": "string",
+                                        "format": "date"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Proyek disimpan."
+                    },
+                    "422": {
+                        "description": "Validasi gagal."
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/v1/portfolios/public/{slug}": {
+            "get": {
+                "tags": [
+                    "Portofolio"
+                ],
+                "summary": "Portofolio publik",
+                "description": "Mengembalikan portofolio publik seorang siswa berdasarkan slug. Tidak memerlukan autentikasi.",
+                "operationId": "portfolioPublic",
+                "parameters": [
+                    {
+                        "name": "slug",
+                        "in": "path",
+                        "description": "Slug portofolio.",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Portofolio publik."
+                    }
+                }
+            }
+        },
+        "/v1/industries/me": {
+            "get": {
+                "tags": [
+                    "Industri"
+                ],
+                "summary": "Profil perusahaan (me)",
+                "description": "Mengembalikan profil perusahaan pengguna industri saat ini.",
+                "operationId": "industryMe",
+                "responses": {
+                    "200": {
+                        "description": "Profil perusahaan."
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/v1/industries/profile": {
+            "get": {
+                "tags": [
+                    "Industri"
+                ],
+                "summary": "Profil perusahaan",
+                "description": "Mengembalikan profil perusahaan pengguna industri saat ini.",
+                "operationId": "industryProfile",
+                "responses": {
+                    "200": {
+                        "description": "Profil perusahaan."
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            },
+            "put": {
+                "tags": [
+                    "Industri"
+                ],
+                "summary": "Perbarui profil perusahaan",
+                "description": "Memperbarui profil perusahaan.",
+                "operationId": "industryUpdateProfile",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "company",
+                                    "industry"
+                                ],
+                                "properties": {
+                                    "company": {
+                                        "type": "string",
+                                        "maxLength": 255
+                                    },
+                                    "industry": {
+                                        "type": "string"
+                                    },
+                                    "location": {
+                                        "type": "string"
+                                    },
+                                    "website": {
+                                        "type": "string",
+                                        "format": "url"
+                                    },
+                                    "description": {
+                                        "type": "string"
+                                    },
+                                    "founded": {
+                                        "type": "string"
+                                    },
+                                    "employee_count": {
+                                        "type": "string"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Profil berhasil diperbarui."
+                    },
+                    "422": {
+                        "description": "Validasi gagal."
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/v1/industries/candidates": {
+            "get": {
+                "tags": [
+                    "Industri"
+                ],
+                "summary": "Daftar kandidat siswa",
+                "description": "Mengembalikan daftar kandidat siswa, opsional difilter berdasarkan keahlian.",
+                "operationId": "industryCandidates",
+                "parameters": [
+                    {
+                        "name": "skills",
+                        "in": "query",
+                        "description": "Filter daftar keahlian.",
+                        "required": false,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Daftar kandidat."
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/v1/jobs": {
+            "get": {
+                "tags": [
+                    "Lowongan Kerja"
+                ],
+                "summary": "Daftar lowongan (publik)",
+                "description": "Mengembalikan daftar lowongan kerja. Dapat difilter berdasarkan tipe dan pencarian.",
+                "operationId": "jobsIndex",
+                "parameters": [
+                    {
+                        "name": "type",
+                        "in": "query",
+                        "description": "Tipe lowongan.",
+                        "required": false,
+                        "schema": {
+                            "type": "string",
+                            "enum": [
+                                "magang",
+                                "fulltime",
+                                "parttime",
+                                "freelance"
+                            ]
+                        }
+                    },
+                    {
+                        "name": "search",
+                        "in": "query",
+                        "description": "Kata kunci pencarian.",
+                        "required": false,
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "page",
+                        "in": "query",
+                        "required": false,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    },
+                    {
+                        "name": "per_page",
+                        "in": "query",
+                        "required": false,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Daftar lowongan."
+                    }
+                }
+            },
+            "post": {
+                "tags": [
+                    "Lowongan Kerja"
+                ],
+                "summary": "Buat lowongan kerja",
+                "description": "Membuat lowongan kerja baru.",
+                "operationId": "jobsStore",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "title",
+                                    "location",
+                                    "type",
+                                    "description",
+                                    "skills"
+                                ],
+                                "properties": {
+                                    "title": {
+                                        "type": "string",
+                                        "maxLength": 255
+                                    },
+                                    "location": {
+                                        "type": "string"
+                                    },
+                                    "type": {
+                                        "type": "string",
+                                        "enum": [
+                                            "magang",
+                                            "fulltime",
+                                            "parttime",
+                                            "freelance"
+                                        ]
+                                    },
+                                    "description": {
+                                        "type": "string"
+                                    },
+                                    "skills": {
+                                        "type": "array",
+                                        "items": {
+                                            "type": "string"
+                                        }
+                                    },
+                                    "deadline": {
+                                        "type": "string",
+                                        "format": "date"
+                                    },
+                                    "salary": {
+                                        "type": "string",
+                                        "maxLength": 255
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Lowongan berhasil dibuat."
+                    },
+                    "422": {
+                        "description": "Validasi gagal."
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/v1/jobs/{id}": {
+            "get": {
+                "tags": [
+                    "Lowongan Kerja"
+                ],
+                "summary": "Detail lowongan",
+                "description": "Mengembalikan detail satu lowongan berdasarkan id.",
+                "operationId": "jobsShow",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Detail lowongan."
+                    }
+                }
+            },
+            "put": {
+                "tags": [
+                    "Lowongan Kerja"
+                ],
+                "summary": "Perbarui lowongan",
+                "description": "Memperbarui lowongan kerja. Hanya pemilik perusahaan.",
+                "operationId": "jobsUpdate",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "properties": {
+                                    "title": {
+                                        "type": "string",
+                                        "maxLength": 255
+                                    },
+                                    "location": {
+                                        "type": "string"
+                                    },
+                                    "type": {
+                                        "type": "string",
+                                        "enum": [
+                                            "magang",
+                                            "fulltime",
+                                            "parttime",
+                                            "freelance"
+                                        ]
+                                    },
+                                    "description": {
+                                        "type": "string"
+                                    },
+                                    "skills": {
+                                        "type": "array",
+                                        "items": {
+                                            "type": "string"
+                                        }
+                                    },
+                                    "deadline": {
+                                        "type": "string",
+                                        "format": "date"
+                                    },
+                                    "salary": {
+                                        "type": "string",
+                                        "maxLength": 255
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Lowongan berhasil diperbarui."
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            },
+            "delete": {
+                "tags": [
+                    "Lowongan Kerja"
+                ],
+                "summary": "Hapus lowongan",
+                "description": "Menghapus lowongan kerja. Hanya pemilik perusahaan.",
+                "operationId": "jobsDelete",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Lowongan berhasil dihapus."
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/v1/jobs/mine": {
+            "get": {
+                "tags": [
+                    "Lowongan Kerja"
+                ],
+                "summary": "Lowongan milik perusahaan",
+                "description": "Mengembalikan daftar lowongan yang dibuat oleh perusahaan pengguna.",
+                "operationId": "jobsMine",
+                "responses": {
+                    "200": {
+                        "description": "Daftar lowongan milik perusahaan."
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/v1/jobs/applications/mine": {
+            "get": {
+                "tags": [
+                    "Lowongan Kerja"
+                ],
+                "summary": "Lamaran saya (siswa)",
+                "description": "Mengembalikan daftar lamaran kerja yang diajukan siswa.",
+                "operationId": "jobsMyApplications",
+                "responses": {
+                    "200": {
+                        "description": "Daftar lamaran siswa."
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/v1/jobs/{id}/apply": {
+            "post": {
+                "tags": [
+                    "Lowongan Kerja"
+                ],
+                "summary": "Lamar sebuah lowongan",
+                "description": "Mengajukan lamaran pada lowongan tertentu.",
+                "operationId": "jobsApply",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Lamaran berhasil diajukan."
+                    },
+                    "422": {
+                        "description": "Gagal (mis. profil siswa tidak ditemukan)."
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/v1/jobs/{id}/applications": {
+            "get": {
+                "tags": [
+                    "Lowongan Kerja"
+                ],
+                "summary": "Daftar pelamar lowongan",
+                "description": "Mengembalikan daftar pelamar untuk suatu lowongan milik perusahaan.",
+                "operationId": "jobsApplicants",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Daftar pelamar."
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/v1/jobs/{id}/applications/{applicationId}/status": {
+            "put": {
+                "tags": [
+                    "Lowongan Kerja"
+                ],
+                "summary": "Perbarui status lamaran",
+                "description": "Menyetujui atau menolak lamaran pelamar.",
+                "operationId": "jobsUpdateApplicationStatus",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    },
+                    {
+                        "name": "applicationId",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "status"
+                                ],
+                                "properties": {
+                                    "status": {
+                                        "type": "string",
+                                        "enum": [
+                                            "pending",
+                                            "accepted",
+                                            "rejected"
+                                        ]
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Status lamaran diperbarui."
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/v1/notifications": {
+            "get": {
+                "tags": [
+                    "Notifikasi"
+                ],
+                "summary": "Daftar notifikasi",
+                "description": "Mengembalikan daftar notifikasi pengguna yang terautentikasi.",
+                "operationId": "notificationsIndex",
+                "responses": {
+                    "200": {
+                        "description": "Daftar notifikasi."
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            },
+            "post": {
+                "tags": [
+                    "Notifikasi"
+                ],
+                "summary": "Buat notifikasi",
+                "description": "Membuat notifikasi baru.",
+                "operationId": "notificationsStore",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "text",
+                                    "type"
+                                ],
+                                "properties": {
+                                    "text": {
+                                        "type": "string",
+                                        "maxLength": 500
+                                    },
+                                    "type": {
+                                        "type": "string",
+                                        "maxLength": 50
+                                    },
+                                    "role": {
+                                        "type": "string",
+                                        "enum": [
+                                            "student",
+                                            "industry",
+                                            "admin"
+                                        ]
+                                    },
+                                    "target_email": {
+                                        "type": "string",
+                                        "format": "email"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Notifikasi dibuat."
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/v1/notifications/unread-count": {
+            "get": {
+                "tags": [
+                    "Notifikasi"
+                ],
+                "summary": "Jumlah notifikasi belum dibaca",
+                "description": "Mengembalikan jumlah notifikasi yang belum dibaca.",
+                "operationId": "notificationsUnreadCount",
+                "responses": {
+                    "200": {
+                        "description": "Jumlah belum dibaca."
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/v1/notifications/{id}/read": {
+            "post": {
+                "tags": [
+                    "Notifikasi"
+                ],
+                "summary": "Tandai notifikasi sudah dibaca",
+                "description": "Menandai satu notifikasi sudah dibaca.",
+                "operationId": "notificationsMarkRead",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Notifikasi ditandai sudah dibaca."
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/v1/notifications/read-all": {
+            "post": {
+                "tags": [
+                    "Notifikasi"
+                ],
+                "summary": "Tandai semua notifikasi sudah dibaca",
+                "description": "Menandai seluruh notifikasi pengguna sudah dibaca.",
+                "operationId": "notificationsMarkAllRead",
+                "responses": {
+                    "200": {
+                        "description": "Semua notifikasi ditandai sudah dibaca."
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/v1/admins": {
+            "get": {
+                "tags": [
+                    "Admin"
+                ],
+                "summary": "Daftar admin",
+                "description": "Mengembalikan daftar akun admin.",
+                "operationId": "adminsList",
+                "responses": {
+                    "200": {
+                        "description": "Daftar admin."
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            },
+            "post": {
+                "tags": [
+                    "Admin"
+                ],
+                "summary": "Buat akun admin",
+                "description": "Membuat akun admin baru.",
+                "operationId": "adminsCreate",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "name",
+                                    "email",
+                                    "password"
+                                ],
+                                "properties": {
+                                    "name": {
+                                        "type": "string",
+                                        "maxLength": 255
+                                    },
+                                    "email": {
+                                        "type": "string",
+                                        "format": "email"
+                                    },
+                                    "password": {
+                                        "type": "string",
+                                        "format": "password",
+                                        "minLength": 8
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Admin berhasil dibuat."
+                    },
+                    "422": {
+                        "description": "Validasi gagal."
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/v1/industries": {
+            "get": {
+                "tags": [
+                    "Admin"
+                ],
+                "summary": "Daftar perusahaan (admin)",
+                "description": "Mengembalikan daftar perusahaan untuk dikelola admin.",
+                "operationId": "industriesListForAdmin",
+                "responses": {
+                    "200": {
+                        "description": "Daftar perusahaan."
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/v1/industries/{email}/approval": {
+            "post": {
+                "tags": [
+                    "Admin"
+                ],
+                "summary": "Setujui / tolak perusahaan",
+                "description": "Menyetujui atau menolak akun perusahaan.",
+                "operationId": "industriesSetApproval",
+                "parameters": [
+                    {
+                        "name": "email",
+                        "in": "path",
+                        "description": "Email perusahaan.",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "format": "email"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "action"
+                                ],
+                                "properties": {
+                                    "action": {
+                                        "type": "string",
+                                        "enum": [
+                                            "approve",
+                                            "reject"
+                                        ]
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Status perusahaan diperbarui."
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/v1/registrations/students": {
+            "get": {
+                "tags": [
+                    "Registrasi Kartu"
+                ],
+                "summary": "Daftar siswa (verifikasi kartu)",
+                "description": "Mengembalikan daftar siswa beserta status kartu untuk verifikasi.",
+                "operationId": "registrationsListStudents",
+                "responses": {
+                    "200": {
+                        "description": "Daftar siswa."
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/v1/registrations/students/{email}/approve": {
+            "post": {
+                "tags": [
+                    "Registrasi Kartu"
+                ],
+                "summary": "Setujui kartu siswa",
+                "description": "Menyetujui kartu pelajar siswa sehingga akses penuh dibuka.",
+                "operationId": "registrationsApproveCard",
+                "parameters": [
+                    {
+                        "name": "email",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "format": "email"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Kartu siswa disetujui."
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/v1/registrations/students/{email}/reject": {
+            "post": {
+                "tags": [
+                    "Registrasi Kartu"
+                ],
+                "summary": "Tolak kartu siswa",
+                "description": "Menolak kartu pelajar siswa.",
+                "operationId": "registrationsRejectCard",
+                "parameters": [
+                    {
+                        "name": "email",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "format": "email"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Kartu siswa ditolak."
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/v1/registrations/students/card": {
+            "post": {
+                "tags": [
+                    "Registrasi Kartu"
+                ],
+                "summary": "Unggah kartu siswa",
+                "description": "Mengunggah foto kartu pelajar siswa (base64) untuk verifikasi.",
+                "operationId": "registrationsUploadCard",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "studentCard"
+                                ],
+                                "properties": {
+                                    "studentCard": {
+                                        "description": "Data gambar base64 (jpeg/png/webp, maks 2MB).",
+                                        "type": "string"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Kartu berhasil diunggah."
+                    },
+                    "422": {
+                        "description": "Validasi gagal / format gambar tidak valid."
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/v1/students": {
+            "get": {
+                "tags": [
+                    "Manajemen Siswa"
+                ],
+                "summary": "Daftar siswa",
+                "description": "Mengembalikan daftar siswa dengan paginasi dan pencarian.",
+                "operationId": "studentsIndex",
+                "parameters": [
+                    {
+                        "name": "page",
+                        "in": "query",
+                        "required": false,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    },
+                    {
+                        "name": "per_page",
+                        "in": "query",
+                        "required": false,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    },
+                    {
+                        "name": "search",
+                        "in": "query",
+                        "required": false,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Daftar siswa."
+                    }
+                }
+            }
+        },
+        "/v1/students/{slug}": {
+            "get": {
+                "tags": [
+                    "Manajemen Siswa"
+                ],
+                "summary": "Detail siswa",
+                "description": "Mengembalikan detail siswa berdasarkan slug.",
+                "operationId": "studentsShow",
+                "parameters": [
+                    {
+                        "name": "slug",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Detail siswa."
+                    }
+                }
+            }
+        },
+        "/v1/students/{email}/grade": {
+            "put": {
+                "tags": [
+                    "Manajemen Siswa"
+                ],
+                "summary": "Perbarui tingkat/kelas siswa",
+                "description": "Memperbarui tingkat (kelas) seorang siswa.",
+                "operationId": "studentsUpdateGrade",
+                "parameters": [
+                    {
+                        "name": "email",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "format": "email"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "grade"
+                                ],
+                                "properties": {
+                                    "grade": {
+                                        "type": "string",
+                                        "enum": [
+                                            "X",
+                                            "XI",
+                                            "XII",
+                                            "Alumni"
+                                        ]
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Tingkat berhasil diperbarui."
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/v1/students/avatar": {
+            "post": {
+                "tags": [
+                    "Manajemen Siswa"
+                ],
+                "summary": "Unggah avatar siswa",
+                "description": "Mengunggah foto avatar siswa.",
+                "operationId": "studentsUpdateAvatar",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "multipart/form-data": {
+                            "schema": {
+                                "required": [
+                                    "avatar"
+                                ],
+                                "properties": {
+                                    "avatar": {
+                                        "description": "Berkas gambar (jpeg/png/jpg/webp, maks 2MB).",
+                                        "type": "string",
+                                        "format": "binary"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Avatar berhasil diunggah."
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/v1/admin/statistics": {
+            "get": {
+                "tags": [
+                    "Statistik"
+                ],
+                "summary": "Statistik dashboard",
+                "description": "Mengembalikan statistik ringkas untuk dashboard admin.",
+                "operationId": "statisticsDashboard",
+                "responses": {
+                    "200": {
+                        "description": "Statistik dashboard."
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/v1/admin/statistics/readiness": {
+            "get": {
+                "tags": [
+                    "Statistik"
+                ],
+                "summary": "Distribusi kesiapan kerja",
+                "description": "Mengembalikan distribusi tingkat kesiapan kerja siswa.",
+                "operationId": "statisticsReadinessDistribution",
+                "responses": {
+                    "200": {
+                        "description": "Distribusi kesiapan."
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        }
+    },
+    "components": {
+        "securitySchemes": {
+            "sanctum": {
+                "type": "apiKey",
+                "description": "Masukkan token dengan format: Bearer <token>",
+                "name": "Authorization",
+                "in": "header"
+            }
+        }
+    },
+    "tags": [
+        {
+            "name": "Autentikasi",
+            "description": "Endpoint untuk login, registrasi, logout, dan manajemen kata sandi."
+        },
+        {
+            "name": "Asesmen",
+            "description": "Soal asesmen kesiapan kerja dan pengiriman jawaban."
+        },
+        {
+            "name": "Materi",
+            "description": "Materi belajar dan quiz per materi."
+        },
+        {
+            "name": "Lowongan Kerja",
+            "description": "CRUD lowongan, lamaran siswa, dan pelamar."
+        },
+        {
+            "name": "Jurusan",
+            "description": "Jurusan"
+        },
+        {
+            "name": "Sertifikat",
+            "description": "Sertifikat"
+        },
+        {
+            "name": "Roadmap",
+            "description": "Roadmap"
+        },
+        {
+            "name": "Portofolio",
+            "description": "Portofolio"
+        },
+        {
+            "name": "Industri",
+            "description": "Industri"
+        },
+        {
+            "name": "Notifikasi",
+            "description": "Notifikasi"
+        },
+        {
+            "name": "Admin",
+            "description": "Admin"
+        },
+        {
+            "name": "Registrasi Kartu",
+            "description": "Registrasi Kartu"
+        },
+        {
+            "name": "Manajemen Siswa",
+            "description": "Manajemen Siswa"
+        },
+        {
+            "name": "Statistik",
+            "description": "Statistik"
+        }
+    ]
+}

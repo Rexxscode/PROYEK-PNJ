@@ -4815,8 +4815,7 @@ const transmisiQuiz: QuizQuestion[] = [
 export const majorQuizMap: Record<string, QuizQuestion[]> = {
   "Rekayasa Perangkat Lunak": rplQuiz,
   "Desain Komunikasi Visual": dkvQuiz,
-  "Teknik Komputer dan Jaringan": tkjQuiz,
-  "Teknik Transmisi": transmisiQuiz,
+  "Teknik Jaringan, Komputer, dan Telekomunikasi": [...tkjQuiz, ...transmisiQuiz],
 };
 
 const MAJOR_QUIZ_OVERRIDE_PREFIX = "quiz_overrides_";

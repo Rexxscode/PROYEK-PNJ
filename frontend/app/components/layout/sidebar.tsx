@@ -22,6 +22,7 @@ import {
   IdCard,
   LogOut,
   User,
+  Send,
 } from "lucide-react";
 import { cn } from "../../lib/utils";
 import { useAuth } from "../../lib/auth-context";
@@ -40,9 +41,10 @@ const navItems = {
     { label: "Know Yourself", href: "/student/assessment", icon: ClipboardCheck },
     { label: "Know Your Path", href: "/student/career-match", icon: Target },
     { label: "Roadmap Belajar", href: "/student/roadmap", icon: Map },
-    { label: "Portfolio", href: "/student/portofolio", icon: GraduationCap },
+    { label: "Portfolio", href: "/student/portfolio", icon: GraduationCap },
     { label: "Sertifikat", href: "/student/sertifikat", icon: Award },
     { label: "Lowongan", href: "/student/jobs", icon: Briefcase },
+    { label: "Lamaran Saya", href: "/student/applications", icon: Send },
     { label: "Profil", href: "/student/profile", icon: UserPlus },
   ],
   admin: [
@@ -54,6 +56,7 @@ const navItems = {
     { label: "Data Industry", href: "/admin/industries", icon: Building2 },
     { label: "Kelola Admin", href: "/admin/accounts", icon: UserPlus },
     { label: "Statistik", href: "/admin/statistics", icon: BarChart3 },
+    { label: "Profil", href: "/admin/profile", icon: User },
   ],
   industry: [
     { label: "Dashboard", href: "/industry", icon: LayoutDashboard },
@@ -88,7 +91,6 @@ export function MobileMenuButton({ onClick }: { onClick: () => void }) {
 }
 
 export default function Sidebar({ role, currentPath, isCollapsed = false, onToggle }: SidebarProps) {
-  const [mounted, setMounted] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
   const { user: authUser, logout } = useAuth();
   const router = useRouter();
@@ -110,7 +112,6 @@ export default function Sidebar({ role, currentPath, isCollapsed = false, onTogg
   }, [mobileOpen]);
   const [profilePhoto, setProfilePhoto] = useState("");
   useEffect(() => {
-    setMounted(true);
     const photo = localStorage.getItem("profilePhoto");
     if (photo) setProfilePhoto(photo);
     const handlePhotoUpdate = () => {
@@ -121,12 +122,13 @@ export default function Sidebar({ role, currentPath, isCollapsed = false, onTogg
     return () => window.removeEventListener("profile-photo-updated", handlePhotoUpdate as EventListener);
   }, []);
 
-  useEffect(() => {
+  const [prevPath, setPrevPath] = useState(currentPath);
+  if (prevPath !== currentPath) {
+    setPrevPath(currentPath);
     setMobileOpen(false);
-  }, [currentPath]);
+  }
 
   const userName = authUser?.name || (role === "admin" ? "Admin" : "Industry");
-  const userEmail = authUser?.email || "";
   const grade = authUser?.student?.grade || "";
 
   const items = navItems[role];

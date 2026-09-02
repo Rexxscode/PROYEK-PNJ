@@ -38,7 +38,7 @@ class AssessmentController extends Controller
     public function submit(Request $request): JsonResponse
     {
         $validator = Validator::make($request->all(), [
-            'major' => 'required|string|in:RPL,DKV,TKJ,TT',
+            'major' => 'required|string|in:RPL,DKV,TJKT',
             'answers' => 'required|array',
             'answers.*' => 'integer',
         ]);
@@ -72,7 +72,7 @@ class AssessmentController extends Controller
     public function updateQuestions(Request $request): JsonResponse
     {
         $validator = Validator::make($request->all(), [
-            'major' => 'required|string|in:RPL,DKV,TKJ,TT',
+            'major' => 'required|string|in:RPL,DKV,TJKT',
             'questions' => 'required|array',
         ]);
 
@@ -96,7 +96,7 @@ class AssessmentController extends Controller
     public function resetQuestions(Request $request): JsonResponse
     {
         $validator = Validator::make($request->all(), [
-            'major' => 'required|string|in:RPL,DKV,TKJ,TT',
+            'major' => 'required|string|in:RPL,DKV,TJKT',
         ]);
 
         if ($validator->fails()) {

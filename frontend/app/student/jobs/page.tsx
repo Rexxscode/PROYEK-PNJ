@@ -18,6 +18,7 @@ import Badge from "../../components/ui/badge";
 import { SkeletonTable } from "../../components/ui/skeleton";
 import DashboardHeader from "../../components/layout/dashboardheader";
 import { useAuth } from "../../lib/auth-context";
+import { useCardStatus, CardLock } from "../../components/student-card-gate";
 import { api, BACKEND_ENDPOINTS } from "../../lib/api";
 import { getMatchBg, formatDate } from "../../lib/utils";
 import { useToast } from "../../lib/toast-context";
@@ -46,6 +47,7 @@ const typeBadgeVariant = {
 export default function JobsPage() {
   const { toast } = useToast();
   const { user } = useAuth();
+  const { cardStatus } = useCardStatus();
   const [mounted, setMounted] = useState(false);
   const [filter, setFilter] = useState<FilterType>("all");
   const [sortBy, setSortBy] = useState<"match" | "date">("match");
@@ -68,11 +70,7 @@ export default function JobsPage() {
       try {
         const res = await api.get<{ success: boolean; data: JobOpportunity[] }>(BACKEND_ENDPOINTS.jobs.list);
         if (res.success) {
-          const studentSkills = (user.student ? [] : []).map((s: string) => s.toLowerCase());
-          setJobs(res.data.map((j) => ({
-            ...j,
-            matchPercentage: 0,
-          })));
+          setJobs(res.data);
         }
       } catch {
         // silently fail
@@ -123,10 +121,16 @@ export default function JobsPage() {
         : new Date(b.postedAt).getTime() - new Date(a.postedAt).getTime()
     );
 
-  const handleApply = () => {
+  const handleApply = async () => {
     if (!selectedJob || !user) return;
-    setApplied(true);
-    toast("Lamaran berhasil dikirim!", "success");
+    try {
+      await api.post(BACKEND_ENDPOINTS.jobs.apply(selectedJob.id));
+      setApplied(true);
+      toast("Lamaran berhasil dikirim!", "success");
+    } catch (err) {
+      toast(err instanceof Error ? err.message : "Gagal mengirim lamaran", "error");
+      return;
+    }
     setTimeout(() => {
       setApplied(false);
       setSelectedJob(null);
@@ -303,12 +307,14 @@ export default function JobsPage() {
                   >
                     Batal
                   </button>
-                  <button
-                    onClick={handleApply}
-                    className="flex-1 py-2.5 bg-primary text-white font-medium rounded-xl hover:bg-primary-dark transition-colors text-sm"
-                  >
-                    Konfirmasi Lamar
-                  </button>
+                  <CardLock pendingTitle={cardStatus === "pending" ? "Menunggu verifikasi kartu pelajar" : "Lengkapi kartu pelajar untuk melamar"}>
+                    <button
+                      onClick={handleApply}
+                      className="flex-1 py-2.5 bg-primary text-white font-medium rounded-xl hover:bg-primary-dark transition-colors text-sm"
+                    >
+                      Konfirmasi Lamar
+                    </button>
+                  </CardLock>
                 </div>
               </>
             ) : (

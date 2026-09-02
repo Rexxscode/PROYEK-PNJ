@@ -10,6 +10,7 @@ import { useAuth } from "../../lib/auth-context";
 import { useToast } from "../../lib/toast-context";
 import { addNotification } from "../../lib/notifications";
 import { api, apiUpload, BACKEND_ENDPOINTS } from "../../lib/api";
+import ChangePasswordForm from "../../components/change-password-form";
 
 export default function StudentProfilePage() {
   const { user, refreshUser } = useAuth();
@@ -37,6 +38,12 @@ export default function StudentProfilePage() {
   const email = user.email;
   const isRegistered = cardStatus === "approved" && !card;
 
+  const isAllowedImage = (file: File): boolean => {
+    const ok = ["image/jpeg", "image/png", "image/jpg", "image/webp"].includes(file.type.toLowerCase());
+    if (!ok) toast("Hanya file JPG, PNG, atau WebP yang diperbolehkan", "error");
+    return ok;
+  };
+
   const handlePhoto = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -44,6 +51,7 @@ export default function StudentProfilePage() {
       toast("Ukuran foto maksimal 2MB", "error");
       return;
     }
+    if (!isAllowedImage(file)) return;
     const formData = new FormData();
     formData.append("avatar", file);
     setPhoto(URL.createObjectURL(file));
@@ -65,6 +73,7 @@ export default function StudentProfilePage() {
       toast("Ukuran foto kartu pelajar maksimal 2MB", "error");
       return;
     }
+    if (!isAllowedImage(file)) return;
     const reader = new FileReader();
     reader.onload = (ev) => {
       setCardPending({ dataUrl: ev.target?.result as string, name: file.name });
@@ -249,6 +258,10 @@ export default function StudentProfilePage() {
             )}
           </Card>
         </div>
+      </div>
+
+      <div className="mt-8">
+        <ChangePasswordForm />
       </div>
     </div>
   );

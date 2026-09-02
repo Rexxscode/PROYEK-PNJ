@@ -71,6 +71,14 @@ class Student extends Model
     }
 
     /**
+     * The job applications made by this student.
+     */
+    public function applications(): HasMany
+    {
+        return $this->hasMany(JobApplication::class, 'student_id');
+    }
+
+    /**
      * The assessment results for the student.
      */
     public function assessmentResults(): HasMany

@@ -13,8 +13,7 @@ class MajorSeeder extends Seeder
         $majors = [
             ['short_code' => 'RPL', 'name' => 'Rekayasa Perangkat Lunak', 'description' => 'Rekayasa Perangkat Lunak'],
             ['short_code' => 'DKV', 'name' => 'Desain Komunikasi Visual', 'description' => 'Desain Komunikasi Visual'],
-            ['short_code' => 'TKJ', 'name' => 'Teknik Komputer dan Jaringan', 'description' => 'Teknik Komputer dan Jaringan'],
-            ['short_code' => 'TT', 'name' => 'Teknik Transmisi', 'description' => 'Teknik Transmisi'],
+            ['short_code' => 'TJKT', 'name' => 'Teknik Jaringan, Komputer, dan Telekomunikasi', 'description' => 'Teknik Jaringan, Komputer, dan Telekomunikasi (gabungan TKJ & Transmisi)'],
         ];
 
         foreach ($majors as $major) {

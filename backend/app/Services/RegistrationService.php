@@ -60,6 +60,26 @@ class RegistrationService
             ]);
         }
 
+        if (!is_string($cardData) || !preg_match('/^data:(image\/[a-zA-Z]+);base64,(.+)$/', $cardData, $matches)) {
+            throw ValidationException::withMessages([
+                'studentCard' => 'Kartu pelajar harus berupa file gambar',
+            ]);
+        }
+
+        $allowedMimes = ['image/jpeg', 'image/png', 'image/jpg', 'image/webp'];
+        if (!in_array(strtolower($matches[1]), $allowedMimes, true)) {
+            throw ValidationException::withMessages([
+                'studentCard' => 'Format gambar tidak didukung (jpeg, png, webp)',
+            ]);
+        }
+
+        $decoded = base64_decode($matches[2], true);
+        if ($decoded === false || strlen($decoded) === 0 || strlen($decoded) > 2 * 1024 * 1024) {
+            throw ValidationException::withMessages([
+                'studentCard' => 'Gambar tidak valid atau melebihi 2MB',
+            ]);
+        }
+
         $this->students->update($student, [
             'student_card' => $cardData,
             'card_status' => 'pending',

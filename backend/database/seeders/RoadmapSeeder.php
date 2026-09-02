@@ -13,8 +13,9 @@ class RoadmapSeeder extends Seeder
     {
         $this->seedRoadmapForMajor('Rekayasa Perangkat Lunak', 'RPL', 'rpl');
         $this->seedRoadmapForMajor('Desain Komunikasi Visual', 'DKV', 'dkv');
-        $this->seedRoadmapForMajor('Teknik Komputer dan Jaringan', 'TKJ', 'tkj');
-        $this->seedRoadmapForMajor('Teknik Transmisi', 'TT', 'tt');
+        // TJKT menggabungkan TKJ (75%) + Transmisi (25%); seed keduanya di bawah jurusan TJKT.
+        $this->seedRoadmapForMajor('Teknik Jaringan, Komputer, dan Telekomunikasi', 'TJKT', 'tkj');
+        $this->seedRoadmapForMajor('Teknik Jaringan, Komputer, dan Telekomunikasi', 'TJKT', 'tt');
     }
 
     private function seedRoadmapForMajor(string $majorName, string $majorShortCode, string $majorIdPrefix): void

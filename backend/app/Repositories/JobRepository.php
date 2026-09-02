@@ -3,6 +3,7 @@
 namespace App\Repositories;
 
 use App\Models\Job;
+use App\Models\JobApplication;
 use App\Models\Skill;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Model;
@@ -90,5 +91,59 @@ class JobRepository extends Repository
                 $job->skills()->attach($skill->id, ['required_level' => 1]);
             }
         }
+    }
+
+    /**
+     * Whether the given student already applied to the given job.
+     */
+    public function hasApplication(int $jobId, int $studentId): bool
+    {
+        return JobApplication::where('job_id', $jobId)
+            ->where('student_id', $studentId)
+            ->exists();
+    }
+
+    public function createApplication(int $jobId, int $studentId): JobApplication
+    {
+        return JobApplication::create([
+            'job_id' => $jobId,
+            'student_id' => $studentId,
+            'status' => 'pending',
+            'applied_at' => now(),
+        ]);
+    }
+
+    public function applicationsForStudent(int $studentId): Collection
+    {
+        return JobApplication::where('student_id', $studentId)
+            ->with(['job', 'job.industry', 'job.skills'])
+            ->orderByDesc('applied_at')
+            ->get();
+    }
+
+    public function applicationsForJob(int $jobId): Collection
+    {
+        return JobApplication::where('job_id', $jobId)
+            ->with(['student', 'student.user', 'student.major', 'student.skills'])
+            ->orderByDesc('applied_at')
+            ->get();
+    }
+
+    public function findApplication(int $jobId, int $studentId): ?JobApplication
+    {
+        return JobApplication::where('job_id', $jobId)
+            ->where('student_id', $studentId)
+            ->first();
+    }
+
+    public function findApplicationById(string $applicationId): ?JobApplication
+    {
+        return JobApplication::with('job')->find($applicationId);
+    }
+
+    public function setApplicationStatus(JobApplication $application, string $status): JobApplication
+    {
+        $application->update(['status' => $status]);
+        return $application->fresh();
     }
 }

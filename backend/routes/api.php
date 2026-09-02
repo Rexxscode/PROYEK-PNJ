@@ -15,6 +15,7 @@ use App\Http\Controllers\AdminController;
 use App\Http\Controllers\RegistrationController;
 use App\Http\Controllers\MajorController;
 use App\Http\Controllers\StatisticsController;
+use App\Http\Controllers\DocsController;
 
 Route::prefix('v1/auth')->group(function () {
     Route::post('login', [AuthController::class, 'login'])->middleware('throttle:5,1');
@@ -102,9 +103,17 @@ Route::prefix('v1/industries')->middleware(['auth:sanctum', 'role:industry'])->g
 Route::prefix('v1/jobs')->group(function () {
     Route::get('', [JobController::class, 'index']);
 
+    // Student: apply & history (must be declared before the {id} wildcard)
+    Route::middleware(['auth:sanctum', 'role:student'])->group(function () {
+        Route::get('applications/mine', [JobController::class, 'myApplications']);
+        Route::post('{id}/apply', [JobController::class, 'apply']);
+    });
+
     Route::middleware(['auth:sanctum', 'role:industry'])->group(function () {
         Route::get('mine', [JobController::class, 'mine']);
         Route::post('', [JobController::class, 'store']);
+        Route::get('{id}/applications', [JobController::class, 'jobApplicants']);
+        Route::put('{id}/applications/{applicationId}/status', [JobController::class, 'updateApplicationStatus']);
         Route::put('{id}', [JobController::class, 'update']);
         Route::delete('{id}', [JobController::class, 'delete']);
     });
@@ -156,4 +165,10 @@ Route::prefix('v1/majors')->middleware(['auth:sanctum', 'role:admin'])->group(fu
 Route::prefix('v1/admin')->middleware(['auth:sanctum', 'role:admin'])->group(function () {
     Route::get('statistics', [StatisticsController::class, 'dashboard']);
     Route::get('statistics/readiness', [StatisticsController::class, 'readinessDistribution']);
+});
+
+// Dokumentasi OpenAPI statis (Swagger UI) dalam Bahasa Indonesia
+Route::prefix('docs')->group(function () {
+    Route::get('', [DocsController::class, 'index']);
+    Route::get('openapi.yaml', [DocsController::class, 'spec']);
 });
