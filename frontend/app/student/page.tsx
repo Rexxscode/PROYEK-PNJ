@@ -81,7 +81,7 @@ export default function StudentDashboard() {
   const animProjects = useCountUp(mounted ? projects.length : 0);
   const animReadiness = useCountUp(mounted ? readinessScore : 0);
   const animMatches = useCountUp(mounted ? careerMatches.length : 0);
-  const animSkills = useCountUp(mounted && assessmentResult ? Object.keys(assessmentResult.answers).length : 0);
+  const animSkills = useCountUp(mounted && assessmentResult ? Object.keys(assessmentResult.answers || {}).length : 0);
 
   const doughnutLabels = useMemo(() => careerMatches.map((c) => c.title), [careerMatches]);
   const doughnutData = useMemo(() => careerMatches.map((c) => c.matchPercentage), [careerMatches]);

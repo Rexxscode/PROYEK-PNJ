@@ -26,6 +26,17 @@ interface Job {
   salary?: string;
 }
 
+interface Applicant {
+  id: string;
+  status: "pending" | "accepted" | "rejected";
+  appliedAt: string;
+  name: string;
+  email: string;
+  major: string;
+  grade: string;
+  skills: string[];
+}
+
 function getJobs(): Job[] {
   return [];
 }
@@ -42,6 +53,8 @@ export default function MyJobsPage() {
   const [editForm, setEditForm] = useState({ title: "", company: "", location: "", type: "magang" as string, description: "", skills: [] as string[], deadline: "", salary: "" });
   const [editSkillInput, setEditSkillInput] = useState("");
   const [showApplicants, setShowApplicants] = useState<string | null>(null);
+  const [applicants, setApplicants] = useState<Record<string, Applicant[]>>({});
+  const [applicantsLoading, setApplicantsLoading] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -61,6 +74,44 @@ export default function MyJobsPage() {
     };
     fetchJobs();
   }, [user]);
+
+  const loadApplicants = async (jobId: string) => {
+    setApplicantsLoading(jobId);
+    try {
+      const res = await api.get<{ success: boolean; data: Applicant[] }>(BACKEND_ENDPOINTS.jobs.jobApplicants(jobId));
+      if (res.success) {
+        setApplicants((prev) => ({ ...prev, [jobId]: Array.isArray(res.data) ? res.data : [] }));
+      }
+    } catch {
+      setApplicants((prev) => ({ ...prev, [jobId]: [] }));
+    } finally {
+      setApplicantsLoading(null);
+    }
+  };
+
+  const toggleApplicants = (jobId: string) => {
+    if (showApplicants === jobId) {
+      setShowApplicants(null);
+      return;
+    }
+    setShowApplicants(jobId);
+    if (!applicants[jobId]) {
+      loadApplicants(jobId);
+    }
+  };
+
+  const updateApplicantStatus = async (jobId: string, appId: string, status: "accepted" | "rejected") => {
+    try {
+      await api.put(BACKEND_ENDPOINTS.jobs.setApplicationStatus(jobId, appId), { status });
+      setApplicants((prev) => ({
+        ...prev,
+        [jobId]: (prev[jobId] || []).map((a) => (a.id === appId ? { ...a, status } : a)),
+      }));
+      toast(status === "accepted" ? "Pelamar diterima" : "Pelamar ditolak", "success");
+    } catch {
+      toast("Gagal memperbarui status pelamar", "error");
+    }
+  };
 
   const handleDelete = async () => {
     if (!deleteTarget) return;
@@ -167,16 +218,62 @@ export default function MyJobsPage() {
                 <div className="mt-3">
                   <button
                     type="button"
-                    onClick={() => setShowApplicants(showApplicants === job.id ? null : job.id)}
+                    onClick={() => toggleApplicants(job.id)}
                     className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full border border-border text-xs font-medium hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
                   >
                     <Users className="w-3.5 h-3.5" />
-                    0 Pelamar
+                    {applicants[job.id] ? applicants[job.id].length : 0} Pelamar
                     {showApplicants === job.id ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />}
                   </button>
                   {showApplicants === job.id && (
-                    <div className="mt-2 space-y-1.5">
-                      <p className="text-xs text-muted">Belum ada pelamar untuk lowongan ini.</p>
+                    <div className="mt-3 space-y-2">
+                      {applicantsLoading === job.id ? (
+                        <p className="text-xs text-muted">Memuat pelamar...</p>
+                      ) : (applicants[job.id] || []).length === 0 ? (
+                        <p className="text-xs text-muted">Belum ada pelamar untuk lowongan ini.</p>
+                      ) : (
+                        (applicants[job.id] || []).map((ap) => (
+                          <div key={ap.id} className="p-3 bg-gray-50 dark:bg-gray-800/50 rounded-xl">
+                            <div className="flex flex-wrap items-center justify-between gap-2">
+                              <div className="min-w-0">
+                                <p className="text-sm font-medium text-foreground truncate">{ap.name}</p>
+                                <p className="text-xs text-muted truncate">{ap.major || "-"} {ap.grade ? `• K${ap.grade}` : ""}</p>
+                              </div>
+                              <div className="flex items-center gap-2">
+                                <Badge
+                                  variant={ap.status === "accepted" ? "success" : ap.status === "rejected" ? "danger" : "warning"}
+                                >
+                                  {ap.status === "accepted" ? "Diterima" : ap.status === "rejected" ? "Ditolak" : "Menunggu"}
+                                </Badge>
+                                {ap.status === "pending" && (
+                                  <>
+                                    <button
+                                      onClick={() => updateApplicantStatus(job.id, ap.id, "accepted")}
+                                      className="px-2.5 py-1 bg-emerald-600 text-white text-xs font-medium rounded-lg hover:bg-emerald-700 transition-colors"
+                                    >
+                                      Terima
+                                    </button>
+                                    <button
+                                      onClick={() => updateApplicantStatus(job.id, ap.id, "rejected")}
+                                      className="px-2.5 py-1 bg-red-500 text-white text-xs font-medium rounded-lg hover:bg-red-600 transition-colors"
+                                    >
+                                      Tolak
+                                    </button>
+                                  </>
+                                )}
+                              </div>
+                            </div>
+                            <div className="flex flex-wrap gap-1 mt-2">
+                              {(ap.skills || []).slice(0, 6).map((sk) => (
+                                <span key={sk} className="px-1.5 py-0.5 bg-primary/10 text-primary text-[10px] rounded-full font-medium">{sk}</span>
+                              ))}
+                              {(ap.skills || []).length > 6 && (
+                                <span className="px-1.5 py-0.5 text-[10px] text-muted">+{(ap.skills || []).length - 6}</span>
+                              )}
+                            </div>
+                          </div>
+                        ))
+                      )}
                     </div>
                   )}
                 </div>

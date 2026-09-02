@@ -366,14 +366,14 @@ export default function IndustryDashboard() {
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-foreground mb-1.5">Lokasi</label>
-                  <input type="text" value={editForm.location} onChange={(e) => setEditForm((p) => ({ ...p, location: e.target.value }))} placeholder="Kota, Negara"
+                  <input type="text" value={editForm.location || ""} onChange={(e) => setEditForm((p) => ({ ...p, location: e.target.value }))} placeholder="Kota, Negara"
                     className="w-full px-4 py-2.5 border border-border rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary" />
                 </div>
               </div>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm font-medium text-foreground mb-1.5">Website</label>
-                  <input type="text" value={editForm.website} onChange={(e) => setEditForm((p) => ({ ...p, website: e.target.value }))} placeholder="www.perusahaan.com"
+                  <input type="text" value={editForm.website || ""} onChange={(e) => setEditForm((p) => ({ ...p, website: e.target.value }))} placeholder="www.perusahaan.com"
                     className="w-full px-4 py-2.5 border border-border rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary" />
                 </div>
                 <div>
@@ -386,12 +386,12 @@ export default function IndustryDashboard() {
               </div>
               <div>
                 <label className="block text-sm font-medium text-foreground mb-1.5">Tahun Berdiri</label>
-                <input type="text" value={editForm.founded} onChange={(e) => setEditForm((p) => ({ ...p, founded: e.target.value }))} placeholder="Contoh: 2015"
+                <input type="text" value={editForm.founded || ""} onChange={(e) => setEditForm((p) => ({ ...p, founded: e.target.value }))} placeholder="Contoh: 2015"
                   className="w-full px-4 py-2.5 border border-border rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary" />
               </div>
               <div>
                 <label className="block text-sm font-medium text-foreground mb-1.5">Deskripsi Perusahaan</label>
-                <textarea rows={3} value={editForm.description} onChange={(e) => setEditForm((p) => ({ ...p, description: e.target.value }))} placeholder="Ceritakan tentang perusahaan Anda..."
+                <textarea rows={3} value={editForm.description || ""} onChange={(e) => setEditForm((p) => ({ ...p, description: e.target.value }))} placeholder="Ceritakan tentang perusahaan Anda..."
                   className="w-full px-4 py-2.5 border border-border rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary resize-none" />
               </div>
             </div>

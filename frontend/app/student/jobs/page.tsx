@@ -68,11 +68,7 @@ export default function JobsPage() {
       try {
         const res = await api.get<{ success: boolean; data: JobOpportunity[] }>(BACKEND_ENDPOINTS.jobs.list);
         if (res.success) {
-          const studentSkills = (user.student ? [] : []).map((s: string) => s.toLowerCase());
-          setJobs(res.data.map((j) => ({
-            ...j,
-            matchPercentage: 0,
-          })));
+          setJobs(res.data);
         }
       } catch {
         // silently fail
@@ -123,10 +119,16 @@ export default function JobsPage() {
         : new Date(b.postedAt).getTime() - new Date(a.postedAt).getTime()
     );
 
-  const handleApply = () => {
+  const handleApply = async () => {
     if (!selectedJob || !user) return;
-    setApplied(true);
-    toast("Lamaran berhasil dikirim!", "success");
+    try {
+      await api.post(BACKEND_ENDPOINTS.jobs.apply(selectedJob.id));
+      setApplied(true);
+      toast("Lamaran berhasil dikirim!", "success");
+    } catch (err) {
+      toast(err instanceof Error ? err.message : "Gagal mengirim lamaran", "error");
+      return;
+    }
     setTimeout(() => {
       setApplied(false);
       setSelectedJob(null);

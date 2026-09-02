@@ -102,9 +102,17 @@ Route::prefix('v1/industries')->middleware(['auth:sanctum', 'role:industry'])->g
 Route::prefix('v1/jobs')->group(function () {
     Route::get('', [JobController::class, 'index']);
 
+    // Student: apply & history (must be declared before the {id} wildcard)
+    Route::middleware(['auth:sanctum', 'role:student'])->group(function () {
+        Route::get('applications/mine', [JobController::class, 'myApplications']);
+        Route::post('{id}/apply', [JobController::class, 'apply']);
+    });
+
     Route::middleware(['auth:sanctum', 'role:industry'])->group(function () {
         Route::get('mine', [JobController::class, 'mine']);
         Route::post('', [JobController::class, 'store']);
+        Route::get('{id}/applications', [JobController::class, 'jobApplicants']);
+        Route::put('{id}/applications/{applicationId}/status', [JobController::class, 'updateApplicationStatus']);
         Route::put('{id}', [JobController::class, 'update']);
         Route::delete('{id}', [JobController::class, 'delete']);
     });
