@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
@@ -58,7 +58,7 @@ export default function SertifikatPage() {
       .catch(() => {});
   }, [user]);
 
-  if (!mounted || !user) return <div className="p-6 lg:pl-72"><SkeletonDashboard /></div>;
+  if (!mounted || !user) return <div className="p-6"><SkeletonDashboard /></div>;
 
   const studentGrade = user.student?.grade || "";
   const studentMajor = MAJORS.find((m) => m.name === user.student?.major) ?? MAJORS[0];

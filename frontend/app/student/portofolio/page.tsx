@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useState, useEffect, useRef } from "react";
 import {
@@ -234,7 +234,7 @@ export default function PortfolioPage() {
     }
   };
 
-  if (loading || !user) return <div className="p-6 lg:pl-72"><SkeletonDashboard /></div>;
+  if (loading || !user) return <div className="p-6"><SkeletonDashboard /></div>;
   const allSkills: Skill[] = [];
   const readinessScore = careerMatches.length > 0 ? Math.round(careerMatches.reduce((sum, c) => sum + c.matchPercentage, 0) / careerMatches.length) : 0;
   const portfolioUrl = mounted

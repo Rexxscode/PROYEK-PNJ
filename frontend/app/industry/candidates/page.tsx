@@ -48,7 +48,7 @@ export default function CandidatesPage() {
     const fetchCandidates = async () => {
       try {
         const response = await api.get<{ data: Candidate[] }>(BACKEND_ENDPOINTS.industries.candidates);
-        setCandidates(response.data);
+        setCandidates(Array.isArray(response.data) ? response.data : []);
       } catch (error) {
         console.error("Failed to fetch candidates:", error);
       }
@@ -56,9 +56,11 @@ export default function CandidatesPage() {
     fetchCandidates();
   }, []);
 
+  const candidateList = Array.isArray(candidates) ? candidates : [];
+
   const allSkillFilters = useMemo(
-    () => [...new Set(candidates.flatMap((c) => c.skills))].sort(),
-    [candidates]
+    () => [...new Set(candidateList.flatMap((c) => c.skills || []))].sort(),
+    [candidateList]
   );
 
   useEffect(() => {

@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useState, useEffect, useRef, useMemo } from "react";
 import Link from "next/link";
@@ -86,7 +86,7 @@ export default function MateriTesPage() {
     return () => { cancelled = true; };
   }, [materi, materiId, user]);
 
-  if (!mounted || !user) return <div className="p-6 lg:pl-72"><SkeletonDashboard /></div>;
+  if (!mounted || !user) return <div className="p-6"><SkeletonDashboard /></div>;
 
   if (!materi) {
     return (

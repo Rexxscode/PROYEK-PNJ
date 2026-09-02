@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useState, useEffect, useMemo } from "react";
 import { createPortal } from "react-dom";
@@ -85,7 +85,7 @@ export default function JobsPage() {
 
   const grade = user?.student?.grade || "";
 
-  if (loading || !user) return <div className="p-6 lg:pl-72"><SkeletonTable /></div>;
+  if (loading || !user) return <div className="p-6"><SkeletonTable /></div>;
 
   if (grade !== "XII") {
     return (

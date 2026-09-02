@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useState, useEffect, useMemo } from "react";
 import {
@@ -86,7 +86,7 @@ export default function StudentDashboard() {
   const doughnutLabels = useMemo(() => careerMatches.map((c) => c.title), [careerMatches]);
   const doughnutData = useMemo(() => careerMatches.map((c) => c.matchPercentage), [careerMatches]);
 
-  if (loading || !user) return <div className="p-6 lg:pl-72"><SkeletonDashboard /></div>;
+  if (loading || !user) return <div className="p-6"><SkeletonDashboard /></div>;
 
   return (
     <div>

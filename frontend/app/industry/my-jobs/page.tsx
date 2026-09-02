@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useState, useEffect } from "react";
 import { createPortal } from "react-dom";
@@ -115,7 +115,7 @@ export default function MyJobsPage() {
     }
   };
 
-  if (loading || !mounted) return <div className="p-6 lg:pl-72"><SkeletonTable /></div>;
+  if (loading || !mounted) return <div className="p-6"><SkeletonTable /></div>;
 
   return (
     <div>

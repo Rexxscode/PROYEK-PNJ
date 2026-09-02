@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useState, useEffect } from "react";
 import {
@@ -101,7 +101,7 @@ export default function AdminDashboard() {
   const animPercentage = useCountUp(assessedPercentage);
   const animIndustries = useCountUp(statsValue.totalIndustries);
 
-  if (!mounted || loading) return <div className="p-6 lg:pl-72"><SkeletonDashboard /></div>;
+  if (!mounted || loading) return <div className="p-6"><SkeletonDashboard /></div>;
 
   const pendingIndustries = statsValue.pendingIndustries;
   const pendingCards = statsValue.pendingCards;

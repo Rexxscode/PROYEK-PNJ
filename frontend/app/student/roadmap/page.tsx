@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useState, useEffect } from "react";
 import {
@@ -73,7 +73,7 @@ export default function RoadmapPage() {
     }
   }, [mounted, user]);
 
-  if (!mounted || !user) return <div className="p-6 lg:pl-72"><SkeletonDashboard /></div>;
+  if (!mounted || !user) return <div className="p-6"><SkeletonDashboard /></div>;
 
   const gapSkillNames = (selectedCareer?.skillGaps || []).map((g) => g.name.toLowerCase());
   const unlockedMilestones = gapSkillNames.length > 0

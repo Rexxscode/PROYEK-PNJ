@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useState, useEffect } from "react";
 import { useSearchParams } from "next/navigation";
@@ -104,7 +104,7 @@ export default function AssessmentPage() {
     return () => { cancelled = true; };
   }, [mounted, user, major]);
 
-  if (!mounted || !user) return <div className="p-6 lg:pl-72"><SkeletonDashboard /></div>;
+  if (!mounted || !user) return <div className="p-6"><SkeletonDashboard /></div>;
   const currentUser = { name: user.name, email: user.email, major: user.student?.major || "", grade: user.student?.grade || "" };
   const quizProgress = quizQuestions.filter((q) => quizAnswers[q.id] !== undefined).length;
   const quizComplete = quizQuestions.length > 0 && quizQuestions.every((q) => quizAnswers[q.id] !== undefined);

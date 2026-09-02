@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useState, useEffect } from "react";
 import { User, Mail, BookOpen, GraduationCap, IdCard, Upload, Trash2, Camera, BadgeCheck, CheckCircle2, Clock } from "lucide-react";
@@ -31,7 +31,7 @@ export default function StudentProfilePage() {
     setCard(user.student?.student_card || null);
   }, [mounted, user]);
 
-  if (!mounted || !user) return <div className="p-6 lg:pl-72"><SkeletonDashboard /></div>;
+  if (!mounted || !user) return <div className="p-6"><SkeletonDashboard /></div>;
 
   const profile = { name: user.name, email: user.email, major: user.student?.major_name || user.student?.major || "", grade: user.student?.grade || "" };
   const email = user.email;

@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useState, useEffect } from "react";
 import { createPortal } from "react-dom";
@@ -114,8 +114,10 @@ export default function IndustryDashboard() {
           setIndustryJobs(jobsRes.data);
         }
 
-        if (candidatesRes?.success) {
+        if (candidatesRes?.success && Array.isArray(candidatesRes.data)) {
           setCandidates(candidatesRes.data);
+        } else {
+          setCandidates([]);
         }
       } catch {
         // silently fail
@@ -128,10 +130,11 @@ export default function IndustryDashboard() {
   }, [user]);
 
   const allJobSkills = [...new Set(industryJobs.flatMap((j) => j.skills))];
-  const totalCandidates = candidates.length;
-  const matchedCandidates = candidates.filter((s) => s.score > 0).length;
+  const candidateList = Array.isArray(candidates) ? candidates : [];
+  const totalCandidates = candidateList.length;
+  const matchedCandidates = candidateList.filter((s) => s.score > 0).length;
   const avgMatch = matchedCandidates > 0
-    ? Math.round(candidates.filter((s) => s.score > 0).reduce((sum, s) => sum + s.score, 0) / matchedCandidates)
+    ? Math.round(candidateList.filter((s) => s.score > 0).reduce((sum, s) => sum + s.score, 0) / matchedCandidates)
     : 0;
   const jobsCount = industryJobs.length;
 
@@ -160,7 +163,7 @@ export default function IndustryDashboard() {
     }
   };
 
-  if (loading || !user) return <div className="p-6 lg:pl-72"><SkeletonDashboard /></div>;
+  if (loading || !user) return <div className="p-6"><SkeletonDashboard /></div>;
   return (
     <div>
       <DashboardHeader

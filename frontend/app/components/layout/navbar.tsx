@@ -15,6 +15,7 @@ import {
 } from "lucide-react";
 
 import { useTheme } from "../../lib/theme-context";
+import { useAuth } from "../../lib/auth-context";
 
 const navLinks = [
   { href: "#features", label: "Fitur", icon: Sparkles },
@@ -24,9 +25,18 @@ const navLinks = [
   { href: "#contact", label: "Kontak", icon: Mail },
 ];
 
+const dashboardByRole: Record<string, string> = {
+  student: "/student",
+  admin: "/admin",
+  industry: "/industry",
+};
+
 export default function Navbar() {
   const [isOpen, setIsOpen] = useState(false);
   const { theme, toggleTheme } = useTheme();
+  const { user } = useAuth();
+  const isLoggedIn = !!user;
+  const dashboardHref = user ? dashboardByRole[user.role] || "/student" : "/auth/login";
 
   return (
     <nav className="sticky top-0 z-50 bg-white/80 dark:bg-background/80 backdrop-blur-md border-b border-border">
@@ -59,18 +69,29 @@ export default function Navbar() {
             >
               {theme === "light" ? <Moon className="w-5 h-5" /> : <Sun className="w-5 h-5" />}
             </button>
-            <Link
-              href="/auth/login"
-              className="px-4 py-2 text-sm font-medium text-foreground border border-border rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
-            >
-              Masuk
-            </Link>
-            <Link
-              href="/auth/register"
-              className="px-4 py-2 text-sm font-medium text-white bg-primary rounded-lg hover:bg-primary-dark transition-colors"
-            >
-              Daftar Sekarang
-            </Link>
+            {isLoggedIn ? (
+              <Link
+                href={dashboardHref}
+                className="px-4 py-2 text-sm font-medium text-white bg-primary rounded-lg hover:bg-primary-dark transition-colors"
+              >
+                Dashboard
+              </Link>
+            ) : (
+              <>
+                <Link
+                  href="/auth/login"
+                  className="px-4 py-2 text-sm font-medium text-foreground border border-border rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
+                >
+                  Masuk
+                </Link>
+                <Link
+                  href="/auth/register"
+                  className="px-4 py-2 text-sm font-medium text-white bg-primary rounded-lg hover:bg-primary-dark transition-colors"
+                >
+                  Daftar Sekarang
+                </Link>
+              </>
+            )}
           </div>
 
           <button
@@ -105,12 +126,20 @@ export default function Navbar() {
               {theme === "light" ? <Moon className="w-4 h-4" /> : <Sun className="w-4 h-4" />}
               {theme === "light" ? "Mode Gelap" : "Mode Terang"}
             </button>
-            <Link href="/auth/login" className="px-3 py-2 text-sm font-medium text-muted hover:bg-gray-50 dark:hover:bg-gray-800 rounded-lg transition-colors">
-              Masuk
-            </Link>
-            <Link href="/auth/register" className="px-3 py-2 text-sm font-medium text-white bg-primary rounded-lg hover:bg-primary-dark transition-colors text-center">
-              Daftar Sekarang
-            </Link>
+            {isLoggedIn ? (
+              <Link href={dashboardHref} onClick={() => setIsOpen(false)} className="px-3 py-2 text-sm font-medium text-white bg-primary rounded-lg hover:bg-primary-dark transition-colors text-center">
+                Dashboard
+              </Link>
+            ) : (
+              <>
+                <Link href="/auth/login" className="px-3 py-2 text-sm font-medium text-muted hover:bg-gray-50 dark:hover:bg-gray-800 rounded-lg transition-colors">
+                  Masuk
+                </Link>
+                <Link href="/auth/register" className="px-3 py-2 text-sm font-medium text-white bg-primary rounded-lg hover:bg-primary-dark transition-colors text-center">
+                  Daftar Sekarang
+                </Link>
+              </>
+            )}
           </div>
         </div>
       </div>

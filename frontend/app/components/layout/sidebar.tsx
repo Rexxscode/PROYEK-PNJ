@@ -60,6 +60,7 @@ const navItems = {
     { label: "Cari Kandidat", href: "/industry/candidates", icon: Users },
     { label: "Lowongan Saya", href: "/industry/my-jobs", icon: Briefcase },
     { label: "Post Lowongan", href: "/industry/post-job", icon: Building2 },
+    { label: "Profil", href: "/industry/profile", icon: User },
   ],
 };
 
