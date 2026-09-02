@@ -11,6 +11,9 @@ class Major extends Model
 {
     use HasFactory;
 
+    protected $keyType = 'string';
+    public $incrementing = false;
+
     protected $fillable = [
         'short_code',
         'name',

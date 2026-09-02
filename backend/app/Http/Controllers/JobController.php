@@ -70,7 +70,7 @@ class JobController extends Controller
             ], 422);
         }
 
-        $data = $this->job->store($request->user()->id, $request->all());
+        $data = $this->job->store($request->user()->id, $request->only('title', 'location', 'type', 'description', 'skills', 'deadline', 'salary'));
 
         return response()->json([
             'success' => true,
@@ -99,7 +99,7 @@ class JobController extends Controller
             ], 422);
         }
 
-        $data = $this->job->update($request->user()->id, $id, $request->all());
+        $data = $this->job->update($request->user()->id, $id, $request->only('title', 'location', 'type', 'description', 'skills', 'deadline', 'salary'));
 
         return response()->json([
             'success' => true,

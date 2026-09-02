@@ -48,6 +48,13 @@ class AuthService
      */
     public function register(array $data): array
     {
+        $existingUser = $this->users->findByEmail($data['email']);
+        if ($existingUser) {
+            throw ValidationException::withMessages([
+                'email' => 'The email address is already registered.',
+            ]);
+        }
+
         $user = $this->users->create([
             'name' => $data['name'],
             'email' => $data['email'],
@@ -57,6 +64,11 @@ class AuthService
 
         if ($data['role'] === 'student') {
             $major = $this->majors->findByShortCode($data['major']);
+            if (!$major) {
+                throw ValidationException::withMessages([
+                    'major' => 'Invalid major code.',
+                ]);
+            }
             $user->student()->create([
                 'user_id' => $user->id,
                 'major_id' => $major->short_code,

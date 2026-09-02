@@ -183,8 +183,12 @@ class MateriService
                 'total' => $totalQuestions,
                 'passed' => $passed ? 1 : 0,
                 'certificate_date' => $passed ? now() : null,
-                'attempts' => 0,
+                'attempts' => 1,
             ]);
+
+        if ($certificate->wasRecentlyCreated) {
+            return;
+        }
 
         $certificate->attempts += 1;
         $certificate->score = $correctCount;

@@ -13,7 +13,6 @@ class Materi extends Model
     // Removed use HasFactory - no factory file defined for Materi
 
     protected $fillable = [
-        'name',
         'slug',
         'title',
         'description',

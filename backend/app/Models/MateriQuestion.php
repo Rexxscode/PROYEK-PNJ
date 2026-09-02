@@ -11,7 +11,6 @@ class MateriQuestion extends Model
     protected $table = 'materi_questions';
 
     protected $fillable = [
-        'id',
         'materi_id',
         'skill_id',
         'question',

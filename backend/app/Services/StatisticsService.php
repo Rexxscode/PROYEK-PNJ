@@ -48,7 +48,7 @@ class StatisticsService
         ];
 
         foreach ($rows as $row) {
-            $pct = (int) $row->pct;
+            $pct = (int) round($row->pct);
             if ($pct >= 85) {
                 $buckets[0]['count']++;
             } elseif ($pct >= 70) {

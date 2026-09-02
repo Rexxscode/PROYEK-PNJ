@@ -50,6 +50,7 @@ class MateriController extends Controller
     {
         $validator = Validator::make($request->all(), [
             'answers' => 'required|array',
+            'answers.*' => 'integer',
         ]);
 
         if ($validator->fails()) {
@@ -71,7 +72,7 @@ class MateriController extends Controller
 
     public function updateQuestions(Request $request, $materiId): JsonResponse
     {
-        $validator = Validator::make($request->all(), [
+        $validator = Validator::make($request->only('questions'), [
             'questions' => 'required|array',
         ]);
 

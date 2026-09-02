@@ -104,7 +104,7 @@ class RoadmapService
             'student_id' => $student->id,
             'milestone_id' => $milestoneId,
             'status' => $status,
-            'resources_viewed' => json_encode($resourcesViewed),
+            'resources_viewed' => $resourcesViewed,
             'completed_at' => $status === 'completed' ? now() : null,
             'updated_at' => now(),
         ];
@@ -113,7 +113,6 @@ class RoadmapService
             $this->roadmaps->updateProgress($student->id, $milestoneId, $progressPayload);
         } else {
             $progressPayload['created_at'] = now();
-            unset($progressPayload['updated_at']);
             $this->roadmaps->createProgress($progressPayload);
         }
 

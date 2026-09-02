@@ -25,3 +25,15 @@ _ide_helper.php
 Homestead.json
 Homestead.yaml
 Thumbs.db
+.test_tokens
+*.sql
+debug.php
+check_ids.php
+compare_quizzes.php
+list_controllers.php
+extract_questions
+extract_questions.txt
+all_routes.txt
+backend_routes.txt
+generate_seeder.php
+generate_seeder2.php

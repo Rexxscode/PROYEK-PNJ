@@ -16,7 +16,7 @@ class AuthController extends Controller
 
     public function login(Request $request): JsonResponse
     {
-        $validator = Validator::make($request->all(), [
+        $validator = Validator::make($request->only('email', 'password'), [
             'email' => 'required|email',
             'password' => 'required|string',
         ]);
@@ -48,7 +48,7 @@ class AuthController extends Controller
 
     public function register(Request $request): JsonResponse
     {
-        $validator = Validator::make($request->all(), [
+        $validator = Validator::make($request->only('name', 'email', 'password', 'role', 'major', 'grade', 'company'), [
             'name' => 'required|string|max:255',
             'email' => 'required|email|unique:users,email',
             'password' => 'required|string|min:8|confirmed',
@@ -62,7 +62,7 @@ class AuthController extends Controller
             return $this->validationError($validator->errors());
         }
 
-        $data = $this->auth->register($request->all());
+        $data = $this->auth->register($request->only('name', 'email', 'password', 'role', 'major', 'grade', 'company'));
 
         return response()->json([
             'success' => true,
@@ -93,7 +93,7 @@ class AuthController extends Controller
 
     public function changePassword(Request $request): JsonResponse
     {
-        $validator = Validator::make($request->all(), [
+        $validator = Validator::make($request->only('current_password', 'new_password'), [
             'current_password' => 'required|string',
             'new_password' => 'required|string|min:8|confirmed',
         ]);
@@ -124,7 +124,7 @@ class AuthController extends Controller
 
     public function forgotPassword(Request $request): JsonResponse
     {
-        $validator = Validator::make($request->all(), [
+        $validator = Validator::make($request->only('email'), [
             'email' => 'required|email',
         ]);
 
@@ -142,7 +142,7 @@ class AuthController extends Controller
 
     public function resetPassword(Request $request): JsonResponse
     {
-        $validator = Validator::make($request->all(), [
+        $validator = Validator::make($request->only('email', 'token', 'password'), [
             'email' => 'required|email',
             'token' => 'required|string',
             'password' => 'required|string|min:8|confirmed',

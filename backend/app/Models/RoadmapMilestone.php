@@ -8,7 +8,8 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class RoadmapMilestone extends Model
 {
-    // Removed use HasFactory - no factory file defined for RoadmapMilestone
+    protected $keyType = 'string';
+    public $incrementing = false;
 
     protected $fillable = [
         'title',
