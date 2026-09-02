@@ -15,6 +15,7 @@ use App\Http\Controllers\AdminController;
 use App\Http\Controllers\RegistrationController;
 use App\Http\Controllers\MajorController;
 use App\Http\Controllers\StatisticsController;
+use App\Http\Controllers\DocsController;
 
 Route::prefix('v1/auth')->group(function () {
     Route::post('login', [AuthController::class, 'login'])->middleware('throttle:5,1');
@@ -164,4 +165,10 @@ Route::prefix('v1/majors')->middleware(['auth:sanctum', 'role:admin'])->group(fu
 Route::prefix('v1/admin')->middleware(['auth:sanctum', 'role:admin'])->group(function () {
     Route::get('statistics', [StatisticsController::class, 'dashboard']);
     Route::get('statistics/readiness', [StatisticsController::class, 'readinessDistribution']);
+});
+
+// Dokumentasi OpenAPI statis (Swagger UI) dalam Bahasa Indonesia
+Route::prefix('docs')->group(function () {
+    Route::get('', [DocsController::class, 'index']);
+    Route::get('openapi.yaml', [DocsController::class, 'spec']);
 });

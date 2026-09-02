@@ -1,0 +1,1567 @@
+openapi: 3.0.0
+info:
+  title: "SkillMatch API — Dokumentasi Swagger"
+  description: |
+    Dokumentasi REST API resmi untuk platform **SkillMatch** (Platform Kesiapan Kerja Siswa SMK).
+
+    API ini menyediakan layanan untuk:
+    * **Autentikasi** – login, registrasi, keluar, ubah kata sandi, dan reset kata sandi.
+    * **Jurusan / Kompetensi Keahlian (Majors)** – data jurusan RPL, DKV, dan TJKT beserta mata pelajaran.
+    * **Asesmen (Assessment)** – daftar soal, pengiriman jawaban, dan hasil penilaian kesiapan kerja.
+    * **Materi (Learning Materials)** – daftar materi, soal quiz per materi, pengiriman jawaban, dan kelulusan.
+    * **Sertifikat (Certificates)** – daftar dan detail sertifikat yang diperoleh siswa.
+    * **Roadmap Kesiapan Kerja** – peta perjalanan belajar dan progres pencapaian (milestone).
+    * **Portofolio** – kelola proyek siswa dan lihat portofolio publik.
+    * **Industri (Perusahaan)** – profil perusahaan, cari kandidat siswa, dan kelola lowongan kerja.
+    * **Lowongan Kerja (Jobs)** – daftar lowongan publik, lamaran siswa, dan manajemen pelamar.
+    * **Notifikasi** – daftar notifikasi, hitung belum dibaca, dan tandai sudah dibaca.
+    * **Admin** – kelola admin, approve/reject perusahaan, verifikasi kartu siswa, kelola soal, dan statistik.
+
+    ## Autentikasi
+    Sebagian besar endpoint memerlukan **Bearer Token** (Sanctum).
+    Setelah login, gunakan tombol **Authorize** pada UI dan isi token dengan format:
+    ```
+    Bearer <token>
+    ```
+
+    ## Kode Respons Umum
+    * `200` – Berhasil.
+    * `201` – Berhasil dibuat (created).
+    * `401` – Tidak terautentikasi (token tidak valid / kedaluwarsa).
+    * `403` – Ditolak (peran tidak memiliki akses).
+    * `404` – Data tidak ditemukan.
+    * `422` – Validasi gagal (kolom tidak sesuai/terlewat).
+
+    ## Akun Contoh (Seeder)
+    * **Siswa:** `budi@student.smk.id` / `Budi@2026!`
+    * **Perusahaan:** `hrd@techcorp.com` / `TechCorp@2026!`, `recruit@creativestudio.com` / `Creative@2026!`, `info@telkom.co.id` / `Telkom@2026!`
+    * **Admin:** `admin@smk.id` / `Admin@2026!`
+  version: "1.0.0"
+  contact:
+    name: Tim SkillMatch
+  license:
+    name: Proprietary
+
+servers:
+  - url: /api
+    description: Server API default (prefix /api)
+
+tags:
+  - name: Autentikasi
+    description: Endpoint untuk login, registrasi, logout, dan manajemen kata sandi.
+  - name: Jurusan
+    description: Data kompetensi keahlian (major) dan mata pelajarannya.
+  - name: Asesmen
+    description: Soal asesmen kesiapan kerja dan pengiriman jawaban.
+  - name: Materi
+    description: Materi belajar dan quiz per materi.
+  - name: Sertifikat
+    description: Sertifikat yang diperoleh siswa.
+  - name: Roadmap
+    description: Roadmap kesiapan kerja dan progres milestone.
+  - name: Portofolio
+    description: Kelola proyek dan portofolio publik siswa.
+  - name: Industri
+    description: Profil perusahaan dan pencarian kandidat.
+  - name: Lowongan Kerja
+    description: CRUD lowongan, lamaran siswa, dan pelamar.
+  - name: Notifikasi
+    description: Notifikasi pengguna.
+  - name: Admin
+    description: Manajemen admin dan approval perusahaan.
+  - name: Registrasi Kartu
+    description: Verifikasi kartu siswa oleh admin dan unggah kartu oleh siswa.
+  - name: Manajemen Siswa
+    description: Kelola data siswa (kelas/tingkat, avatar).
+  - name: Statistik
+    description: Statistik dashboard untuk admin.
+
+paths:
+  /v1/auth/login:
+    post:
+      tags: [Autentikasi]
+      summary: Login pengguna
+      description: Melakukan autentikasi dengan email dan kata sandi untuk mendapatkan token akses.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [email, password]
+              properties:
+                email:
+                  type: string
+                  format: email
+                  example: budi@student.smk.id
+                password:
+                  type: string
+                  format: password
+                  example: Budi@2026!
+      responses:
+        "200":
+          description: Login berhasil. Token diberikan untuk akses endpoint terlindungi.
+        "401":
+          description: Kredensial tidak valid.
+        "403":
+          description: Akses ditolak (mis. akun belum disetujui).
+
+  /v1/auth/register:
+    post:
+      tags: [Autentikasi]
+      summary: Registrasi pengguna baru
+      description: Membuat akun baru untuk siswa atau perusahaan.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [name, email, password, password_confirmation, role]
+              properties:
+                name:
+                  type: string
+                  maxLength: 255
+                email:
+                  type: string
+                  format: email
+                password:
+                  type: string
+                  format: password
+                  minLength: 8
+                password_confirmation:
+                  type: string
+                  format: password
+                role:
+                  type: string
+                  enum: [student, industry]
+                major:
+                  type: string
+                  description: Kode jurusan (wajib untuk siswa).
+                  example: RPL
+                grade:
+                  type: string
+                  description: Tingkat/kelas (wajib untuk siswa).
+                  example: XI
+                company:
+                  type: string
+                  description: Nama perusahaan (wajib untuk industri).
+      responses:
+        "201":
+          description: Registrasi berhasil.
+
+  /v1/auth/logout:
+    post:
+      tags: [Autentikasi]
+      summary: Keluar dari sesi
+      description: Menghapus token akses pengguna saat ini.
+      security:
+        - sanctum: []
+      responses:
+        "200":
+          description: Logout berhasil.
+
+  /v1/auth/me:
+    get:
+      tags: [Autentikasi]
+      summary: Profil pengguna saat ini
+      description: Mengembalikan data pengguna yang sedang terautentikasi.
+      security:
+        - sanctum: []
+      responses:
+        "200":
+          description: Data pengguna saat ini.
+
+  /v1/auth/change-password:
+    post:
+      tags: [Autentikasi]
+      summary: Ubah kata sandi
+      description: Mengubah kata sandi pengguna saat ini. Berlaku untuk semua peran (siswa, industri, admin).
+      security:
+        - sanctum: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [current_password, new_password, new_password_confirmation]
+              properties:
+                current_password:
+                  type: string
+                  format: password
+                  description: Kata sandi lama.
+                new_password:
+                  type: string
+                  format: password
+                  minLength: 8
+                  description: Kata sandi baru (minimal 8 karakter).
+                new_password_confirmation:
+                  type: string
+                  format: password
+                  description: Konfirmasi kata sandi baru.
+      responses:
+        "200":
+          description: Kata sandi berhasil diubah.
+        "422":
+          description: Validasi gagal atau kata sandi lama salah.
+
+  /v1/auth/forgot-password:
+    post:
+      tags: [Autentikasi]
+      summary: Lupa kata sandi
+      description: Mengirim tautan/reset token ke email pengguna.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [email]
+              properties:
+                email:
+                  type: string
+                  format: email
+      responses:
+        "200":
+          description: Instruksi reset kata sandi terkirim.
+
+  /v1/auth/reset-password:
+    post:
+      tags: [Autentikasi]
+      summary: Atur ulang kata sandi
+      description: Mengatur ulang kata sandi menggunakan token yang dikirim ke email.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [email, token, password, password_confirmation]
+              properties:
+                email:
+                  type: string
+                  format: email
+                token:
+                  type: string
+                password:
+                  type: string
+                  format: password
+                  minLength: 8
+                password_confirmation:
+                  type: string
+                  format: password
+      responses:
+        "200":
+          description: Kata sandi berhasil diatur ulang.
+        "422":
+          description: Validasi gagal.
+
+  /v1/majors:
+    get:
+      tags: [Jurusan]
+      summary: Daftar jurusan (kompetensi keahlian)
+      description: Mengembalikan daftar jurusan yang tersedia. Memerlukan autentikasi admin.
+      security:
+        - sanctum: []
+      responses:
+        "200":
+          description: Daftar jurusan.
+
+  /v1/majors/{major}/materi:
+    get:
+      tags: [Jurusan]
+      summary: Mata pelajaran per jurusan
+      description: Mengembalikan daftar mata pelajaran (materi) untuk suatu jurusan. Memerlukan autentikasi admin.
+      security:
+        - sanctum: []
+      parameters:
+        - in: path
+          name: major
+          required: true
+          schema:
+            type: string
+            enum: [RPL, DKV, TJKT]
+          description: Kode jurusan.
+      responses:
+        "200":
+          description: Daftar materi jurusan.
+
+  /v1/assessment/questions/{major}:
+    get:
+      tags: [Asesmen]
+      summary: Daftar soal asesmen
+      description: Mengembalikan daftar soal asesmen kesiapan kerja, opsional difilter per jurusan.
+      parameters:
+        - in: path
+          name: major
+          required: false
+          schema:
+            type: string
+            enum: [RPL, DKV, TJKT]
+          description: Kode jurusan (opsional, kosongkan untuk semua).
+      responses:
+        "200":
+          description: Daftar soal asesmen.
+
+  /v1/assessment/questions/admin/{major}:
+    get:
+      tags: [Asesmen]
+      summary: Daftar soal asesmen (versi admin)
+      description: Mengembalikan daftar soal beserta kunci jawaban untuk keperluan administrasi. Memerlukan autentikasi admin.
+      security:
+        - sanctum: []
+      parameters:
+        - in: path
+          name: major
+          required: false
+          schema:
+            type: string
+            enum: [RPL, DKV, TJKT]
+          description: Kode jurusan (opsional).
+      responses:
+        "200":
+          description: Daftar soal versi admin.
+
+  /v1/assessment/submit:
+    post:
+      tags: [Asesmen]
+      summary: Kirim jawaban asesmen
+      description: Mengirim jawaban asesmen untuk mendapatkan skor kesiapan kerja. Memerlukan autentikasi siswa.
+      security:
+        - sanctum: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [major, answers]
+              properties:
+                major:
+                  type: string
+                  enum: [RPL, DKV, TJKT]
+                  description: Kode jurusan.
+                answers:
+                  type: object
+                  additionalProperties:
+                    type: integer
+                  description: Map id-soal ke pilihan jawaban.
+      responses:
+        "200":
+          description: Hasil asesmen.
+        "422":
+          description: Validasi gagal.
+
+  /v1/assessment/results:
+    get:
+      tags: [Asesmen]
+      summary: Hasil asesmen pengguna
+      description: Mengembalikan riwayat hasil asesmen pengguna saat ini. Memerlukan autentikasi siswa.
+      security:
+        - sanctum: []
+      responses:
+        "200":
+          description: Hasil asesmen.
+
+  /v1/assessment/questions:
+    put:
+      tags: [Asesmen]
+      summary: Perbarui soal asesmen (admin)
+      description: Memperbarui daftar soal asesmen untuk suatu jurusan. Memerlukan autentikasi admin.
+      security:
+        - sanctum: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [major, questions]
+              properties:
+                major:
+                  type: string
+                  enum: [RPL, DKV, TJKT]
+                questions:
+                  type: array
+                  items:
+                    type: object
+      responses:
+        "200":
+          description: Soal berhasil diperbarui.
+        "422":
+          description: Validasi gagal.
+
+  /v1/assessment/questions/reset:
+    post:
+      tags: [Asesmen]
+      summary: Reset soal asesmen (admin)
+      description: Mengembalikan soal asesmen ke setelan default untuk suatu jurusan. Memerlukan autentikasi admin.
+      security:
+        - sanctum: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [major]
+              properties:
+                major:
+                  type: string
+                  enum: [RPL, DKV, TJKT]
+      responses:
+        "200":
+          description: Soal berhasil direset.
+        "422":
+          description: Validasi gagal.
+
+  /v1/materi/majors/{major}:
+    get:
+      tags: [Materi]
+      summary: Materi per jurusan
+      description: Mengembalikan daftar materi untuk suatu jurusan berdasarkan kode jurusan.
+      parameters:
+        - in: path
+          name: major
+          required: true
+          schema:
+            type: string
+            enum: [RPL, DKV, TJKT]
+          description: Kode jurusan.
+      responses:
+        "200":
+          description: Daftar materi.
+
+  /v1/materi/{materiId}/questions:
+    get:
+      tags: [Materi]
+      summary: Soal quiz per materi
+      description: Mengembalikan daftar soal quiz untuk suatu materi. materiId dapat berupa id atau slug materi. Memerlukan autentikasi siswa.
+      security:
+        - sanctum: []
+      parameters:
+        - in: path
+          name: materiId
+          required: true
+          schema:
+            type: string
+          description: ID atau slug materi.
+      responses:
+        "200":
+          description: Daftar soal materi.
+    put:
+      tags: [Materi]
+      summary: Perbarui soal materi (admin)
+      description: Memperbarui daftar soal untuk suatu materi. Memerlukan autentikasi admin.
+      security:
+        - sanctum: []
+      parameters:
+        - in: path
+          name: materiId
+          required: true
+          schema:
+            type: string
+          description: ID atau slug materi.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [questions]
+              properties:
+                questions:
+                  type: array
+                  items:
+                    type: object
+      responses:
+        "200":
+          description: Soal berhasil diperbarui.
+        "422":
+          description: Validasi gagal.
+
+  /v1/materi/{materiId}/questions/admin:
+    get:
+      tags: [Materi]
+      summary: Soal materi (versi admin)
+      description: Mengembalikan soal materi beserta kunci jawaban. Memerlukan autentikasi admin.
+      security:
+        - sanctum: []
+      parameters:
+        - in: path
+          name: materiId
+          required: true
+          schema:
+            type: string
+          description: ID atau slug materi.
+      responses:
+        "200":
+          description: Soal materi versi admin.
+
+  /v1/materi/{materiId}/submit:
+    post:
+      tags: [Materi]
+      summary: Kirim jawaban quiz materi
+      description: Mengirim jawaban quiz materi untuk menilai kelulusan. Memerlukan autentikasi siswa.
+      security:
+        - sanctum: []
+      parameters:
+        - in: path
+          name: materiId
+          required: true
+          schema:
+            type: string
+          description: ID atau slug materi.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [answers]
+              properties:
+                answers:
+                  type: object
+                  additionalProperties:
+                    type: integer
+                  description: Map id-soal ke pilihan jawaban.
+      responses:
+        "200":
+          description: Hasil pengiriman (lulus/tidak lulus).
+        "422":
+          description: Validasi gagal.
+
+  /v1/materi/{materiId}/questions/reset:
+    post:
+      tags: [Materi]
+      summary: Reset soal materi (admin)
+      description: Mengembalikan soal materi ke setelan default. Memerlukan autentikasi admin.
+      security:
+        - sanctum: []
+      parameters:
+        - in: path
+          name: materiId
+          required: true
+          schema:
+            type: string
+          description: ID atau slug materi.
+      responses:
+        "200":
+          description: Soal berhasil direset.
+
+  /v1/certificates:
+    get:
+      tags: [Sertifikat]
+      summary: Daftar sertifikat siswa
+      description: Mengembalikan daftar sertifikat yang diperoleh pengguna siswa saat ini. Memerlukan autentikasi siswa.
+      security:
+        - sanctum: []
+      responses:
+        "200":
+          description: Daftar sertifikat.
+
+  /v1/certificates/{materiId}:
+    get:
+      tags: [Sertifikat]
+      summary: Detail sertifikat per materi
+      description: Mengembalikan detail sertifikat untuk suatu materi. Memerlukan autentikasi siswa.
+      security:
+        - sanctum: []
+      parameters:
+        - in: path
+          name: materiId
+          required: true
+          schema:
+            type: integer
+          description: ID materi.
+      responses:
+        "200":
+          description: Detail sertifikat.
+
+  /v1/roadmap:
+    get:
+      tags: [Roadmap]
+      summary: Roadmap kesiapan kerja
+      description: Mengembalikan roadmap belajar untuk pengguna siswa, opsional difilter berdasarkan skor asesmen. Memerlukan autentikasi siswa.
+      security:
+        - sanctum: []
+      parameters:
+        - in: query
+          name: score
+          required: false
+          schema:
+            type: integer
+          description: Skor asesmen (untuk menyesuaikan rekomendasi).
+      responses:
+        "200":
+          description: Roadmap dan rekomendasi.
+
+  /v1/roadmap/progress:
+    get:
+      tags: [Roadmap]
+      summary: Progres milestone
+      description: Mengembalikan progres pengguna siswa pada roadmap, opsional untuk satu milestone. Memerlukan autentikasi siswa.
+      security:
+        - sanctum: []
+      parameters:
+        - in: query
+          name: milestone_id
+          required: false
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Progres roadmap.
+    post:
+      tags: [Roadmap]
+      summary: Perbarui progres milestone
+      description: Memperbarui status progres suatu milestone. Memerlukan autentikasi siswa.
+      security:
+        - sanctum: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [milestone_id, status]
+              properties:
+                milestone_id:
+                  type: string
+                status:
+                  type: string
+                  enum: [not_started, in_progress, completed]
+                resources_viewed:
+                  type: array
+                  items:
+                    type: string
+                  description: Daftar id sumber daya yang telah dilihat.
+      responses:
+        "200":
+          description: Progres berhasil diperbarui.
+        "422":
+          description: Validasi gagal.
+
+  /v1/portfolios/{email}/projects:
+    get:
+      tags: [Portofolio]
+      summary: Proyek siswa (portofolio)
+      description: Mengembalikan daftar proyek portofolio untuk pengguna yang terautentikasi. Memerlukan autentikasi siswa.
+      security:
+        - sanctum: []
+      parameters:
+        - in: path
+          name: email
+          required: true
+          schema:
+            type: string
+            format: email
+      responses:
+        "200":
+          description: Daftar proyek.
+
+  /v1/portfolios:
+    post:
+      tags: [Portofolio]
+      summary: Simpan proyek portofolio
+      description: Menambah atau memperbarui proyek pada portofolio. Memerlukan autentikasi siswa.
+      security:
+        - sanctum: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [title, description]
+              properties:
+                title:
+                  type: string
+                  maxLength: 255
+                description:
+                  type: string
+                skills:
+                  type: array
+                  items:
+                    type: string
+                projectUrl:
+                  type: string
+                  format: url
+                completedAt:
+                  type: string
+                  format: date
+      responses:
+        "200":
+          description: Proyek disimpan.
+        "422":
+          description: Validasi gagal.
+
+  /v1/portfolios/public/{slug}:
+    get:
+      tags: [Portofolio]
+      summary: Portofolio publik
+      description: Mengembalikan portofolio publik seorang siswa berdasarkan slug. Tidak memerlukan autentikasi.
+      parameters:
+        - in: path
+          name: slug
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Portofolio publik.
+
+  /v1/industries/me:
+    get:
+      tags: [Industri]
+      summary: Profil perusahaan (me)
+      description: Mengembalikan profil perusahaan pengguna industri saat ini. Memerlukan autentikasi industri.
+      security:
+        - sanctum: []
+      responses:
+        "200":
+          description: Profil perusahaan.
+
+  /v1/industries/profile:
+    get:
+      tags: [Industri]
+      summary: Profil perusahaan
+      description: Mengembalikan profil perusahaan pengguna industri saat ini. Memerlukan autentikasi industri.
+      security:
+        - sanctum: []
+      responses:
+        "200":
+          description: Profil perusahaan.
+    put:
+      tags: [Industri]
+      summary: Perbarui profil perusahaan
+      description: Memperbarui profil perusahaan. Memerlukan autentikasi industri.
+      security:
+        - sanctum: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [company, industry]
+              properties:
+                company:
+                  type: string
+                  maxLength: 255
+                industry:
+                  type: string
+                location:
+                  type: string
+                website:
+                  type: string
+                  format: url
+                description:
+                  type: string
+                founded:
+                  type: string
+                employee_count:
+                  type: string
+      responses:
+        "200":
+          description: Profil berhasil diperbarui.
+        "422":
+          description: Validasi gagal.
+    patch:
+      tags: [Industri]
+      summary: Perbarui profil perusahaan (parsial)
+      description: Memperbarui sebagian data profil perusahaan. Memerlukan autentikasi industri.
+      security:
+        - sanctum: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                company:
+                  type: string
+                  maxLength: 255
+                industry:
+                  type: string
+                location:
+                  type: string
+                website:
+                  type: string
+                  format: url
+                description:
+                  type: string
+                founded:
+                  type: string
+                employee_count:
+                  type: string
+      responses:
+        "200":
+          description: Profil berhasil diperbarui.
+        "422":
+          description: Validasi gagal.
+
+  /v1/industries/candidates:
+    get:
+      tags: [Industri]
+      summary: Daftar kandidat siswa
+      description: Mengembalikan daftar kandidat siswa, opsional difilter berdasarkan keahlian. Memerlukan autentikasi industri.
+      security:
+        - sanctum: []
+      parameters:
+        - in: query
+          name: skills
+          required: false
+          schema:
+            type: string
+          description: Filter daftar keahlian (contoh "Pemrograman,Desain").
+      responses:
+        "200":
+          description: Daftar kandidat.
+
+  /v1/jobs:
+    get:
+      tags: [Lowongan Kerja]
+      summary: Daftar lowongan (publik)
+      description: Mengembalikan daftar lowongan kerja. Dapat difilter berdasarkan tipe dan pencarian.
+      parameters:
+        - in: query
+          name: type
+          required: false
+          schema:
+            type: string
+            enum: [magang, fulltime, parttime, freelance]
+          description: Tipe lowongan.
+        - in: query
+          name: search
+          required: false
+          schema:
+            type: string
+          description: Kata kunci pencarian.
+        - in: query
+          name: page
+          required: false
+          schema:
+            type: integer
+        - in: query
+          name: per_page
+          required: false
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Daftar lowongan.
+    post:
+      tags: [Lowongan Kerja]
+      summary: Buat lowongan kerja
+      description: Membuat lowongan kerja baru. Memerlukan autentikasi industri.
+      security:
+        - sanctum: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [title, location, type, description, skills]
+              properties:
+                title:
+                  type: string
+                  maxLength: 255
+                location:
+                  type: string
+                type:
+                  type: string
+                  enum: [magang, fulltime, parttime, freelance]
+                description:
+                  type: string
+                skills:
+                  type: array
+                  items:
+                    type: string
+                deadline:
+                  type: string
+                  format: date
+                salary:
+                  type: string
+                  maxLength: 255
+      responses:
+        "201":
+          description: Lowongan berhasil dibuat.
+        "422":
+          description: Validasi gagal.
+
+  /v1/jobs/{id}:
+    get:
+      tags: [Lowongan Kerja]
+      summary: Detail lowongan
+      description: Mengembalikan detail satu lowongan berdasarkan id.
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Detail lowongan.
+    put:
+      tags: [Lowongan Kerja]
+      summary: Perbarui lowongan
+      description: Memperbarui lowongan kerja. Memerlukan autentikasi industri (hanya pemilik).
+      security:
+        - sanctum: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                title:
+                  type: string
+                  maxLength: 255
+                location:
+                  type: string
+                type:
+                  type: string
+                  enum: [magang, fulltime, parttime, freelance]
+                description:
+                  type: string
+                skills:
+                  type: array
+                  items:
+                    type: string
+                deadline:
+                  type: string
+                  format: date
+                salary:
+                  type: string
+                  maxLength: 255
+      responses:
+        "200":
+          description: Lowongan berhasil diperbarui.
+        "422":
+          description: Validasi gagal.
+    delete:
+      tags: [Lowongan Kerja]
+      summary: Hapus lowongan
+      description: Menghapus lowongan kerja. Memerlukan autentikasi industri (hanya pemilik).
+      security:
+        - sanctum: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Lowongan berhasil dihapus.
+
+  /v1/jobs/mine:
+    get:
+      tags: [Lowongan Kerja]
+      summary: Lowongan milik perusahaan
+      description: Mengembalikan daftar lowongan yang dibuat oleh perusahaan pengguna. Memerlukan autentikasi industri.
+      security:
+        - sanctum: []
+      responses:
+        "200":
+          description: Daftar lowongan milik perusahaan.
+
+  /v1/jobs/applications/mine:
+    get:
+      tags: [Lowongan Kerja]
+      summary: Lamaran saya (siswa)
+      description: Mengembalikan daftar lamaran kerja yang diajukan siswa. Memerlukan autentikasi siswa.
+      security:
+        - sanctum: []
+      responses:
+        "200":
+          description: Daftar lamaran siswa.
+
+  /v1/jobs/{id}/apply:
+    post:
+      tags: [Lowongan Kerja]
+      summary: Lamar sebuah lowongan
+      description: Mengajukan lamaran pada lowongan tertentu. Memerlukan autentikasi siswa.
+      security:
+        - sanctum: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+      responses:
+        "201":
+          description: Lamaran berhasil diajukan.
+        "422":
+          description: Gagal (mis. profil siswa tidak ditemukan atau akses terkunci kartu).
+
+  /v1/jobs/{id}/applications:
+    get:
+      tags: [Lowongan Kerja]
+      summary: Daftar pelamar lowongan
+      description: Mengembalikan daftar pelamar untuk suatu lowongan milik perusahaan. Memerlukan autentikasi industri (hanya pemilik).
+      security:
+        - sanctum: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Daftar pelamar.
+
+  /v1/jobs/{id}/applications/{applicationId}/status:
+    put:
+      tags: [Lowongan Kerja]
+      summary: Perbarui status lamaran
+      description: Menyetujui atau menolak lamaran pelamar. Memerlukan autentikasi industri (hanya pemilik).
+      security:
+        - sanctum: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+        - in: path
+          name: applicationId
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [status]
+              properties:
+                status:
+                  type: string
+                  enum: [pending, accepted, rejected]
+      responses:
+        "200":
+          description: Status lamaran diperbarui.
+        "422":
+          description: Validasi gagal.
+
+  /v1/notifications:
+    get:
+      tags: [Notifikasi]
+      summary: Daftar notifikasi
+      description: Mengembalikan daftar notifikasi pengguna yang terautentikasi.
+      security:
+        - sanctum: []
+      responses:
+        "200":
+          description: Daftar notifikasi.
+    post:
+      tags: [Notifikasi]
+      summary: Buat notifikasi
+      description: Membuat notifikasi baru. Memerlukan autentikasi.
+      security:
+        - sanctum: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [text, type]
+              properties:
+                text:
+                  type: string
+                  maxLength: 500
+                type:
+                  type: string
+                  maxLength: 50
+                role:
+                  type: string
+                  enum: [student, industry, admin]
+                  description: Peran penerima (opsional).
+                target_email:
+                  type: string
+                  format: email
+                  description: Email penerima spesifik (opsional).
+      responses:
+        "200":
+          description: Notifikasi dibuat.
+        "422":
+          description: Validasi gagal.
+
+  /v1/notifications/unread-count:
+    get:
+      tags: [Notifikasi]
+      summary: Jumlah notifikasi belum dibaca
+      description: Mengembalikan jumlah notifikasi yang belum dibaca. Memerlukan autentikasi.
+      security:
+        - sanctum: []
+      responses:
+        "200":
+          description: Jumlah belum dibaca.
+
+  /v1/notifications/{id}/read:
+    post:
+      tags: [Notifikasi]
+      summary: Tandai notifikasi sudah dibaca
+      description: Menandai satu notifikasi sudah dibaca. Memerlukan autentikasi.
+      security:
+        - sanctum: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Notifikasi ditandai sudah dibaca.
+
+  /v1/notifications/read-all:
+    post:
+      tags: [Notifikasi]
+      summary: Tandai semua notifikasi sudah dibaca
+      description: Menandai seluruh notifikasi pengguna sudah dibaca. Memerlukan autentikasi.
+      security:
+        - sanctum: []
+      responses:
+        "200":
+          description: Semua notifikasi ditandai sudah dibaca.
+
+  /v1/admins:
+    get:
+      tags: [Admin]
+      summary: Daftar admin
+      description: Mengembalikan daftar akun admin. Memerlukan autentikasi admin.
+      security:
+        - sanctum: []
+      responses:
+        "200":
+          description: Daftar admin.
+    post:
+      tags: [Admin]
+      summary: Buat akun admin
+      description: Membuat akun admin baru. Memerlukan autentikasi admin.
+      security:
+        - sanctum: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [name, email, password]
+              properties:
+                name:
+                  type: string
+                  maxLength: 255
+                email:
+                  type: string
+                  format: email
+                password:
+                  type: string
+                  format: password
+                  minLength: 8
+      responses:
+        "201":
+          description: Admin berhasil dibuat.
+        "422":
+          description: Validasi gagal.
+
+  /v1/industries:
+    get:
+      tags: [Admin]
+      summary: Daftar perusahaan (admin)
+      description: Mengembalikan daftar perusahaan untuk dikelola admin. Memerlukan autentikasi admin.
+      security:
+        - sanctum: []
+      responses:
+        "200":
+          description: Daftar perusahaan.
+
+  /v1/industries/{email}/approval:
+    post:
+      tags: [Admin]
+      summary: Setujui / tolak perusahaan
+      description: Menyetujui atau menolak akun perusahaan. Memerlukan autentikasi admin.
+      security:
+        - sanctum: []
+      parameters:
+        - in: path
+          name: email
+          required: true
+          schema:
+            type: string
+            format: email
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [action]
+              properties:
+                action:
+                  type: string
+                  enum: [approve, reject]
+      responses:
+        "200":
+          description: Status perusahaan diperbarui.
+        "422":
+          description: Validasi gagal.
+
+  /v1/registrations/students:
+    get:
+      tags: [Registrasi Kartu]
+      summary: Daftar siswa (verifikasi kartu)
+      description: Mengembalikan daftar siswa beserta status kartu untuk verifikasi. Memerlukan autentikasi admin.
+      security:
+        - sanctum: []
+      responses:
+        "200":
+          description: Daftar siswa.
+
+  /v1/registrations/students/{email}/approve:
+    post:
+      tags: [Registrasi Kartu]
+      summary: Setujui kartu siswa
+      description: Menyetujui kartu pelajar siswa sehingga akses penuh dibuka. Memerlukan autentikasi admin.
+      security:
+        - sanctum: []
+      parameters:
+        - in: path
+          name: email
+          required: true
+          schema:
+            type: string
+            format: email
+      responses:
+        "200":
+          description: Kartu siswa disetujui.
+
+  /v1/registrations/students/{email}/reject:
+    post:
+      tags: [Registrasi Kartu]
+      summary: Tolak kartu siswa
+      description: Menolak kartu pelajar siswa. Memerlukan autentikasi admin.
+      security:
+        - sanctum: []
+      parameters:
+        - in: path
+          name: email
+          required: true
+          schema:
+            type: string
+            format: email
+      responses:
+        "200":
+          description: Kartu siswa ditolak.
+
+  /v1/registrations/students/card:
+    post:
+      tags: [Registrasi Kartu]
+      summary: Unggah kartu siswa
+      description: Mengunggah foto kartu pelajar siswa (base64) untuk verifikasi. Memerlukan autentikasi siswa.
+      security:
+        - sanctum: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [studentCard]
+              properties:
+                studentCard:
+                  type: string
+                  description: Data gambar base64 (jpeg/png/webp, maks 2MB).
+      responses:
+        "200":
+          description: Kartu berhasil diunggah.
+        "422":
+          description: Validasi gagal / format gambar tidak valid.
+
+  /v1/students:
+    get:
+      tags: [Manajemen Siswa]
+      summary: Daftar siswa
+      description: Mengembalikan daftar siswa dengan paginasi dan pencarian.
+      parameters:
+        - in: query
+          name: page
+          required: false
+          schema:
+            type: integer
+        - in: query
+          name: per_page
+          required: false
+          schema:
+            type: integer
+        - in: query
+          name: search
+          required: false
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Daftar siswa.
+
+  /v1/students/{slug}:
+    get:
+      tags: [Manajemen Siswa]
+      summary: Detail siswa
+      description: Mengembalikan detail siswa berdasarkan slug.
+      parameters:
+        - in: path
+          name: slug
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Detail siswa.
+
+  /v1/students/{email}/grade:
+    put:
+      tags: [Manajemen Siswa]
+      summary: Perbarui tingkat/kelas siswa
+      description: Memperbarui tingkat (kelas) seorang siswa. Memerlukan autentikasi admin.
+      security:
+        - sanctum: []
+      parameters:
+        - in: path
+          name: email
+          required: true
+          schema:
+            type: string
+            format: email
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [grade]
+              properties:
+                grade:
+                  type: string
+                  enum: [X, XI, XII, Alumni]
+      responses:
+        "200":
+          description: Tingkat berhasil diperbarui.
+        "422":
+          description: Validasi gagal.
+
+  /v1/students/avatar:
+    post:
+      tags: [Manajemen Siswa]
+      summary: Unggah avatar siswa
+      description: Mengunggah foto avatar siswa. Memerlukan autentikasi siswa.
+      security:
+        - sanctum: []
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required: [avatar]
+              properties:
+                avatar:
+                  type: string
+                  format: binary
+                  description: Berkas gambar (jpeg/png/jpg/webp, maks 2MB).
+      responses:
+        "200":
+          description: Avatar berhasil diunggah.
+        "422":
+          description: Validasi gagal.
+
+  /v1/admin/statistics:
+    get:
+      tags: [Statistik]
+      summary: Statistik dashboard
+      description: Mengembalikan statistik ringkas untuk dashboard admin. Memerlukan autentikasi admin.
+      security:
+        - sanctum: []
+      responses:
+        "200":
+          description: Statistik dashboard.
+
+  /v1/admin/statistics/readiness:
+    get:
+      tags: [Statistik]
+      summary: Distribusi kesiapan kerja
+      description: Mengembalikan distribusi tingkat kesiapan kerja siswa. Memerlukan autentikasi admin.
+      security:
+        - sanctum: []
+      responses:
+        "200":
+          description: Distribusi kesiapan.
+
+components:
+  securitySchemes:
+    sanctum:
+      type: apiKey
+      in: header
+      name: Authorization
+      description: "Token akses dengan format: Bearer <token>"
+
+  schemas:
+    ApiResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: true
+        message:
+          type: string
+
+    MessageResponse:
+      allOf:
+        - $ref: "#/components/schemas/ApiResponse"
+        - type: object
+          properties:
+            message:
+              type: string
+              example: "Operasi berhasil"
+
+    DataResponse:
+      allOf:
+        - $ref: "#/components/schemas/ApiResponse"
+        - type: object
+          properties:
+            data:
+              description: Payload respons yang bervariasi per endpoint.
+              nullable: true
+
+    ListWithMetaResponse:
+      allOf:
+        - $ref: "#/components/schemas/ApiResponse"
+        - type: object
+          properties:
+            data:
+              type: array
+              description: Daftar item.
+            meta:
+              type: object
+              description: Metadata paginasi.
+
+    LoginResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: true
+        message:
+          type: string
+          example: "Login successful"
+        data:
+          type: object
+          properties:
+            token:
+              type: string
+              description: Token akses Bearer.
+            user:
+              $ref: "#/components/schemas/User"
+
+    User:
+      type: object
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        email:
+          type: string
+          format: email
+        role:
+          type: string
+          enum: [student, industry, admin]
+
+    Questionnaire:
+      type: object
+      properties:
+        id:
+          type: integer
+        question:
+          type: string
+        options:
+          type: array
+          items:
+            type: string
+
+    QuestionInput:
+      type: object
+      properties:
+        question:
+          type: string
+        options:
+          type: array
+          maxItems: 4
+          items:
+            type: string
+        correct:
+          type: integer
+          description: Indeks jawaban benar.
+
+    IndustryProfileRequest:
+      type: object
+      required: [company, industry]
+      properties:
+        company:
+          type: string
+          maxLength: 255
+        industry:
+          type: string
+        location:
+          type: string
+        website:
+          type: string
+          format: url
+        description:
+          type: string
+        founded:
+          type: string
+        employee_count:
+          type: string
+
+    JobRequest:
+      type: object
+      required: [title, location, type, description, skills]
+      properties:
+        title:
+          type: string
+          maxLength: 255
+        location:
+          type: string
+        type:
+          type: string
+          enum: [magang, fulltime, parttime, freelance]
+        description:
+          type: string
+        skills:
+          type: array
+          items:
+            type: string
+        deadline:
+          type: string
+          format: date
+        salary:
+          type: string
+          maxLength: 255
