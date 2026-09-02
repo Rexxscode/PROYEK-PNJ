@@ -35,7 +35,7 @@ class IndustryService
             'website' => $data['website'] ?? null,
             'description' => $data['description'] ?? null,
             'founded' => $data['founded'] ?? null,
-            'employee_count' => $data['employee_count'] ?? null,
+            'employee_count' => $data['employee_count'] ?? $data['employeeCount'] ?? null,
         ];
 
         if ($industry) {

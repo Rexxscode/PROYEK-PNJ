@@ -17,6 +17,7 @@ class Industry extends Model
         'industry',
         'location',
         'website',
+        'description',
         'founded',
         'employee_count',
         'status',
