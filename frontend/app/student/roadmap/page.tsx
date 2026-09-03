@@ -9,6 +9,8 @@ import {
   BookOpen,
   AlertTriangle,
   XCircle,
+  Lock,
+  BadgeCheck,
 } from "lucide-react";
 import Link from "next/link";
 import Card from "../../components/ui/card";
@@ -16,6 +18,7 @@ import Badge from "../../components/ui/badge";
 import { SkeletonDashboard } from "../../components/ui/skeleton";
 import DashboardHeader from "../../components/layout/dashboardheader";
 import { useAuth } from "../../lib/auth-context";
+import { useCardStatus } from "../../components/student-card-gate";
 import { cn } from "../../lib/utils";
 import { type QuizResult } from "../../lib/major-quiz";
 import {
@@ -73,7 +76,33 @@ export default function RoadmapPage() {
     }
   }, [mounted, user]);
 
+  const { approved } = useCardStatus();
+
   if (!mounted || !user) return <div className="p-6"><SkeletonDashboard /></div>;
+
+  if (!approved) {
+    return (
+      <div>
+        <DashboardHeader title="Learning Recommendation" subtitle="Rekomendasi belajar berdasarkan skill gap kamu" />
+        <Card className="max-w-xl mx-auto text-center py-16">
+          <div className="w-16 h-16 rounded-2xl bg-amber-100 dark:bg-amber-900/30 flex items-center justify-center mx-auto mb-5">
+            <Lock className="w-8 h-8 text-amber-600 dark:text-amber-400" />
+          </div>
+          <h2 className="text-lg font-bold text-foreground mb-2">Learning Recommendation Terkunci</h2>
+          <p className="text-sm text-muted mb-6 max-w-sm mx-auto">
+            Selesaikan Verifikasi Kartu Pelajar agar bisa mengakses rekomendasi belajar dan skill gap analysis.
+          </p>
+          <Link
+            href="/student/profile"
+            className="inline-flex items-center gap-2 px-6 py-2.5 bg-primary text-white font-medium rounded-xl hover:bg-primary-dark transition-colors"
+          >
+            <BadgeCheck className="w-4 h-4" />
+            Ke Profil & Upload Kartu
+          </Link>
+        </Card>
+      </div>
+    );
+  }
 
   const gapSkillNames = (selectedCareer?.skillGaps || []).map((g) => g.name.toLowerCase());
   const unlockedMilestones = gapSkillNames.length > 0

@@ -48,7 +48,7 @@ class AuthController extends Controller
 
     public function register(Request $request): JsonResponse
     {
-        $validator = Validator::make($request->only('name', 'email', 'password', 'role', 'major', 'grade', 'company'), [
+        $validator = Validator::make($request->only('name', 'email', 'password', 'password_confirmation', 'role', 'major', 'grade', 'company'), [
             'name' => 'required|string|max:255',
             'email' => 'required|email|unique:users,email',
             'password' => 'required|string|min:8|confirmed',

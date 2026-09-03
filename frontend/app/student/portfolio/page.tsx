@@ -13,13 +13,17 @@ import {
   Trash2,
   X,
   Save,
+  Lock,
+  BadgeCheck,
 } from "lucide-react";
 import Card from "../../components/ui/card";
 import ProgressBar from "../../components/ui/progressbar";
 import { SkeletonDashboard } from "../../components/ui/skeleton";
 import DashboardHeader from "../../components/layout/dashboardheader";
 import dynamic from "next/dynamic";
+import Link from "next/link";
 import { useAuth } from "../../lib/auth-context";
+import { useCardStatus } from "../../components/student-card-gate";
 import { api, BACKEND_ENDPOINTS } from "../../lib/api";
 import { getInitials } from "../../lib/utils";
 import type { CareerMatch, Project, Skill } from "../../lib/type";
@@ -234,7 +238,34 @@ export default function PortfolioPage() {
     }
   };
 
+  const { approved } = useCardStatus();
+
   if (loading || !user) return <div className="p-6"><SkeletonDashboard /></div>;
+
+  if (!approved) {
+    return (
+      <div>
+        <DashboardHeader title="Portfolio Kamu" subtitle="Portfolio otomatis dari data skill dan proyek kamu" />
+        <Card className="max-w-xl mx-auto text-center py-16">
+          <div className="w-16 h-16 rounded-2xl bg-amber-100 dark:bg-amber-900/30 flex items-center justify-center mx-auto mb-5">
+            <Lock className="w-8 h-8 text-amber-600 dark:text-amber-400" />
+          </div>
+          <h2 className="text-lg font-bold text-foreground mb-2">Portfolio Terkunci</h2>
+          <p className="text-sm text-muted mb-6 max-w-sm mx-auto">
+            Selesaikan Verifikasi Kartu Pelajar agar bisa mengakses dan mengelola portofolio kamu.
+          </p>
+          <Link
+            href="/student/profile"
+            className="inline-flex items-center gap-2 px-6 py-2.5 bg-primary text-white font-medium rounded-xl hover:bg-primary-dark transition-colors"
+          >
+            <BadgeCheck className="w-4 h-4" />
+            Ke Profil & Upload Kartu
+          </Link>
+        </Card>
+      </div>
+    );
+  }
+
   const allSkills: Skill[] = [];
   const readinessScore = careerMatches.length > 0 ? Math.round(careerMatches.reduce((sum, c) => sum + c.matchPercentage, 0) / careerMatches.length) : 0;
   const portfolioUrl = mounted

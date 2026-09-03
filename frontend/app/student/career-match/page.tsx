@@ -9,6 +9,8 @@ import {
   AlertTriangle,
   CheckCircle2,
   XCircle,
+  Lock,
+  BadgeCheck,
 } from "lucide-react";
 import Card from "../../components/ui/card";
 import Badge from "../../components/ui/badge";
@@ -18,6 +20,7 @@ import dynamic from "next/dynamic";
 import Link from "next/link";
 import DashboardHeader from "../../components/layout/dashboardheader";
 import { useAuth } from "../../lib/auth-context";
+import { useCardStatus } from "../../components/student-card-gate";
 import { loadCareerMatches, generateCareerMatches, saveCareerMatches } from "../../lib/career-match";
 import { getMatchBg, getReadinessTier } from "../../lib/utils";
 import { getQuizResult } from "../../lib/major-roadmap";
@@ -58,7 +61,33 @@ export default function CareerMatchPage() {
     }
   }, [mounted, user]);
 
+  const { approved } = useCardStatus();
+
   if (!mounted || !user) return <div className="p-6"><SkeletonDashboard /></div>;
+
+  if (!approved) {
+    return (
+      <div>
+        <DashboardHeader title="Know Your Path" subtitle="Temukan kecocokan karier berdasarkan skill kamu" />
+        <Card className="max-w-xl mx-auto text-center py-16">
+          <div className="w-16 h-16 rounded-2xl bg-amber-100 dark:bg-amber-900/30 flex items-center justify-center mx-auto mb-5">
+            <Lock className="w-8 h-8 text-amber-600 dark:text-amber-400" />
+          </div>
+          <h2 className="text-lg font-bold text-foreground mb-2">Career Match Terkunci</h2>
+          <p className="text-sm text-muted mb-6 max-w-sm mx-auto">
+            Selesaikan Verifikasi Kartu Pelajar agar bisa melihat kecocokan karier dan skill gap analysis.
+          </p>
+          <Link
+            href="/student/profile"
+            className="inline-flex items-center gap-2 px-6 py-2.5 bg-primary text-white font-medium rounded-xl hover:bg-primary-dark transition-colors"
+          >
+            <BadgeCheck className="w-4 h-4" />
+            Ke Profil & Upload Kartu
+          </Link>
+        </Card>
+      </div>
+    );
+  }
 
   const activeCareer = selectedCareer || careerMatches[0];
   if (!activeCareer) return <div className="p-6"><SkeletonDashboard /></div>;

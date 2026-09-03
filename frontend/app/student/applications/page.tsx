@@ -1,13 +1,14 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Briefcase, MapPin, Calendar, Send, Clock } from "lucide-react";
+import { Briefcase, MapPin, Calendar, Send, Clock, Lock, BadgeCheck } from "lucide-react";
 import Link from "next/link";
 import Card from "../../components/ui/card";
 import Badge from "../../components/ui/badge";
 import { SkeletonTable } from "../../components/ui/skeleton";
 import DashboardHeader from "../../components/layout/dashboardheader";
 import { useAuth } from "../../lib/auth-context";
+import { useCardStatus } from "../../components/student-card-gate";
 import { api, BACKEND_ENDPOINTS } from "../../lib/api";
 import { getMatchBg, formatDate } from "../../lib/utils";
 
@@ -61,7 +62,33 @@ export default function StudentApplicationsPage() {
     fetchApplications();
   }, [mounted, user]);
 
+  const { approved } = useCardStatus();
+
   if (!mounted || !user || loading) return <div className="p-6"><SkeletonTable /></div>;
+
+  if (!approved) {
+    return (
+      <div>
+        <DashboardHeader title="Lamaran Saya" subtitle="Pantau status lamaran yang sudah kamu kirim" />
+        <Card className="max-w-xl mx-auto text-center py-16">
+          <div className="w-16 h-16 rounded-2xl bg-amber-100 dark:bg-amber-900/30 flex items-center justify-center mx-auto mb-5">
+            <Lock className="w-8 h-8 text-amber-600 dark:text-amber-400" />
+          </div>
+          <h2 className="text-lg font-bold text-foreground mb-2">Lamaran Terkunci</h2>
+          <p className="text-sm text-muted mb-6 max-w-sm mx-auto">
+            Selesaikan Verifikasi Kartu Pelajar agar bisa melamar pekerjaan dan memantau status lamaran.
+          </p>
+          <Link
+            href="/student/profile"
+            className="inline-flex items-center gap-2 px-6 py-2.5 bg-primary text-white font-medium rounded-xl hover:bg-primary-dark transition-colors"
+          >
+            <BadgeCheck className="w-4 h-4" />
+            Ke Profil & Upload Kartu
+          </Link>
+        </Card>
+      </div>
+    );
+  }
 
   const statusCount = applications.reduce((acc, a) => {
     acc[a.status] = (acc[a.status] || 0) + 1;
