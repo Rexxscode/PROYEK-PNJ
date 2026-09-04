@@ -37,7 +37,7 @@
 |------|-------|--------|
 | **Sofian Bahtiar** | Frontend Developer | [@Sayayyan](https://github.com/Sayayyan) |
 | **Muhamad Adzka Lainufa** | Full Stack Developer | [@Rexxscode](https://github.com/Rexxscode) |
-| **[Nama Lengkap 3]** | [Peran] | [@username3](https://github.com/[username3]) |
+| **Fauzan Aji Wibisono** | Backend Developer | [@username3](https://github.com/[username3]) |
 
 ---
 

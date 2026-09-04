@@ -48,6 +48,19 @@ class Student extends Model
         return $this->user ? strtolower(str_replace(' ', '-', $this->user->name)) : '';
     }
 
+    public function getAvatarAttribute(?string $value): ?string
+    {
+        $name = ltrim((string) ($value ?? $this->attributes['avatar'] ?? ''), '/');
+
+        if ($name === '') {
+            return null;
+        }
+
+        return str_contains($name, 'storage/')
+            ? url('/' . $name)
+            : url('/storage/avatars/' . $name);
+    }
+
     public function getReadinessAttribute(): ?int
     {
         $max = $this->assessmentResults()

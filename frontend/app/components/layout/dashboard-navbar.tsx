@@ -8,8 +8,6 @@ import { useTheme } from "../../lib/theme-context";
 import { useAuth } from "../../lib/auth-context";
 import { api, BACKEND_ENDPOINTS } from "../../lib/api";
 
-const PROFILE_PHOTO_KEY = "profilePhoto";
-
 interface DashboardNavbarProps {
   role: "student" | "admin" | "industry";
   enableSearch?: boolean;
@@ -47,8 +45,7 @@ export default function DashboardNavbar({ role, enableSearch = true, showNotific
   useEffect(() => {
     setMounted(true);
     if (user) setEditName(user.name);
-    const storedPhoto = localStorage.getItem(PROFILE_PHOTO_KEY);
-    if (storedPhoto) setProfilePhoto(storedPhoto);
+    setProfilePhoto(user?.student?.avatar || "");
     refreshNotifs();
     const handler = () => refreshNotifs();
     window.addEventListener("notifications-updated", handler);

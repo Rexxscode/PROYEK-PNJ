@@ -110,17 +110,7 @@ export default function Sidebar({ role, currentPath, isCollapsed = false, onTogg
       if (typeof document !== "undefined") document.body.style.overflow = "";
     };
   }, [mobileOpen]);
-  const [profilePhoto, setProfilePhoto] = useState("");
-  useEffect(() => {
-    const photo = localStorage.getItem("profilePhoto");
-    if (photo) setProfilePhoto(photo);
-    const handlePhotoUpdate = () => {
-      const photo = localStorage.getItem("profilePhoto");
-      setProfilePhoto(photo || "");
-    };
-    window.addEventListener("profile-photo-updated", handlePhotoUpdate as EventListener);
-    return () => window.removeEventListener("profile-photo-updated", handlePhotoUpdate as EventListener);
-  }, []);
+  const profilePhoto = authUser?.student?.avatar || "";
 
   const [prevPath, setPrevPath] = useState(currentPath);
   if (prevPath !== currentPath) {

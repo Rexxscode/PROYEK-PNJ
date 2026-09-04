@@ -96,7 +96,11 @@ class AssessmentService
     {
         $student = $this->students->findById($userId);
 
-        return $student ? $this->assessments->resultsForStudent($student->id) : collect();
+        if (!$student) {
+            return new Collection();
+        }
+
+        return $this->assessments->resultsForStudent($student->id);
     }
 
     public function adminUpdateQuestions(string $major, array $questions): array

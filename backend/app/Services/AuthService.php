@@ -187,9 +187,7 @@ class AuthService
                 'grade' => $user->student->grade,
                 'card_status' => $user->student->card_status ?? 'none',
                 'student_card' => $user->student->student_card,
-                'avatar' => $user->student->avatar
-                    ? '/storage/avatars/' . $user->student->avatar
-                    : null,
+                'avatar' => $user->student->avatar,
             ];
         } elseif ($user->role === 'industry' && $user->industry) {
             $data['industry'] = [

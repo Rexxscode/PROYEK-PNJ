@@ -27,7 +27,9 @@ class StudentRepository extends Repository
 
     public function findById(int $id): ?Student
     {
-        return Student::with(['user', 'major'])->find($id);
+        // NB: callers pass the authenticated *user* id, not the student PK.
+        // Resolve the student row belonging to that user.
+        return Student::with(['user', 'major'])->where('user_id', $id)->first();
     }
 
     public function withRelations(): Collection
