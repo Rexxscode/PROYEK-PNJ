@@ -271,6 +271,7 @@ export default function PostJobPage() {
         message={`Anda akan memposting lowongan "${title || '(tanpa judul)'}" di ${company || '(tanpa perusahaan)'}. Lowongan akan terlihat oleh semua kandidat.`}
         confirmLabel="Ya, Post Lowongan"
         variant="primary"
+        isSubmitting={isSubmitting}
         onConfirm={handleConfirmSubmit}
         onCancel={() => setShowConfirm(false)}
       />

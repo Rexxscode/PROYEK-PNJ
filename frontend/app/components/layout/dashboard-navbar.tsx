@@ -2,19 +2,13 @@
 
 import { useState, useRef, useEffect, useCallback } from "react";
 import Link from "next/link";
-import { Bell, Search, X, LogOut, Camera, User, Moon, Sun, Check } from "lucide-react";
+import { Bell, LogOut, Camera, User, Moon, Sun, Check } from "lucide-react";
 import { useToast } from "../../lib/toast-context";
 import { useTheme } from "../../lib/theme-context";
 import { useAuth } from "../../lib/auth-context";
 import { api, BACKEND_ENDPOINTS } from "../../lib/api";
 
 const PROFILE_PHOTO_KEY = "profilePhoto";
-
-const searchPlaceholders: Record<string, string> = {
-  student: "Cari karier, skill, lowongan...",
-  admin: "Cari siswa, jurusan, statistik...",
-  industry: "Cari kandidat, skill, lowongan...",
-};
 
 interface DashboardNavbarProps {
   role: "student" | "admin" | "industry";
@@ -26,16 +20,13 @@ export default function DashboardNavbar({ role, enableSearch = true, showNotific
   const { toast } = useToast();
   const { theme, toggleTheme } = useTheme();
   const { user, logout } = useAuth();
-  const [showSearch, setShowSearch] = useState(false);
   const [showNotif, setShowNotif] = useState(false);
   const [showProfile, setShowProfile] = useState(false);
-  const [searchQuery, setSearchQuery] = useState("");
   const [activeNotifications, setActiveNotifications] = useState<{ id: string; text: string; type: string; read: boolean; createdAt: string }[]>([]);
   const [unreadCount, setUnreadCount] = useState(0);
   const [mounted, setMounted] = useState(false);
   const [editName, setEditName] = useState("");
   const [profilePhoto, setProfilePhoto] = useState<string>("");
-  const searchRef = useRef<HTMLDivElement>(null);
   const notifRef = useRef<HTMLDivElement>(null);
   const profileRef = useRef<HTMLDivElement>(null);
 
@@ -66,18 +57,12 @@ export default function DashboardNavbar({ role, enableSearch = true, showNotific
 
   useEffect(() => {
     function handleClickOutside(e: MouseEvent) {
-      if (searchRef.current && !searchRef.current.contains(e.target as Node)) setShowSearch(false);
       if (notifRef.current && !notifRef.current.contains(e.target as Node)) setShowNotif(false);
       if (profileRef.current && !profileRef.current.contains(e.target as Node)) setShowProfile(false);
     }
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
-
-  const handleSearch = (query: string) => {
-    setSearchQuery(query);
-    if (typeof window !== "undefined") window.dispatchEvent(new CustomEvent("global-search", { detail: query }));
-  };
 
   const handleMarkAllRead = async () => {
     try {
@@ -114,46 +99,11 @@ export default function DashboardNavbar({ role, enableSearch = true, showNotific
             {theme === "dark" ? <Sun className="w-4 h-4 sm:w-5 sm:h-5 text-white" /> : <Moon className="w-4 h-4 sm:w-5 sm:h-5 text-muted" />}
           </button>
 
-          {/* Search */}
-          {enableSearch && (
-            <div className="relative" ref={searchRef}>
-              <button
-                onClick={() => { setShowSearch(!showSearch); setShowNotif(false); setShowProfile(false); }}
-                className="p-1.5 sm:p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
-              >
-                <Search className="w-4 h-4 sm:w-5 sm:h-5 text-muted" />
-              </button>
-              {showSearch && (
-                <div className="absolute right-0 top-12 w-72 max-w-[calc(100vw-2rem)] bg-card border border-border rounded-xl shadow-lg p-3 z-50">
-                  <div className="flex items-center gap-2">
-                    <Search className="w-4 h-4 text-muted" />
-                    <input
-                      autoFocus
-                      type="text"
-                      placeholder={searchPlaceholders[role]}
-                      value={searchQuery}
-                      onChange={(e) => handleSearch(e.target.value)}
-                      className="flex-1 text-sm outline-none bg-transparent"
-                    />
-                    <button onClick={() => { setShowSearch(false); handleSearch(""); }}>
-                      <X className="w-4 h-4 text-muted hover:text-foreground" />
-                    </button>
-                  </div>
-                  {searchQuery && (
-                    <div className="mt-3 pt-3 border-t border-border text-sm text-muted">
-                      Hasil pencarian untuk "{searchQuery}"...
-                    </div>
-                  )}
-                </div>
-              )}
-            </div>
-          )}
-
           {/* Notification */}
           {showNotifications && (
             <div className="relative" ref={notifRef}>
               <button
-                onClick={() => { setShowNotif(!showNotif); setShowSearch(false); setShowProfile(false); }}
+                onClick={() => { setShowNotif(!showNotif); setShowProfile(false); }}
                 className="p-1.5 sm:p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors relative"
               >
                 <Bell className="w-4 h-4 sm:w-5 sm:h-5 text-muted" />
@@ -205,7 +155,7 @@ export default function DashboardNavbar({ role, enableSearch = true, showNotific
           {/* Profile - photo + name */}
           <div className="relative" ref={profileRef}>
             <button
-              onClick={() => { setShowProfile(!showProfile); setShowSearch(false); setShowNotif(false); }}
+              onClick={() => { setShowProfile(!showProfile); setShowNotif(false); }}
               className="flex items-center gap-2 pl-1.5 pr-2 sm:pr-3 py-1 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
             >
               <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-primary flex items-center justify-center text-white overflow-hidden flex-shrink-0">

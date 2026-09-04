@@ -26,7 +26,7 @@ export default function StudentProfilePage() {
 
   useEffect(() => {
     if (!mounted || !user) return;
-    setPhoto(user.student?.avatar || localStorage.getItem("profilePhoto") || "");
+    setPhoto(user.student?.avatar || "");
     const status = user.student?.card_status ?? "pending";
     setCardStatus(status);
     setCard(user.student?.student_card || null);
@@ -39,7 +39,7 @@ export default function StudentProfilePage() {
   const isRegistered = cardStatus === "approved" && !card;
 
   const isAllowedImage = (file: File): boolean => {
-    const ok = ["image/jpeg", "image/png", "image/jpg", "image/webp"].includes(file.type.toLowerCase());
+    const ok = ["image/jpeg", "image/png", "image/webp"].includes(file.type.toLowerCase());
     if (!ok) toast("Hanya file JPG, PNG, atau WebP yang diperbolehkan", "error");
     return ok;
   };

@@ -66,8 +66,9 @@ class RegistrationService
             ]);
         }
 
-        $allowedMimes = ['image/jpeg', 'image/png', 'image/jpg', 'image/webp'];
-        if (!in_array(strtolower($matches[1]), $allowedMimes, true)) {
+        $allowedMimes = ['image/jpeg', 'image/png', 'image/webp'];
+        $normalizedMime = strtolower($matches[1]) === 'image/jpg' ? 'image/jpeg' : strtolower($matches[1]);
+        if (!in_array($normalizedMime, $allowedMimes, true)) {
             throw ValidationException::withMessages([
                 'studentCard' => 'Format gambar tidak didukung (jpeg, png, webp)',
             ]);

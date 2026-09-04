@@ -87,15 +87,19 @@ class AdminService
         ]);
 
         $status = $action === 'reject' ? 'rejected' : 'approved';
-        $this->notifications->create([
-            'target_email' => $email,
-            'role' => 'industry',
-            'title' => $status === 'approved' ? 'Akun Perusahaan Disetujui' : 'Akun Perusahaan Ditolak',
-            'message' => $status === 'approved'
-                ? 'Akun perusahaan kamu telah disetujui! Kamu bisa login dan mulai mencari talenta.'
-                : 'Pendaftaran akun perusahaan kamu ditolak oleh admin.',
-            'type' => 'registration',
-        ], 0);
+        try {
+            $this->notifications->create([
+                'target_email' => $email,
+                'role' => 'industry',
+                'title' => $status === 'approved' ? 'Akun Perusahaan Disetujui' : 'Akun Perusahaan Ditolak',
+                'message' => $status === 'approved'
+                    ? 'Akun perusahaan kamu telah disetujui! Kamu bisa login dan mulai mencari talenta.'
+                    : 'Pendaftaran akun perusahaan kamu ditolak oleh admin.',
+                'type' => 'registration',
+            ], 0);
+        } catch (\Exception $e) {
+            \Log::warning('Failed to create industry approval notification: ' . $e->getMessage());
+        }
 
         return [
             'email' => $email,

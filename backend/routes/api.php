@@ -111,7 +111,7 @@ Route::prefix('v1/jobs')->group(function () {
 
     Route::middleware(['auth:sanctum', 'role:industry'])->group(function () {
         Route::get('mine', [JobController::class, 'mine']);
-        Route::post('', [JobController::class, 'store']);
+        Route::post('', [JobController::class, 'store'])->middleware('throttle:2,1');
         Route::get('{id}/applications', [JobController::class, 'jobApplicants']);
         Route::put('{id}/applications/{applicationId}/status', [JobController::class, 'updateApplicationStatus']);
         Route::put('{id}', [JobController::class, 'update']);

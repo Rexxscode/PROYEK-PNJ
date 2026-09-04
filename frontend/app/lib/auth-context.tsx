@@ -122,6 +122,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
     removeToken();
     setUser(null);
+    try {
+      localStorage.removeItem("profilePhoto");
+      localStorage.removeItem("loggedUserRole");
+      localStorage.removeItem("studentEmail");
+      localStorage.removeItem("loggedUserName");
+      localStorage.removeItem("loggedUserCompany");
+    } catch {}
   }, []);
 
   const changePassword = useCallback(async (currentPassword: string, newPassword: string) => {

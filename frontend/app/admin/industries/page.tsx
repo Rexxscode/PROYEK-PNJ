@@ -7,7 +7,6 @@ import Badge from "../../components/ui/badge";
 import DashboardHeader from "../../components/layout/dashboardheader";
 import { api, BACKEND_ENDPOINTS } from "../../lib/api";
 import { useToast } from "../../lib/toast-context";
-import { addNotification } from "../../lib/notifications";
 
 type IndustryRow = { id: number; email: string; name: string; company: string | null; status: string };
 type IndustryAction = "approve" | "reject";
@@ -50,23 +49,10 @@ export default function IndustriesPage() {
       await refresh();
       window.dispatchEvent(new CustomEvent("industries-updated"));
       if (action === "approve") {
-        addNotification({
-          text: "Akun perusahaan kamu telah disetujui! Kamu kini bisa membuka profil, memposting lowongan, dan melihat kandidat.",
-          type: "registration",
-          targetRole: "industry",
-          targetEmail: email,
-        });
         toast(`Akun ${email} berhasil disetujui`, "success");
       } else {
-        addNotification({
-          text: "Pendaftaran akun perusahaan kamu ditolak oleh admin.",
-          type: "registration",
-          targetRole: "industry",
-          targetEmail: email,
-        });
         toast(`Akun ${email} ditolak`, "warning");
       }
-      window.dispatchEvent(new CustomEvent("notifications-updated"));
     } catch (err) {
       if (err instanceof Error) toast(err.message, "warning");
     } finally {
