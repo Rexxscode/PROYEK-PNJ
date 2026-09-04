@@ -49,8 +49,8 @@ export default function StudentRegisterPage() {
         major: major.toUpperCase(),
         grade: grade.toUpperCase(),
       });
-      toast("Registrasi berhasil!", "success");
-      router.push(`/auth/pending?role=student`);
+      toast("Registrasi berhasil! Silakan lengkapi profil kamu.", "success");
+      router.push(`/student`);
     } catch (err) {
       if (err instanceof ApiError) {
         if (err.errors) {
@@ -164,8 +164,8 @@ export default function StudentRegisterPage() {
                 Kartu Pelajar
               </div>
               <p className="text-xs text-blue-600/80 dark:text-blue-400/80">
-                Setelah mendaftar, admin akan menyetujui akun kamu sebelum bisa masuk. Setelah
-                masuk, unggah kartu pelajar di halaman Profil agar fitur terbuka setelah diverifikasi.
+                Setelah mendaftar, kamu bisa langsung masuk. Unggah kartu pelajar di halaman Profil
+                agar fitur seperti asesmen, sertifikat, dan lamaran pekerjaan terbuka.
               </p>
             </div>
 

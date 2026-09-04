@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Services\RegistrationService;
+use App\Services\NotificationService;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Validator;
@@ -11,6 +12,7 @@ class RegistrationController extends Controller
 {
     public function __construct(
         private RegistrationService $registration,
+        private NotificationService $notifications,
     ) {}
 
     public function listStudents(): JsonResponse
@@ -27,6 +29,14 @@ class RegistrationController extends Controller
     {
         $data = $this->registration->approveCard($email);
 
+        $this->notifications->create([
+            'target_email' => $email,
+            'role' => 'student',
+            'title' => 'Kartu Pelajar Disetujui',
+            'message' => 'Kartu pelajarmu telah disetujui. Semua fitur siswa kini terbuka.',
+            'type' => 'card_approval',
+        ], 0);
+
         return response()->json([
             'success' => true,
             'message' => 'Student card approved',
@@ -37,6 +47,14 @@ class RegistrationController extends Controller
     public function reject(string $email): JsonResponse
     {
         $data = $this->registration->rejectCard($email);
+
+        $this->notifications->create([
+            'target_email' => $email,
+            'role' => 'student',
+            'title' => 'Kartu Pelajar Ditolak',
+            'message' => 'Kartu pelajarmu ditolak saat verifikasi. Silakan unggah ulang.',
+            'type' => 'card_approval',
+        ], 0);
 
         return response()->json([
             'success' => true,

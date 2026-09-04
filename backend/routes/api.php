@@ -58,7 +58,7 @@ Route::prefix('v1/assessment')->group(function () {
 Route::prefix('v1/materi')->group(function () {
     Route::get('majors/{major}', [MateriController::class, 'listByMajor']);
 
-    Route::middleware(['auth:sanctum', 'role:student'])->group(function () {
+    Route::middleware(['auth:sanctum', 'role:student', 'card.approved'])->group(function () {
         Route::get('{materiId}/questions', [MateriController::class, 'questions']);
         Route::post('{materiId}/submit', [MateriController::class, 'submit'])->middleware('throttle:5,1');
     });
@@ -70,7 +70,7 @@ Route::prefix('v1/materi')->group(function () {
     });
 });
 
-Route::prefix('v1/certificates')->middleware(['auth:sanctum', 'role:student'])->group(function () {
+Route::prefix('v1/certificates')->middleware(['auth:sanctum', 'role:student', 'card.approved'])->group(function () {
     Route::get('', [CertificateController::class, 'list']);
     Route::get('{materiId}', [CertificateController::class, 'detail']);
 });

@@ -4,6 +4,7 @@ namespace App\Services;
 
 use App\Repositories\IndustryRepository;
 use App\Repositories\UserRepository;
+use App\Services\NotificationService;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\ValidationException;
 
@@ -12,6 +13,7 @@ class AdminService
     public function __construct(
         private UserRepository $users,
         private IndustryRepository $industries,
+        private NotificationService $notifications,
     ) {}
 
     public function listAdmins(): array
@@ -84,9 +86,20 @@ class AdminService
             'status' => $action === 'reject' ? 'rejected' : 'approved',
         ]);
 
+        $status = $action === 'reject' ? 'rejected' : 'approved';
+        $this->notifications->create([
+            'target_email' => $email,
+            'role' => 'industry',
+            'title' => $status === 'approved' ? 'Akun Perusahaan Disetujui' : 'Akun Perusahaan Ditolak',
+            'message' => $status === 'approved'
+                ? 'Akun perusahaan kamu telah disetujui! Kamu bisa login dan mulai mencari talenta.'
+                : 'Pendaftaran akun perusahaan kamu ditolak oleh admin.',
+            'type' => 'registration',
+        ], 0);
+
         return [
             'email' => $email,
-            'status' => $action === 'reject' ? 'rejected' : 'approved',
+            'status' => $status,
         ];
     }
 }

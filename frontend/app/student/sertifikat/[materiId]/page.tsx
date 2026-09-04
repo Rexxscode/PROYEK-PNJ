@@ -69,7 +69,7 @@ export default function MateriTesPage() {
 
   useEffect(() => {
     setMounted(true);
-    if (!materi || !user) return;
+    if (!materi || !user || !approved) return;
     let cancelled = false;
     const load = async () => {
       try {
@@ -88,7 +88,7 @@ export default function MateriTesPage() {
     };
     load();
     return () => { cancelled = true; };
-  }, [materi, materiId, user]);
+  }, [materi, materiId, user, approved]);
 
   if (!mounted || !user) return <div className="p-6"><SkeletonDashboard /></div>;
 
@@ -102,6 +102,30 @@ export default function MateriTesPage() {
           <p className="text-sm text-muted mb-6">Materi atau soal belum tersedia.</p>
           <Link href="/student/sertifikat" className="px-4 py-2 bg-primary text-white rounded-lg text-sm font-medium hover:bg-primary-dark transition-colors">
             Kembali ke Daftar Materi
+          </Link>
+        </Card>
+      </div>
+    );
+  }
+
+  if (!approved) {
+    return (
+      <div>
+        <DashboardHeader title="Tes Materi" subtitle="Selesaikan verifikasi kartu pelajar" />
+        <Card className="max-w-xl mx-auto text-center py-16">
+          <div className="w-16 h-16 rounded-2xl bg-amber-100 dark:bg-amber-900/30 flex items-center justify-center mx-auto mb-5">
+            <Lock className="w-8 h-8 text-amber-600 dark:text-amber-400" />
+          </div>
+          <h2 className="text-lg font-bold text-foreground mb-2">Tes Materi Terkunci</h2>
+          <p className="text-sm text-muted mb-6 max-w-sm mx-auto">
+            Selesaikan Verifikasi Kartu Pelajar agar bisa mengikuti tes materi dan mendapatkan sertifikat.
+          </p>
+          <Link
+            href="/student/profile"
+            className="inline-flex items-center gap-2 px-6 py-2.5 bg-primary text-white font-medium rounded-xl hover:bg-primary-dark transition-colors"
+          >
+            <BadgeCheck className="w-4 h-4" />
+            Ke Profil & Upload Kartu
           </Link>
         </Card>
       </div>
@@ -342,31 +366,6 @@ export default function MateriTesPage() {
   }
 
   const q = questions[current];
-
-  // ── Form Tes ─────────────────────────────────────────────────────────────
-  if (!approved) {
-    return (
-      <div>
-        <DashboardHeader title="Tes Materi" subtitle={materi.title} />
-        <Card className="max-w-xl mx-auto text-center py-16">
-          <div className="w-16 h-16 rounded-2xl bg-amber-100 dark:bg-amber-900/30 flex items-center justify-center mx-auto mb-5">
-            <Lock className="w-8 h-8 text-amber-600 dark:text-amber-400" />
-          </div>
-          <h2 className="text-lg font-bold text-foreground mb-2">Tes Materi Terkunci</h2>
-          <p className="text-sm text-muted mb-6 max-w-sm mx-auto">
-            Selesaikan Kartu Pelajar agar bisa mengerjakan tes materi dan mendapatkan sertifikat.
-          </p>
-          <Link
-            href="/student/profile"
-            className="inline-flex items-center gap-2 px-6 py-2.5 bg-primary text-white font-medium rounded-xl hover:bg-primary-dark transition-colors"
-          >
-            <BadgeCheck className="w-4 h-4" />
-            Ke Profil & Upload Kartu
-          </Link>
-        </Card>
-      </div>
-    );
-  }
 
   return (
     <div>
