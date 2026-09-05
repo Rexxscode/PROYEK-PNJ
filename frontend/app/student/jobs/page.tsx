@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useState, useEffect, useMemo } from "react";
 import { createPortal } from "react-dom";
@@ -17,10 +17,11 @@ import Card from "../../components/ui/card";
 import Badge from "../../components/ui/badge";
 import { SkeletonTable } from "../../components/ui/skeleton";
 import DashboardHeader from "../../components/layout/dashboardheader";
-import { getCurrentStudent, getAllPostedJobs, addJobApplication } from "../../lib/mock-data";
+import { useAuth } from "../../lib/auth-context";
+import { useCardStatus, CardLock } from "../../components/student-card-gate";
+import { api, BACKEND_ENDPOINTS } from "../../lib/api";
 import { getMatchBg, formatDate } from "../../lib/utils";
 import { useToast } from "../../lib/toast-context";
-import { addNotification } from "../../lib/notifications";
 import type { JobOpportunity } from "../../lib/type";
 
 type JobWithPoster = JobOpportunity & { postedBy?: string };
@@ -41,22 +42,20 @@ const typeBadgeVariant = {
   freelance: "warning" as const,
 };
 
-const companyColors = [
-  "from-blue-500 to-cyan-500",
-  "from-purple-500 to-pink-500",
-  "from-emerald-500 to-teal-500",
-  "from-amber-500 to-orange-500",
-  "from-red-500 to-rose-500",
-];
+
 
 export default function JobsPage() {
   const { toast } = useToast();
+  const { user } = useAuth();
+  const { cardStatus } = useCardStatus();
   const [mounted, setMounted] = useState(false);
   const [filter, setFilter] = useState<FilterType>("all");
   const [sortBy, setSortBy] = useState<"match" | "date">("match");
   const [selectedJob, setSelectedJob] = useState<JobWithPoster | null>(null);
   const [applied, setApplied] = useState(false);
   const [search, setSearch] = useState("");
+  const [jobs, setJobs] = useState<JobWithPoster[]>([]);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => { setMounted(true); }, []);
   useEffect(() => {
@@ -65,40 +64,28 @@ export default function JobsPage() {
     return () => window.removeEventListener("global-search", handler);
   }, []);
 
-  const student = mounted ? getCurrentStudent() : null;
+  useEffect(() => {
+    if (!user) return;
+    const fetchJobs = async () => {
+      try {
+        const res = await api.get<{ success: boolean; data: JobOpportunity[] }>(BACKEND_ENDPOINTS.jobs.list);
+        if (res.success) {
+          setJobs(res.data);
+        }
+      } catch {
+        // silently fail
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchJobs();
+  }, [user]);
 
-  const postedJobs = useMemo(() => {
-    if (!mounted || !student) return [] as JobWithPoster[];
-    const studentSkills = (student.hardSkills || []).map((s) => s.name.toLowerCase());
-    return getAllPostedJobs().map((j) => {
-      const requiredSkills = Array.isArray(j.skills) ? j.skills : [];
-      const matched = requiredSkills.filter((sk) => studentSkills.includes(sk.toLowerCase())).length;
-      const matchPercentage = requiredSkills.length > 0 ? Math.round((matched / requiredSkills.length) * 100) : 0;
-      const type = (["magang", "fulltime", "parttime", "freelance"].includes(j.type) ? j.type : "magang") as JobOpportunity["type"];
-      return {
-        id: j.id,
-        company: j.company,
-        companyLogo: "",
-        title: j.title,
-        type,
-        location: j.location,
-        description: j.description,
-        requiredSkills,
-        matchPercentage,
-        postedAt: j.postedAt || new Date().toISOString().slice(0, 10),
-        deadline: j.deadline || "2026-12-31",
-        salary: j.salary || undefined,
-        postedBy: j.postedBy || undefined,
-      } as JobWithPoster;
-    });
-  }, [mounted, student]);
+  const grade = user?.student?.grade || "";
 
-  const jobOpportunities = [...postedJobs, ...(student?.jobOpportunities || [])];
-  const profile = student?.profile;
+  if (loading || !user) return <div className="p-6"><SkeletonTable /></div>;
 
-  if (!mounted || !student) return <div className="p-6 lg:pl-72"><SkeletonTable /></div>;
-
-  if (student.profile.grade !== "XII") {
+  if (grade !== "XII") {
     return (
       <div>
         <DashboardHeader title="Lowongan" subtitle="Peluang kerja untuk siswa" />
@@ -109,7 +96,7 @@ export default function JobsPage() {
                 <Briefcase className="w-12 h-12 text-muted mx-auto mb-4" />
                 <h3 className="text-lg font-semibold text-foreground mb-2">Akses Terbatas</h3>
                 <p className="text-muted text-sm">
-                  Lowongan pekerjaan hanya tersedia untuk siswa kelas XII yang akan lulus. Saat ini kamu masih kelas {student.profile.grade}. Silakan fokus pada asesmen dan roadmap belajar terlebih dahulu.
+                  Lowongan pekerjaan hanya tersedia untuk siswa kelas XII yang akan lulus. Saat ini kamu masih kelas {grade}. Silakan fokus pada asesmen dan roadmap belajar terlebih dahulu.
                 </p>
               </div>
             </Card>
@@ -119,7 +106,7 @@ export default function JobsPage() {
     );
   }
 
-  const filteredJobs = jobOpportunities
+  const filteredJobs = jobs
     .filter((job) => {
       if (filter !== "all" && job.type !== filter) return false;
       if (search) {
@@ -134,27 +121,16 @@ export default function JobsPage() {
         : new Date(b.postedAt).getTime() - new Date(a.postedAt).getTime()
     );
 
-  const handleApply = () => {
-    if (!selectedJob || !profile) return;
-    const email = typeof window !== "undefined" ? localStorage.getItem("studentEmail") || profile.email : profile.email;
-    addJobApplication({
-      jobId: selectedJob.id,
-      jobTitle: selectedJob.title,
-      company: selectedJob.company,
-      studentName: profile.name,
-      studentEmail: email,
-    });
-    if (selectedJob.postedBy) {
-      addNotification({
-        text: `${profile.name} melamar "${selectedJob.title}" di ${selectedJob.company}`,
-        type: "job_application",
-        targetRole: "industry",
-        targetEmail: selectedJob.postedBy,
-      });
+  const handleApply = async () => {
+    if (!selectedJob || !user) return;
+    try {
+      await api.post(BACKEND_ENDPOINTS.jobs.apply(selectedJob.id));
+      setApplied(true);
+      toast("Lamaran berhasil dikirim!", "success");
+    } catch (err) {
+      toast(err instanceof Error ? err.message : "Gagal mengirim lamaran", "error");
+      return;
     }
-    window.dispatchEvent(new CustomEvent("notifications-updated"));
-    setApplied(true);
-    toast("Lamaran berhasil dikirim!", "success");
     setTimeout(() => {
       setApplied(false);
       setSelectedJob(null);
@@ -225,7 +201,7 @@ export default function JobsPage() {
             <div className="flex flex-col md:flex-row">
               {/* Company Logo */}
               <div className="p-6 md:w-24 flex items-start justify-center">
-                <div className={`w-16 h-16 rounded-2xl bg-gradient-to-br ${companyColors[index % companyColors.length]} flex items-center justify-center flex-shrink-0`}>
+                <div className="w-16 h-16 rounded-2xl bg-primary flex items-center justify-center flex-shrink-0">
                   <span className="text-lg font-bold text-white">
                     {job.company.split(" ").slice(0, 2).map((w) => w[0]).join("")}
                   </span>
@@ -310,7 +286,7 @@ export default function JobsPage() {
 
                   <div className="p-3 bg-primary/5 rounded-xl border border-primary/20">
                     <p className="text-sm font-medium text-foreground mb-1">Portfolio yang dikirim:</p>
-                    <p className="text-sm text-muted">{profile!.name} - {profile!.major}</p>
+                    <p className="text-sm text-muted">{user.name} - {user.student?.major_name || ""}</p>
                     <div className="flex gap-1 mt-1">
                       <Badge variant="primary" className="text-[10px]">18 Skills</Badge>
                       <Badge variant="success" className="text-[10px]">3 Projects</Badge>
@@ -331,12 +307,14 @@ export default function JobsPage() {
                   >
                     Batal
                   </button>
-                  <button
-                    onClick={handleApply}
-                    className="flex-1 py-2.5 bg-primary text-white font-medium rounded-xl hover:bg-primary-dark transition-colors text-sm"
-                  >
-                    Konfirmasi Lamar
-                  </button>
+                  <CardLock pendingTitle={cardStatus === "pending" ? "Menunggu verifikasi kartu pelajar" : "Lengkapi kartu pelajar untuk melamar"}>
+                    <button
+                      onClick={handleApply}
+                      className="flex-1 py-2.5 bg-primary text-white font-medium rounded-xl hover:bg-primary-dark transition-colors text-sm"
+                    >
+                      Konfirmasi Lamar
+                    </button>
+                  </CardLock>
                 </div>
               </>
             ) : (

@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useState, useEffect } from "react";
 import { createPortal } from "react-dom";
@@ -10,8 +10,9 @@ import Badge from "../../components/ui/badge";
 import { SkeletonTable } from "../../components/ui/skeleton";
 import ConfirmDialog from "../../components/ui/confirm-dialog";
 import { useToast } from "../../lib/toast-context";
+import { api, BACKEND_ENDPOINTS } from "../../lib/api";
+import { useAuth } from "../../lib/auth-context";
 import { allSuggestedSkills } from "../../lib/job-skills";
-import { getApplicationsForJob } from "../../lib/mock-data";
 
 interface Job {
   id: string;
@@ -25,45 +26,26 @@ interface Job {
   salary?: string;
 }
 
-const seedJobsByCompany: Record<string, Job[]> = {
-  "hrd@techcorp.com": [
-    { id: "dj-tc1", title: "Frontend Developer Intern", company: "TechCorp Indonesia", location: "Jakarta Selatan (Hybrid)", type: "magang", description: "Magang 3 bulan, project React/Next.js. Akses ke mentorship langsung dari senior developer.", skills: ["React/Next.js", "TypeScript", "HTML/CSS"], deadline: "2026-03-15", salary: "Rp 2-3 juta/bulan" },
-    { id: "dj-tc2", title: "Junior Backend Developer", company: "TechCorp Indonesia", location: "Remote", type: "fulltime", description: "Full-time developer dengan pengalaman Node.js. Wajib bisa REST API dan SQL.", skills: ["Node.js", "SQL/Database", "REST API"], deadline: "2026-04-01", salary: "Rp 4-6 juta/bulan" },
-    { id: "dj-tc3", title: "UI/UX Design Freelance", company: "TechCorp Indonesia", location: "Bandung", type: "freelance", description: "Project desain UI/UX mobile app 2 bulan.", skills: ["Figma", "UI/UX Design", "HTML/CSS"], deadline: "2026-03-30", salary: "Negosiasi" },
-  ],
-  "recruit@creativestudio.com": [
-    { id: "dj-cs1", title: "Graphic Designer", company: "Creative Studio", location: "Bandung (On-site)", type: "fulltime", description: "Desain material marketing, social media, dan brand identity klien.", skills: ["Adobe Photoshop", "Adobe Illustrator", "Brand Identity"], deadline: "2026-03-20", salary: "Rp 4-5 juta/bulan" },
-    { id: "dj-cs2", title: "Motion Graphics Intern", company: "Creative Studio", location: "Bandung (Hybrid)", type: "magang", description: "Buat animasi dan video motion untuk iklan digital.", skills: ["Motion Graphics", "Video Editing", "Adobe After Effects"], deadline: "2026-04-10", salary: "Rp 1.5-2.5 juta/bulan" },
-  ],
-  "info@telkom.co.id": [
-    { id: "dj-tk1", title: "Network Technician Intern", company: "PT Telkom Indonesia", location: "Surabaya (On-site)", type: "magang", description: "Magang instalasi dan maintenance jaringan telekomunikasi.", skills: ["Networking Basics", "Fiber Optics", "Cisco IOS"], deadline: "2026-03-15", salary: "Rp 2-3 juta/bulan" },
-    { id: "dj-tk2", title: "Junior Network Engineer", company: "PT Telkom Indonesia", location: "Jakarta (On-site)", type: "fulltime", description: "Konfigurasi dan monitoring infrastruktur jaringan klien.", skills: ["Cisco IOS", "TCP/IP", "Network Security"], deadline: "2026-03-20", salary: "Rp 5-7 juta/bulan" },
-  ],
-};
+interface Applicant {
+  id: string;
+  status: "pending" | "accepted" | "rejected";
+  appliedAt: string;
+  name: string;
+  email: string;
+  major: string;
+  grade: string;
+  skills: string[];
+}
 
 function getJobs(): Job[] {
-  if (typeof window === "undefined") return [];
-  const email = localStorage.getItem("studentEmail") || "";
-  if (!email) return [];
-  const key = `industryJobs_${email}`;
-  try {
-    const stored = JSON.parse(localStorage.getItem(key) || "[]");
-    if (stored.length > 0) return stored;
-    const seeds = seedJobsByCompany[email];
-    if (seeds && seeds.length > 0) {
-      localStorage.setItem(key, JSON.stringify(seeds));
-      return seeds;
-    }
-    return [];
-  } catch {
-    return [];
-  }
+  return [];
 }
 
 const typeLabels: Record<string, string> = { magang: "Magang", fulltime: "Full-time", parttime: "Part-time", freelance: "Freelance" };
 
 export default function MyJobsPage() {
   const { toast } = useToast();
+  const { user } = useAuth();
   const [jobs, setJobs] = useState<Job[]>([]);
   const [mounted, setMounted] = useState(false);
   const [deleteTarget, setDeleteTarget] = useState<{ id: string; title: string } | null>(null);
@@ -71,19 +53,75 @@ export default function MyJobsPage() {
   const [editForm, setEditForm] = useState({ title: "", company: "", location: "", type: "magang" as string, description: "", skills: [] as string[], deadline: "", salary: "" });
   const [editSkillInput, setEditSkillInput] = useState("");
   const [showApplicants, setShowApplicants] = useState<string | null>(null);
+  const [applicants, setApplicants] = useState<Record<string, Applicant[]>>({});
+  const [applicantsLoading, setApplicantsLoading] = useState<string | null>(null);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    setJobs(getJobs());
-    setMounted(true);
-  }, []);
+    if (!user) return;
+    const fetchJobs = async () => {
+      try {
+        const res = await api.get<{ success: boolean; data: Job[] }>(BACKEND_ENDPOINTS.jobs.mine);
+        if (res.success) {
+          setJobs(res.data);
+        }
+      } catch {
+        // silently fail
+      } finally {
+        setLoading(false);
+        setMounted(true);
+      }
+    };
+    fetchJobs();
+  }, [user]);
 
-  const handleDelete = () => {
+  const loadApplicants = async (jobId: string) => {
+    setApplicantsLoading(jobId);
+    try {
+      const res = await api.get<{ success: boolean; data: Applicant[] }>(BACKEND_ENDPOINTS.jobs.jobApplicants(jobId));
+      if (res.success) {
+        setApplicants((prev) => ({ ...prev, [jobId]: Array.isArray(res.data) ? res.data : [] }));
+      }
+    } catch {
+      setApplicants((prev) => ({ ...prev, [jobId]: [] }));
+    } finally {
+      setApplicantsLoading(null);
+    }
+  };
+
+  const toggleApplicants = (jobId: string) => {
+    if (showApplicants === jobId) {
+      setShowApplicants(null);
+      return;
+    }
+    setShowApplicants(jobId);
+    if (!applicants[jobId]) {
+      loadApplicants(jobId);
+    }
+  };
+
+  const updateApplicantStatus = async (jobId: string, appId: string, status: "accepted" | "rejected") => {
+    try {
+      await api.put(BACKEND_ENDPOINTS.jobs.setApplicationStatus(jobId, appId), { status });
+      setApplicants((prev) => ({
+        ...prev,
+        [jobId]: (prev[jobId] || []).map((a) => (a.id === appId ? { ...a, status } : a)),
+      }));
+      toast(status === "accepted" ? "Pelamar diterima" : "Pelamar ditolak", "success");
+    } catch {
+      toast("Gagal memperbarui status pelamar", "error");
+    }
+  };
+
+  const handleDelete = async () => {
     if (!deleteTarget) return;
-    const email = localStorage.getItem("studentEmail") || "";
-    const updated = jobs.filter((j) => j.id !== deleteTarget.id);
-    setJobs(updated);
-    localStorage.setItem(`industryJobs_${email}`, JSON.stringify(updated));
-    toast(`Lowongan "${deleteTarget.title}" berhasil dihapus`, "success");
+    try {
+      await api.delete(`${BACKEND_ENDPOINTS.jobs.create}/${deleteTarget.id}`);
+      setJobs(jobs.filter((j) => j.id !== deleteTarget.id));
+      toast(`Lowongan "${deleteTarget.title}" berhasil dihapus`, "success");
+    } catch {
+      toast("Gagal menghapus lowongan", "error");
+    }
     setDeleteTarget(null);
   };
 
@@ -116,17 +154,19 @@ export default function MyJobsPage() {
     }
   };
 
-  const handleSaveEdit = () => {
+  const handleSaveEdit = async () => {
     if (!editJob) return;
-    const email = localStorage.getItem("studentEmail") || "";
-    const updated = jobs.map((j) => j.id === editJob.id ? { ...j, ...editForm } : j);
-    setJobs(updated);
-    localStorage.setItem(`industryJobs_${email}`, JSON.stringify(updated));
-    toast(`Lowongan "${editForm.title}" berhasil diperbarui`, "success");
-    setEditJob(null);
+    try {
+      await api.put(`${BACKEND_ENDPOINTS.jobs.create}/${editJob.id}`, editForm);
+      setJobs(jobs.map((j) => j.id === editJob.id ? { ...j, ...editForm } : j));
+      toast(`Lowongan "${editForm.title}" berhasil diperbarui`, "success");
+      setEditJob(null);
+    } catch {
+      toast("Gagal memperbarui lowongan", "error");
+    }
   };
 
-  if (!mounted) return <div className="p-6 lg:pl-72"><SkeletonTable /></div>;
+  if (loading || !mounted) return <div className="p-6"><SkeletonTable /></div>;
 
   return (
     <div>
@@ -175,39 +215,68 @@ export default function MyJobsPage() {
                     <span key={sk} className="px-2 py-0.5 bg-primary/10 text-primary text-[10px] rounded-full font-medium">{sk}</span>
                   ))}
                 </div>
-                {(() => {
-                  const applicants = getApplicationsForJob(job.id);
-                  return (
-                    <div className="mt-3">
-                      <button
-                        type="button"
-                        onClick={() => setShowApplicants(showApplicants === job.id ? null : job.id)}
-                        className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full border border-border text-xs font-medium hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
-                      >
-                        <Users className="w-3.5 h-3.5" />
-                        {applicants.length} Pelamar
-                        {showApplicants === job.id ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />}
-                      </button>
-                      {showApplicants === job.id && (
-                        <div className="mt-2 space-y-1.5">
-                          {applicants.length === 0 ? (
-                            <p className="text-xs text-muted">Belum ada pelamar untuk lowongan ini.</p>
-                          ) : (
-                            applicants.map((a) => (
-                              <div key={a.id} className="flex items-center justify-between px-3 py-2 bg-gray-50 dark:bg-gray-700/50 rounded-lg">
-                                <div>
-                                  <p className="text-xs font-medium text-foreground">{a.studentName}</p>
-                                  <p className="text-[10px] text-muted">{a.studentEmail}</p>
-                                </div>
-                                <span className="text-[10px] text-muted">{new Date(a.appliedAt).toLocaleDateString("id-ID")}</span>
+                <div className="mt-3">
+                  <button
+                    type="button"
+                    onClick={() => toggleApplicants(job.id)}
+                    className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full border border-border text-xs font-medium hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
+                  >
+                    <Users className="w-3.5 h-3.5" />
+                    {applicants[job.id] ? applicants[job.id].length : 0} Pelamar
+                    {showApplicants === job.id ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />}
+                  </button>
+                  {showApplicants === job.id && (
+                    <div className="mt-3 space-y-2">
+                      {applicantsLoading === job.id ? (
+                        <p className="text-xs text-muted">Memuat pelamar...</p>
+                      ) : (applicants[job.id] || []).length === 0 ? (
+                        <p className="text-xs text-muted">Belum ada pelamar untuk lowongan ini.</p>
+                      ) : (
+                        (applicants[job.id] || []).map((ap) => (
+                          <div key={ap.id} className="p-3 bg-gray-50 dark:bg-gray-800/50 rounded-xl">
+                            <div className="flex flex-wrap items-center justify-between gap-2">
+                              <div className="min-w-0">
+                                <p className="text-sm font-medium text-foreground truncate">{ap.name}</p>
+                                <p className="text-xs text-muted truncate">{ap.major || "-"} {ap.grade ? `• K${ap.grade}` : ""}</p>
                               </div>
-                            ))
-                          )}
-                        </div>
+                              <div className="flex items-center gap-2">
+                                <Badge
+                                  variant={ap.status === "accepted" ? "success" : ap.status === "rejected" ? "danger" : "warning"}
+                                >
+                                  {ap.status === "accepted" ? "Diterima" : ap.status === "rejected" ? "Ditolak" : "Menunggu"}
+                                </Badge>
+                                {ap.status === "pending" && (
+                                  <>
+                                    <button
+                                      onClick={() => updateApplicantStatus(job.id, ap.id, "accepted")}
+                                      className="px-2.5 py-1 bg-emerald-600 text-white text-xs font-medium rounded-lg hover:bg-emerald-700 transition-colors"
+                                    >
+                                      Terima
+                                    </button>
+                                    <button
+                                      onClick={() => updateApplicantStatus(job.id, ap.id, "rejected")}
+                                      className="px-2.5 py-1 bg-red-500 text-white text-xs font-medium rounded-lg hover:bg-red-600 transition-colors"
+                                    >
+                                      Tolak
+                                    </button>
+                                  </>
+                                )}
+                              </div>
+                            </div>
+                            <div className="flex flex-wrap gap-1 mt-2">
+                              {(ap.skills || []).slice(0, 6).map((sk) => (
+                                <span key={sk} className="px-1.5 py-0.5 bg-primary/10 text-primary text-[10px] rounded-full font-medium">{sk}</span>
+                              ))}
+                              {(ap.skills || []).length > 6 && (
+                                <span className="px-1.5 py-0.5 text-[10px] text-muted">+{(ap.skills || []).length - 6}</span>
+                              )}
+                            </div>
+                          </div>
+                        ))
                       )}
                     </div>
-                  );
-                })()}
+                  )}
+                </div>
               </div>
               <div className="flex gap-2 sm:flex-col">
                 <button

@@ -155,7 +155,7 @@ export const students: Record<string, StudentData> = {
   },
 
   tt: {
-    profile: { id: "usr-003", name: "Hendra Susanto", email: "hendra@student.smk.id", role: "student", major: "Teknik Transmisi", grade: "XII", avatar: "", createdAt: "2025-08-01" },
+    profile: { id: "usr-003", name: "Hendra Susanto", email: "hendra@student.smk.id", role: "student", major: "Teknik Jaringan, Komputer, dan Telekomunikasi", grade: "XII", avatar: "", createdAt: "2025-08-01" },
     hardSkills: ttHardSkills,
     softSkills: commonSoftSkills,
     careerMatches: [
@@ -252,7 +252,7 @@ export const students: Record<string, StudentData> = {
     jobOpportunities: [],
   },
   "tkj-dedi": {
-    profile: { id: "usr-008", name: "Dedi Kurniawan", email: "dedi@student.smk.id", role: "student", major: "Teknik Komputer dan Jaringan", grade: "XI", avatar: "", createdAt: "2025-08-01" },
+    profile: { id: "usr-008", name: "Dedi Kurniawan", email: "dedi@student.smk.id", role: "student", major: "Teknik Jaringan, Komputer, dan Telekomunikasi", grade: "XI", avatar: "", createdAt: "2025-08-01" },
     hardSkills: [
       { id: "tk-d01", name: "Linux Administration", category: "hard", level: 3 },
       { id: "tk-d02", name: "Python", category: "hard", level: 2 },
@@ -272,7 +272,7 @@ export const students: Record<string, StudentData> = {
     jobOpportunities: [],
   },
   tkj: {
-    profile: { id: "usr-004", name: "Fajar Nugroho", email: "fajar@student.smk.id", role: "student", major: "Teknik Komputer dan Jaringan", grade: "XII", avatar: "", createdAt: "2025-08-01" },
+    profile: { id: "usr-004", name: "Fajar Nugroho", email: "fajar@student.smk.id", role: "student", major: "Teknik Jaringan, Komputer, dan Telekomunikasi", grade: "XII", avatar: "", createdAt: "2025-08-01" },
     hardSkills: tkjHardSkills,
     softSkills: commonSoftSkills,
     careerMatches: [
@@ -629,8 +629,7 @@ export function majorCodeToName(code: string): string {
   const map: Record<string, string> = {
     rpl: "Rekayasa Perangkat Lunak",
     dkv: "Desain Komunikasi Visual",
-    tkj: "Teknik Komputer dan Jaringan",
-    tt: "Teknik Transmisi",
+    tjkt: "Teknik Jaringan, Komputer, dan Telekomunikasi",
   };
   return map[code] || code;
 }
@@ -989,8 +988,7 @@ export function getStudentStats(): StudentStats {
   const majorsOrder = [
     "Rekayasa Perangkat Lunak",
     "Desain Komunikasi Visual",
-    "Teknik Komputer dan Jaringan",
-    "Teknik Transmisi",
+    "Teknik Jaringan, Komputer, dan Telekomunikasi",
   ];
   const majorMap = new Map<string, { total: number; assessed: number }>();
   all.forEach((s) => {

@@ -1,3 +1,5 @@
+import { api, BACKEND_ENDPOINTS } from "./api";
+
 export interface QuizQuestion {
   id: string;
   question: string;
@@ -4813,8 +4815,7 @@ const transmisiQuiz: QuizQuestion[] = [
 export const majorQuizMap: Record<string, QuizQuestion[]> = {
   "Rekayasa Perangkat Lunak": rplQuiz,
   "Desain Komunikasi Visual": dkvQuiz,
-  "Teknik Komputer dan Jaringan": tkjQuiz,
-  "Teknik Transmisi": transmisiQuiz,
+  "Teknik Jaringan, Komputer, dan Telekomunikasi": [...tkjQuiz, ...transmisiQuiz],
 };
 
 const MAJOR_QUIZ_OVERRIDE_PREFIX = "quiz_overrides_";
@@ -4916,4 +4917,52 @@ export function gradeQuiz(answers: Record<string, number>, questions: QuizQuesti
   else if (score >= 40) level = 2;
 
   return { score, level, skillScores };
+}
+
+/* ------------------------------------------------------------------ */
+/*  Backend-backed admin helpers for assessment questions               */
+/* ------------------------------------------------------------------ */
+
+type ApiAssessmentQuestion = {
+  id: number;
+  major_id?: string;
+  question: string;
+  options: string[] | string;
+  correct: number;
+  difficulty: string;
+  skill: string;
+};
+
+export async function fetchMajorQuizAdmin(major?: string): Promise<QuizQuestion[]> {
+  const url = major
+    ? BACKEND_ENDPOINTS.assessment.adminQuestions(major)
+    : BACKEND_ENDPOINTS.assessment.adminQuestions();
+  const res = await api.get<{ success: boolean; data: ApiAssessmentQuestion[] }>(url);
+  if (!res.success) return [];
+  return res.data.map((q) => ({
+    id: String(q.id),
+    question: q.question,
+    options: Array.isArray(q.options) ? q.options : JSON.parse(q.options),
+    correct: q.correct,
+    difficulty: (q.difficulty || "basic") as QuizQuestion["difficulty"],
+    skill: q.skill || "",
+  }));
+}
+
+export async function saveMajorQuizAdmin(major: string, questions: QuizQuestion[]): Promise<boolean> {
+  await api.put(BACKEND_ENDPOINTS.assessment.update(major), {
+    questions: questions.map((q) => ({
+      question: q.question.trim(),
+      options: q.options.map((o) => o.trim()),
+      correct: q.correct,
+      difficulty: q.difficulty,
+      skill: q.skill.trim(),
+    })),
+  });
+  return true;
+}
+
+export async function resetMajorQuizAdmin(major: string): Promise<boolean> {
+  await api.post(BACKEND_ENDPOINTS.assessment.reset(major));
+  return true;
 }

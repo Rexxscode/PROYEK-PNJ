@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useState, useEffect, useRef, useMemo } from "react";
 import Link from "next/link";
@@ -15,6 +15,8 @@ import {
   Clock,
   ListChecks,
   X,
+  Lock,
+  BadgeCheck,
 } from "lucide-react";
 import Card from "../../../components/ui/card";
 import Badge from "../../../components/ui/badge";
@@ -25,23 +27,26 @@ import CertificateView, {
   formatIndonesianDate,
 } from "../../../components/certificate/certificate-view";
 import { getMateriById } from "../../../lib/materi-catalog";
-import { getQuizForMateri } from "../../../lib/materi-quiz";
-import { getCurrentStudent } from "../../../lib/mock-data";
+import { useAuth } from "../../../lib/auth-context";
+import { useCardStatus } from "../../../components/student-card-gate";
+import { api, BACKEND_ENDPOINTS } from "../../../lib/api";
 import {
-  getCertificateResult,
-  saveCertificateResult,
   getRequiredCorrect,
-  isPassingScore,
 } from "../../../lib/certificates";
+import type { QuizQuestion } from "../../../lib/major-quiz";
 
 export default function MateriTesPage() {
+  const { user } = useAuth();
+  const { approved } = useCardStatus();
   const params = useParams<{ materiId: string }>();
   const materiId = params?.materiId || "";
   const [mounted, setMounted] = useState(false);
   const [current, setCurrent] = useState(0);
-  const [answers, setAnswers] = useState<number[]>([]);
+  const [answers, setAnswers] = useState<Record<string, number>>({});
   const [confirmSubmit, setConfirmSubmit] = useState(false);
   const [result, setResult] = useState<{ score: number; total: number; passed: boolean; date: string } | null>(null);
+  const [questions, setQuestions] = useState<QuizQuestion[]>([]);
+  const [loadError, setLoadError] = useState<string | null>(null);
   const [generatingPdf, setGeneratingPdf] = useState(false);
   const [previewScale, setPreviewScale] = useState(1);
   const certRef = useRef<HTMLDivElement>(null);
@@ -61,24 +66,33 @@ export default function MateriTesPage() {
   }, [result]);
 
   const materi = useMemo(() => getMateriById(materiId), [materiId]);
-  const quiz = useMemo(() => getQuizForMateri(materiId), [materiId]);
 
   useEffect(() => {
     setMounted(true);
-    if (!quiz || quiz.length === 0) return;
-    const email = getCurrentStudent()?.profile.email || "";
-    const existing = getCertificateResult(email, materiId);
-    if (existing && existing.passed) {
-      setResult({ score: existing.score, total: existing.total, passed: existing.passed, date: existing.date });
-    } else {
-      setAnswers(new Array(quiz.length).fill(-1));
-      setCurrent(0);
-    }
-  }, [materiId, quiz]);
+    if (!materi || !user || !approved) return;
+    let cancelled = false;
+    const load = async () => {
+      try {
+        const res = await api.get<{ success: boolean; data: QuizQuestion[] }>(BACKEND_ENDPOINTS.materiQuiz.questions(materiId));
+        if (cancelled) return;
+        if (!res.success || !res.data || res.data.length === 0) {
+          setQuestions([]);
+          setLoadError("Soal untuk materi ini belum tersedia.");
+          return;
+        }
+        const qs = res.data.map((q) => ({ ...q, id: String(q.id) }));
+        setQuestions(qs);
+      } catch {
+        if (!cancelled) setLoadError("Gagal memuat soal. Periksa koneksi atau coba lagi.");
+      }
+    };
+    load();
+    return () => { cancelled = true; };
+  }, [materi, materiId, user, approved]);
 
-  if (!mounted) return <div className="p-6 lg:pl-72"><SkeletonDashboard /></div>;
+  if (!mounted || !user) return <div className="p-6"><SkeletonDashboard /></div>;
 
-  if (!materi || !quiz || quiz.length === 0) {
+  if (!materi) {
     return (
       <div>
         <DashboardHeader title="Tes Materi" subtitle="Materi tidak ditemukan" />
@@ -94,16 +108,41 @@ export default function MateriTesPage() {
     );
   }
 
-  const student = getCurrentStudent();
+  if (!approved) {
+    return (
+      <div>
+        <DashboardHeader title="Tes Materi" subtitle="Selesaikan verifikasi kartu pelajar" />
+        <Card className="max-w-xl mx-auto text-center py-16">
+          <div className="w-16 h-16 rounded-2xl bg-amber-100 dark:bg-amber-900/30 flex items-center justify-center mx-auto mb-5">
+            <Lock className="w-8 h-8 text-amber-600 dark:text-amber-400" />
+          </div>
+          <h2 className="text-lg font-bold text-foreground mb-2">Tes Materi Terkunci</h2>
+          <p className="text-sm text-muted mb-6 max-w-sm mx-auto">
+            Selesaikan Verifikasi Kartu Pelajar agar bisa mengikuti tes materi dan mendapatkan sertifikat.
+          </p>
+          <Link
+            href="/student/profile"
+            className="inline-flex items-center gap-2 px-6 py-2.5 bg-primary text-white font-medium rounded-xl hover:bg-primary-dark transition-colors"
+          >
+            <BadgeCheck className="w-4 h-4" />
+            Ke Profil & Upload Kartu
+          </Link>
+        </Card>
+      </div>
+    );
+  }
 
-  if (!!student && (materi.major !== student.profile.major || materi.grade !== student.profile.grade)) {
+  const studentMajor = user.student?.major || "";
+  const studentGrade = user.student?.grade || "";
+
+  if (materi.major !== studentMajor || materi.grade !== studentGrade) {
     return (
       <div>
         <DashboardHeader title="Tes Materi" subtitle="Materi tidak tersedia" />
         <Card className="flex flex-col items-center justify-center py-20 text-center">
           <FileQuestion className="w-12 h-12 text-muted mb-4" />
           <h3 className="text-lg font-semibold text-foreground mb-2">Materi tidak tersedia untuk kelasmu</h3>
-          <p className="text-sm text-muted mb-6">Materi ini bukan bagian dari jurusan atau tingkatan kelasmu saat ini (Kelas {student.profile.grade}). Setiap jurusan memiliki materi berbeda per kelas.</p>
+          <p className="text-sm text-muted mb-6">Materi ini bukan bagian dari jurusan atau tingkatan kelasmu saat ini (Kelas {studentGrade}). Setiap jurusan memiliki materi berbeda per kelas.</p>
           <Link href="/student/sertifikat" className="px-4 py-2 bg-primary text-white rounded-lg text-sm font-medium hover:bg-primary-dark transition-colors">
             Kembali ke Daftar Materi
           </Link>
@@ -112,15 +151,13 @@ export default function MateriTesPage() {
     );
   }
 
-  const studentName = student?.profile.name || "";
-  const total = quiz.length;
+  const studentName = user.name || "";
+  const total = questions.length;
   const required = getRequiredCorrect();
-  const answeredCount = answers.filter((a) => a >= 0).length;
+  const answeredCount = Object.values(answers).filter((a) => a >= 0).length;
 
   const selectAnswer = (idx: number) => {
-    const next = [...answers];
-    next[current] = idx;
-    setAnswers(next);
+    setAnswers((prev) => ({ ...prev, [questions[current].id]: idx }));
   };
 
   const goNext = () => {
@@ -131,28 +168,25 @@ export default function MateriTesPage() {
   };
 
   const computeResult = () => {
-    const score = quiz.reduce(
-      (sum, q, i) => sum + (answers[i] === q.correct ? 1 : 0),
+    const score = questions.reduce(
+      (sum, q, i) => {
+        const active = answers[q.id];
+        return sum + (active !== undefined && active === q.correct ? 1 : 0);
+      },
       0
     );
-    const passed = isPassingScore(score, total);
+    const passed = total > 0 && score / total >= 0.8;
     const date = formatIndonesianDate(new Date());
     const res = { score, total, passed, date };
     setResult(res);
-    const email = student?.profile.email || "";
-    saveCertificateResult(email, {
+    api.post(BACKEND_ENDPOINTS.materiQuiz.submit(materiId), {
       materiId,
-      studentName,
-      major: materi.major,
-      score,
-      total,
-      passed,
-      date,
-    });
+      answers,
+    }).catch(() => {});
   };
 
   const restart = () => {
-    setAnswers(new Array(total).fill(-1));
+    setAnswers({});
     setCurrent(0);
     setResult(null);
     setConfirmSubmit(false);
@@ -313,9 +347,26 @@ export default function MateriTesPage() {
     );
   }
 
-  const q = quiz[current];
+  if (loadError || questions.length === 0) {
+    return (
+      <div>
+        <DashboardHeader title="Tes Materi" subtitle={materi.title} />
+        <Card className="flex flex-col items-center justify-center py-20 text-center">
+          <FileQuestion className="w-12 h-12 text-muted mb-4" />
+          <h3 className="text-lg font-semibold text-foreground mb-2">
+            {loadError ? "Soal tidak dapat dimuat" : "Soal belum tersedia"}
+          </h3>
+          <p className="text-sm text-muted mb-6">{loadError || "Soal untuk materi ini belum tersedia."}</p>
+          <Link href="/student/sertifikat" className="px-4 py-2 bg-primary text-white rounded-lg text-sm font-medium hover:bg-primary-dark transition-colors">
+            Kembali ke Daftar Materi
+          </Link>
+        </Card>
+      </div>
+    );
+  }
 
-  // ── Form Tes ─────────────────────────────────────────────────────────────
+  const q = questions[current];
+
   return (
     <div>
       <DashboardHeader
@@ -352,7 +403,7 @@ export default function MateriTesPage() {
         </h3>
         <div className="space-y-2.5">
           {q.options.map((opt, idx) => {
-            const isSelected = answers[current] === idx;
+            const isSelected = answers[q.id] === idx;
             return (
               <button
                 key={idx}

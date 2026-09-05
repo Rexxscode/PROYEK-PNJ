@@ -44,8 +44,7 @@ const transmisiCareers: CareerDefinition[] = [
 const careerMap: Record<string, CareerDefinition[]> = {
   "Rekayasa Perangkat Lunak": rplCareers,
   "Desain Komunikasi Visual": dkvCareers,
-  "Teknik Komputer dan Jaringan": tkjCareers,
-  "Teknik Transmisi": transmisiCareers,
+  "Teknik Jaringan, Komputer, dan Telekomunikasi": [...tkjCareers, ...transmisiCareers],
 };
 
 function skillNameToScore(skillScores: Record<string, { correct: number; total: number }>): Record<string, number> {

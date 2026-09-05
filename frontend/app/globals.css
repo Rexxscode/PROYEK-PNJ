@@ -84,6 +84,7 @@ body {
 html {
   background: var(--background);
   color: var(--foreground);
+  scroll-behavior: smooth;
   transition: background-color 0.15s, color 0.15s;
 }
 
@@ -160,6 +161,55 @@ html {
 .stagger-in > *:nth-child(7) { animation-delay: 360ms; }
 .stagger-in > *:nth-child(8) { animation-delay: 420ms; }
 
+/* Reveal on scroll (AOS-style, IntersectionObserver) */
+.reveal {
+  opacity: 0;
+  will-change: opacity, transform;
+  transform: translateY(24px);
+  transition: opacity 0.6s ease-out, transform 0.6s ease-out;
+}
+.reveal[data-inview] {
+  opacity: 1;
+  transform: translateY(0);
+}
+.reveal-up { transform: translateY(24px); }
+.reveal-up[data-inview] { transform: translateY(0); }
+.reveal-left { transform: translateX(-32px); }
+.reveal-left[data-inview] { transform: translateX(0); }
+.reveal-right { transform: translateX(32px); }
+.reveal-right[data-inview] { transform: translateX(0); }
+
+/* Load-only fade-in (untuk hero, bukan scroll-gated) */
+.reveal-load {
+  opacity: 0;
+  transform: translateY(16px);
+  animation: fadeIn 0.7s ease-out forwards;
+}
+
+/* Hormati preferensi reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  .reveal,
+  .reveal-load {
+    opacity: 1;
+    transform: none;
+    animation: none;
+    transition: none;
+  }
+}
+
+/* Theme switch transition (View Transitions API cross-fade) */
+::view-transition-old(root),
+::view-transition-new(root) {
+  animation-duration: 0.35s;
+  animation-timing-function: ease-in-out;
+}
+@media (prefers-reduced-motion: reduce) {
+  ::view-transition-old(root),
+  ::view-transition-new(root) {
+    animation: none;
+  }
+}
+
 /* Smooth hover lift */
 .hover-lift {
   transition: transform 0.2s ease, box-shadow 0.2s ease;
@@ -192,12 +242,18 @@ html {
   transition: background-color 5000s ease-in-out 0s;
 }
 
-/* Dashboard responsive margin — overrides inline style on mobile */
+/* Sidebar is sticky (in-flow) so main needs no left margin */
 .main-sidebar {
   margin-left: 256px;
 }
 .main-sidebar-collapsed {
   margin-left: 72px;
+}
+@media (min-width: 1024px) {
+  .main-sidebar,
+  .main-sidebar-collapsed {
+    margin-left: 0;
+  }
 }
 @media (max-width: 1023px) {
   .main-sidebar,

@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useState, useEffect } from "react";
 import { createPortal } from "react-dom";
@@ -14,6 +14,7 @@ import {
   CheckCircle2,
   MapPin,
   Globe,
+  Building2,
 } from "lucide-react";
 import Link from "next/link";
 import Card from "../components/ui/card";
@@ -21,7 +22,8 @@ import Badge from "../components/ui/badge";
 import { SkeletonDashboard } from "../components/ui/skeleton";
 import DashboardHeader from "../components/layout/dashboardheader";
 import { getMatchBg, getInitials } from "../lib/utils";
-import { getIndustryCompany, students } from "../lib/mock-data";
+import { useAuth } from "../lib/auth-context";
+import { api, BACKEND_ENDPOINTS } from "../lib/api";
 import { useCountUp } from "../lib/use-count-up";
 import { useToast } from "../lib/toast-context";
 
@@ -37,23 +39,6 @@ interface IndustryProfile {
   employeeCount: string;
 }
 
-function getProfile(): IndustryProfile | null {
-  if (typeof window === "undefined") return null;
-  const email = localStorage.getItem("studentEmail") || "";
-  if (!email) return null;
-  try {
-    return JSON.parse(localStorage.getItem(`${PROFILE_KEY}_${email}`) || "null");
-  } catch {
-    return null;
-  }
-}
-
-function saveProfile(profile: IndustryProfile) {
-  const email = localStorage.getItem("studentEmail") || "";
-  if (!email) return;
-  localStorage.setItem(`${PROFILE_KEY}_${email}`, JSON.stringify(profile));
-}
-
 const industryOptions = [
   "Teknologi Informasi",
   "Telekomunikasi",
@@ -63,6 +48,14 @@ const industryOptions = [
   "E-Commerce",
   "Media & Entertainment",
   "Konsultan",
+  "Pendidikan",
+  "Kesehatan",
+  "Otomotif",
+  "Logistik",
+  "Energi",
+  "Pariwisata",
+  "Retail",
+  "Startup",
 ];
 
 const employeeOptions = [
@@ -73,48 +66,15 @@ const employeeOptions = [
   "500+",
 ];
 
-function getIndustryJobs(): { id: string; title: string; skills: string[] }[] {
-  if (typeof window === "undefined") return [];
-  const email = localStorage.getItem("studentEmail") || "";
-  try {
-    const jobs = JSON.parse(localStorage.getItem(`industryJobs_${email}`) || "[]");
-    return Array.isArray(jobs) ? jobs : [];
-  } catch {
-    return [];
-  }
-}
-
 function getAllStudentsWithMatch(jobSkills: string[]) {
-  const list = Object.values(students);
-  return list.map((s) => {
-    const studentSkillNames = s.hardSkills.map((sk) => sk.name.toLowerCase());
-    const matchedSkills = jobSkills.filter((js) => studentSkillNames.includes(js.toLowerCase()));
-    const matchCount = matchedSkills.length;
-    const score = jobSkills.length > 0 ? Math.round((matchCount / jobSkills.length) * 100) : 0;
-    const topMatch = s.careerMatches.length > 0
-      ? s.careerMatches.reduce((best, cm) => cm.matchPercentage > best.matchPercentage ? cm : best, s.careerMatches[0])
-      : null;
-    return {
-      name: s.profile.name,
-      major: s.profile.major,
-      score,
-      matchedSkills,
-      topSkill: matchedSkills[0] || s.hardSkills[0]?.name || "-",
-      matchFor: topMatch?.title || "-",
-    };
-  });
+  return [];
 }
 
-const candidateColors = [
-  "from-blue-500 to-cyan-500",
-  "from-purple-500 to-pink-500",
-  "from-emerald-500 to-teal-500",
-  "from-amber-500 to-orange-500",
-  "from-red-500 to-rose-500",
-];
+
 
 export default function IndustryDashboard() {
   const { toast } = useToast();
+  const { user } = useAuth();
   const [mounted, setMounted] = useState(false);
   const [profile, setProfile] = useState<IndustryProfile | null>(null);
   const [showProfileModal, setShowProfileModal] = useState(false);
@@ -127,35 +87,62 @@ export default function IndustryDashboard() {
     founded: "",
     employeeCount: "",
   });
+  const [industryJobs, setIndustryJobs] = useState<{ id: string; title: string; skills: string[] }[]>([]);
+  const [candidates, setCandidates] = useState<{ name: string; major: string; score: number; matchedSkills: string[]; matchFor: string }[]>([]);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const email = localStorage.getItem("studentEmail") || "";
-    const saved = getProfile();
-    if (saved) {
-      setProfile(saved);
-    } else {
-      const defaultProfile: IndustryProfile = {
-        company: getIndustryCompany(email),
-        industry: "Teknologi Informasi",
-        location: "Jakarta, Indonesia",
-        website: "",
-        description: "",
-        founded: "",
-        employeeCount: "11-50",
-      };
-      setProfile(defaultProfile);
-      saveProfile(defaultProfile);
-    }
-    setMounted(true);
-  }, []);
+    if (!user) return;
+    const fetchData = async () => {
+      try {
+        const [profileRes, jobsRes, candidatesRes] = await Promise.all([
+          api.get<{ success: boolean; data: IndustryProfile }>(BACKEND_ENDPOINTS.industries.me).catch(() => null),
+          api.get<{ success: boolean; data: { id: string; title: string; skills: string[] }[] }>(BACKEND_ENDPOINTS.jobs.mine).catch(() => ({ success: false, data: [] })),
+          api.get<{ success: boolean; data: { name: string; major: string; score: number; matchedSkills: string[]; matchFor: string }[] }>(BACKEND_ENDPOINTS.industries.candidates).catch(() => ({ success: false, data: [] })),
+        ]);
 
-  const industryJobs = getIndustryJobs();
+        if (profileRes?.success) {
+          setProfile(profileRes.data);
+          setEditForm(profileRes.data);
+        } else {
+          const defaultProfile: IndustryProfile = {
+            company: user.industry?.company_name || user.name,
+            industry: "Teknologi Informasi",
+            location: "Jakarta, Indonesia",
+            website: "",
+            description: "",
+            founded: "",
+            employeeCount: "11-50",
+          };
+          setProfile(defaultProfile);
+          setEditForm(defaultProfile);
+        }
+
+        if (jobsRes?.success) {
+          setIndustryJobs(jobsRes.data);
+        }
+
+        if (candidatesRes?.success && Array.isArray(candidatesRes.data)) {
+          setCandidates(candidatesRes.data);
+        } else {
+          setCandidates([]);
+        }
+      } catch {
+        // silently fail
+      } finally {
+        setLoading(false);
+        setMounted(true);
+      }
+    };
+    fetchData();
+  }, [user]);
+
   const allJobSkills = [...new Set(industryJobs.flatMap((j) => j.skills))];
-  const allStudents = getAllStudentsWithMatch(allJobSkills);
-  const totalCandidates = allStudents.length;
-  const matchedCandidates = allStudents.filter((s) => s.score > 0).length;
+  const candidateList = Array.isArray(candidates) ? candidates : [];
+  const totalCandidates = candidateList.length;
+  const matchedCandidates = candidateList.filter((s) => s.score > 0).length;
   const avgMatch = matchedCandidates > 0
-    ? Math.round(allStudents.filter((s) => s.score > 0).reduce((sum, s) => sum + s.score, 0) / matchedCandidates)
+    ? Math.round(candidateList.filter((s) => s.score > 0).reduce((sum, s) => sum + s.score, 0) / matchedCandidates)
     : 0;
   const jobsCount = industryJobs.length;
 
@@ -169,22 +156,26 @@ export default function IndustryDashboard() {
     setShowProfileModal(true);
   };
 
-  const handleSaveProfile = () => {
+  const handleSaveProfile = async () => {
     if (!editForm.company.trim()) {
       toast("Nama perusahaan harus diisi", "error");
       return;
     }
-    setProfile(editForm);
-    saveProfile(editForm);
-    setShowProfileModal(false);
-    toast("Profil perusahaan berhasil diperbarui", "success");
+    try {
+      await api.put(BACKEND_ENDPOINTS.industries.profile, editForm);
+      setProfile(editForm);
+      setShowProfileModal(false);
+      toast("Profil perusahaan berhasil diperbarui", "success");
+    } catch {
+      toast("Gagal menyimpan profil", "error");
+    }
   };
 
-  if (!mounted) return <div className="p-6 lg:pl-72"><SkeletonDashboard /></div>;
+  if (loading || !user) return <div className="p-6"><SkeletonDashboard /></div>;
   return (
     <div>
       <DashboardHeader
-        title="Dashboard Industri"
+        title={`Selamat datang, ${user.name}!`}
         subtitle="Temukan kandidat terbaik berdasarkan kebutuhan skill"
         role="industry"
         showNotifications
@@ -193,10 +184,8 @@ export default function IndustryDashboard() {
       {/* Company Profile Card */}
       <Card className="mb-8">
         <div className="flex flex-col sm:flex-row items-start gap-5">
-          <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-primary to-secondary flex items-center justify-center flex-shrink-0 shadow-lg shadow-primary/20">
-            <span className="text-xl font-bold text-white">
-              {getInitials(profile?.company || "P")}
-            </span>
+          <div className="w-16 h-16 rounded-2xl bg-primary flex items-center justify-center flex-shrink-0 shadow-lg shadow-primary/20">
+            <Building2 className="w-8 h-8 text-white" />
           </div>
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-3 mb-1">
@@ -268,8 +257,8 @@ export default function IndustryDashboard() {
         </Card>
         <Card>
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-lg bg-purple-100 dark:bg-purple-900/50 flex items-center justify-center">
-              <TrendingUp className="w-5 h-5 text-purple-600 dark:text-purple-400" />
+            <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center">
+              <TrendingUp className="w-5 h-5 text-primary" />
             </div>
             <div>
               <p className="text-sm text-muted">Avg Match</p>
@@ -288,14 +277,14 @@ export default function IndustryDashboard() {
           </Link>
         </div>
         <div className="space-y-3">
-          {allStudents
+          {candidates
             .sort((a, b) => b.score - a.score)
             .slice(0, 5)
             .map((candidate, index) => (
             <div key={candidate.name} className="p-4 bg-gray-50 dark:bg-gray-700/50 rounded-xl hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors">
               <div className="flex items-center justify-between gap-3">
                 <div className="flex items-center gap-3 min-w-0">
-                  <div className={`w-10 h-10 rounded-full bg-gradient-to-br ${candidateColors[index % candidateColors.length]} flex items-center justify-center flex-shrink-0`}>
+                  <div className="w-10 h-10 rounded-full bg-primary flex items-center justify-center flex-shrink-0">
                     <span className="text-xs font-bold text-white">{getInitials(candidate.name)}</span>
                   </div>
                   <div className="min-w-0">
@@ -385,14 +374,14 @@ export default function IndustryDashboard() {
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-foreground mb-1.5">Lokasi</label>
-                  <input type="text" value={editForm.location} onChange={(e) => setEditForm((p) => ({ ...p, location: e.target.value }))} placeholder="Kota, Negara"
+                  <input type="text" value={editForm.location || ""} onChange={(e) => setEditForm((p) => ({ ...p, location: e.target.value }))} placeholder="Kota, Negara"
                     className="w-full px-4 py-2.5 border border-border rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary" />
                 </div>
               </div>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm font-medium text-foreground mb-1.5">Website</label>
-                  <input type="text" value={editForm.website} onChange={(e) => setEditForm((p) => ({ ...p, website: e.target.value }))} placeholder="www.perusahaan.com"
+                  <input type="text" value={editForm.website || ""} onChange={(e) => setEditForm((p) => ({ ...p, website: e.target.value }))} placeholder="www.perusahaan.com"
                     className="w-full px-4 py-2.5 border border-border rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary" />
                 </div>
                 <div>
@@ -405,12 +394,12 @@ export default function IndustryDashboard() {
               </div>
               <div>
                 <label className="block text-sm font-medium text-foreground mb-1.5">Tahun Berdiri</label>
-                <input type="text" value={editForm.founded} onChange={(e) => setEditForm((p) => ({ ...p, founded: e.target.value }))} placeholder="Contoh: 2015"
+                <input type="text" value={editForm.founded || ""} onChange={(e) => setEditForm((p) => ({ ...p, founded: e.target.value }))} placeholder="Contoh: 2015"
                   className="w-full px-4 py-2.5 border border-border rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary" />
               </div>
               <div>
                 <label className="block text-sm font-medium text-foreground mb-1.5">Deskripsi Perusahaan</label>
-                <textarea rows={3} value={editForm.description} onChange={(e) => setEditForm((p) => ({ ...p, description: e.target.value }))} placeholder="Ceritakan tentang perusahaan Anda..."
+                <textarea rows={3} value={editForm.description || ""} onChange={(e) => setEditForm((p) => ({ ...p, description: e.target.value }))} placeholder="Ceritakan tentang perusahaan Anda..."
                   className="w-full px-4 py-2.5 border border-border rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary resize-none" />
               </div>
             </div>

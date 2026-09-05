@@ -1,0 +1,1540 @@
+﻿{
+    "info":  {
+                 "name":  "PROYEK-PNJ Backend API",
+                 "description":  "Full API collection for SMK PNJ Career Guidance System backend.\n\nBase URL: http://localhost:8000/api/v1\n\nTest Accounts:\n- Student: budi@student.smk.id / Budi@2026!\n- Student: rina@student.smk.id / Rina@2026!\n- Admin: admin@smk.id / Admin@2026!\n- Industry: hrd@techcorp.com / TechCorp@2026!\n- Industry: recruit@creativestudio.com / Creative@2026!",
+                 "schema":  "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+             },
+    "variable":  [
+                     {
+                         "key":  "base_url",
+                         "value":  "http://127.0.0.1:8000/api/v1"
+                     },
+                     {
+                         "key":  "token",
+                         "value":  ""
+                     },
+                     {
+                         "key":  "industry_token",
+                         "value":  ""
+                     },
+                     {
+                         "key":  "admin_token",
+                         "value":  ""
+                     },
+                     {
+                         "key":  "slug",
+                         "value":  "budi-santoso"
+                     },
+                     {
+                         "key":  "email",
+                         "value":  "budi@student.smk.id"
+                     },
+                     {
+                         "key":  "materiId",
+                         "value":  "1"
+                     },
+                     {
+                         "key":  "jobId",
+                         "value":  ""
+                     },
+                     {
+                         "key":  "notificationId",
+                         "value":  ""
+                     }
+                 ],
+    "item":  [
+                 {
+                     "name":  "Auth",
+                     "item":  [
+                                  {
+                                      "name":  "Login Student",
+                                      "request":  {
+                                                      "method":  "POST",
+                                                      "header":  [
+                                                                     {
+                                                                         "key":  "Content-Type",
+                                                                         "value":  "application/json"
+                                                                     }
+                                                                 ],
+                                                      "url":  {
+                                                                  "raw":  "{{base_url}}/auth/login",
+                                                                  "path":  [
+                                                                               "auth",
+                                                                               "login"
+                                                                           ]
+                                                              },
+                                                      "body":  {
+                                                                   "mode":  "raw",
+                                                                   "raw":  "{\n  \"email\": \"budi@student.smk.id\",\n  \"password\": \"Budi@2026!\"\n}"
+                                                               }
+                                                  },
+                                      "event":  [
+                                                    {
+                                                        "listen":  "test",
+                                                        "script":  {
+                                                                       "exec":  [
+                                                                                    "pm.test(\u0027Status is 200\u0027, function() { pm.response.to.have.status(200); });",
+                                                                                    "pm.test(\u0027Response has token\u0027, function() {",
+                                                                                    "  var json = pm.response.json();",
+                                                                                    "  pm.expect(json.success).to.be.true;",
+                                                                                    "  pm.expect(json.data.token).to.exist;",
+                                                                                    "  pm.collectionVariables.set(\u0027token\u0027, json.data.token);",
+                                                                                    "});"
+                                                                                ]
+                                                                   }
+                                                    }
+                                                ]
+                                  },
+                                  {
+                                      "name":  "Login Industry",
+                                      "request":  {
+                                                      "method":  "POST",
+                                                      "header":  [
+                                                                     {
+                                                                         "key":  "Content-Type",
+                                                                         "value":  "application/json"
+                                                                     }
+                                                                 ],
+                                                      "url":  {
+                                                                  "raw":  "{{base_url}}/auth/login",
+                                                                  "path":  [
+                                                                               "auth",
+                                                                               "login"
+                                                                           ]
+                                                              },
+                                                      "body":  {
+                                                                   "mode":  "raw",
+                                                                   "raw":  "{\n  \"email\": \"hrd@techcorp.com\",\n  \"password\": \"TechCorp@2026!\"\n}"
+                                                               }
+                                                  },
+                                      "event":  [
+                                                    {
+                                                        "listen":  "test",
+                                                        "script":  {
+                                                                       "exec":  [
+                                                                                    "pm.test(\u0027Status is 200\u0027, function() { pm.response.to.have.status(200); });",
+                                                                                    "pm.test(\u0027Response has token\u0027, function() {",
+                                                                                    "  var json = pm.response.json();",
+                                                                                    "  pm.expect(json.success).to.be.true;",
+                                                                                    "  pm.expect(json.data.token).to.exist;",
+                                                                                    "  pm.collectionVariables.set(\u0027industry_token\u0027, json.data.token);",
+                                                                                    "});"
+                                                                                ]
+                                                                   }
+                                                    }
+                                                ]
+                                  },
+                                  {
+                                      "name":  "Login Admin",
+                                      "request":  {
+                                                      "method":  "POST",
+                                                      "header":  [
+                                                                     {
+                                                                         "key":  "Content-Type",
+                                                                         "value":  "application/json"
+                                                                     }
+                                                                 ],
+                                                      "url":  {
+                                                                  "raw":  "{{base_url}}/auth/login",
+                                                                  "path":  [
+                                                                               "auth",
+                                                                               "login"
+                                                                           ]
+                                                              },
+                                                      "body":  {
+                                                                   "mode":  "raw",
+                                                                   "raw":  "{\n  \"email\": \"admin@smk.id\",\n  \"password\": \"Admin@2026!\"\n}"
+                                                               }
+                                                  },
+                                      "event":  [
+                                                    {
+                                                        "listen":  "test",
+                                                        "script":  {
+                                                                       "exec":  [
+                                                                                    "pm.test(\u0027Status is 200\u0027, function() { pm.response.to.have.status(200); });",
+                                                                                    "pm.test(\u0027Response has token\u0027, function() {",
+                                                                                    "  var json = pm.response.json();",
+                                                                                    "  pm.expect(json.success).to.be.true;",
+                                                                                    "  pm.expect(json.data.token).to.exist;",
+                                                                                    "  pm.collectionVariables.set(\u0027admin_token\u0027, json.data.token);",
+                                                                                    "});"
+                                                                                ]
+                                                                   }
+                                                    }
+                                                ]
+                                  },
+                                  {
+                                      "name":  "Register Student",
+                                      "request":  {
+                                                      "method":  "POST",
+                                                      "header":  [
+                                                                     {
+                                                                         "key":  "Content-Type",
+                                                                         "value":  "application/json"
+                                                                     }
+                                                                 ],
+                                                      "url":  {
+                                                                  "raw":  "{{base_url}}/auth/register",
+                                                                  "path":  [
+                                                                               "auth",
+                                                                               "register"
+                                                                           ]
+                                                              },
+                                                      "body":  {
+                                                                   "mode":  "raw",
+                                                                   "raw":  "{\\n  \"name\": \"Student Baru\",\\n  \"email\": \"studentbaru2026@test.com\",\\n  \"password\": \"Password123!\",\\n  \"password_confirmation\": \"Password123!\",\\n  \"role\": \"student\",\\n  \"major\": \"RPL\",\\n  \"grade\": \"XII\"\\n}"
+                                                               }
+                                                  },
+                                      "event":  [
+                                                    {
+                                                        "listen":  "test",
+                                                        "script":  {
+                                                                       "exec":  [
+                                                                                    "pm.test(\u0027Status is 201\u0027, function() { pm.response.to.have.status(201); });",
+                                                                                    "pm.test(\u0027Registration successful\u0027, function() {",
+                                                                                    "  var json = pm.response.json();",
+                                                                                    "  pm.expect(json.success).to.be.true;",
+                                                                                    "});"
+                                                                                ]
+                                                                   }
+                                                    }
+                                                ]
+                                  },
+                                  {
+                                      "name":  "Get Me",
+                                      "request":  {
+                                                      "method":  "GET",
+                                                      "header":  [
+                                                                     {
+                                                                         "key":  "Authorization",
+                                                                         "value":  "Bearer {{token}}"
+                                                                     }
+                                                                 ],
+                                                      "url":  {
+                                                                  "raw":  "{{base_url}}/auth/me",
+                                                                  "path":  [
+                                                                               "auth",
+                                                                               "me"
+                                                                           ]
+                                                              }
+                                                  },
+                                      "event":  [
+                                                    {
+                                                        "listen":  "test",
+                                                        "script":  {
+                                                                       "exec":  [
+                                                                                    "pm.test(\u0027Status is 200\u0027, function() { pm.response.to.have.status(200); });",
+                                                                                    "pm.test(\u0027User data returned\u0027, function() {",
+                                                                                    "  var json = pm.response.json();",
+                                                                                    "  pm.expect(json.success).to.be.true;",
+                                                                                    "  pm.expect(json.data.user).to.exist;",
+                                                                                    "});"
+                                                                                ]
+                                                                   }
+                                                    }
+                                                ]
+                                  },
+                                  {
+                                      "name":  "Logout",
+                                      "request":  {
+                                                      "method":  "POST",
+                                                      "header":  [
+                                                                     {
+                                                                         "key":  "Authorization",
+                                                                         "value":  "Bearer {{token}}"
+                                                                     }
+                                                                 ],
+                                                      "url":  {
+                                                                  "raw":  "{{base_url}}/auth/logout",
+                                                                  "path":  [
+                                                                               "auth",
+                                                                               "logout"
+                                                                           ]
+                                                              }
+                                                  },
+                                      "event":  [
+                                                    {
+                                                        "listen":  "test",
+                                                        "script":  {
+                                                                       "exec":  [
+                                                                                    "pm.test(\u0027Status is 200\u0027, function() { pm.response.to.have.status(200); });",
+                                                                                    "pm.test(\u0027Logout successful\u0027, function() {",
+                                                                                    "  var json = pm.response.json();",
+                                                                                    "  pm.expect(json.success).to.be.true;",
+                                                                                    "});"
+                                                                                ]
+                                                                   }
+                                                    }
+                                                ]
+                                  }
+                              ]
+                 },
+                 {
+                     "name":  "Students",
+                     "item":  [
+                                  {
+                                      "name":  "List All Students",
+                                      "request":  {
+                                                      "method":  "GET",
+                                                      "url":  {
+                                                                  "raw":  "{{base_url}}/students",
+                                                                  "path":  [
+                                                                               "students"
+                                                                           ]
+                                                              }
+                                                  },
+                                      "event":  [
+                                                    {
+                                                        "listen":  "test",
+                                                        "script":  {
+                                                                       "exec":  [
+                                                                                    "pm.test(\u0027Status is 200\u0027, function() { pm.response.to.have.status(200); });",
+                                                                                    "pm.test(\u0027Returns student list\u0027, function() {",
+                                                                                    "  var json = pm.response.json();",
+                                                                                    "  pm.expect(json.success).to.be.true;",
+                                                                                    "  pm.expect(json.data).to.be.an(\u0027array\u0027);",
+                                                                                    "});"
+                                                                                ]
+                                                                   }
+                                                    }
+                                                ]
+                                  },
+                                  {
+                                      "name":  "Get Student by Slug",
+                                      "request":  {
+                                                      "method":  "GET",
+                                                      "url":  {
+                                                                  "raw":  "{{base_url}}/students/{{slug}}",
+                                                                  "path":  [
+                                                                               "students",
+                                                                               "{{slug}}"
+                                                                           ]
+                                                              }
+                                                  },
+                                      "event":  [
+                                                    {
+                                                        "listen":  "test",
+                                                        "script":  {
+                                                                       "exec":  [
+                                                                                    "pm.test(\u0027Status is 200\u0027, function() { pm.response.to.have.status(200); });",
+                                                                                    "pm.test(\u0027Student data returned\u0027, function() {",
+                                                                                    "  var json = pm.response.json();",
+                                                                                    "  pm.expect(json.success).to.be.true;",
+                                                                                    "});"
+                                                                                ]
+                                                                   }
+                                                    }
+                                                ]
+                                  }
+                              ]
+                 },
+                 {
+                     "name":  "Assessment",
+                     "item":  [
+                                  {
+                                      "name":  "Get All Questions (Public)",
+                                      "request":  {
+                                                      "method":  "GET",
+                                                      "url":  {
+                                                                  "raw":  "{{base_url}}/assessment/questions",
+                                                                  "path":  [
+                                                                               "assessment",
+                                                                               "questions"
+                                                                           ]
+                                                              }
+                                                  },
+                                      "event":  [
+                                                    {
+                                                        "listen":  "test",
+                                                        "script":  {
+                                                                       "exec":  [
+                                                                                    "pm.test(\u0027Status is 200\u0027, function() { pm.response.to.have.status(200); });",
+                                                                                    "pm.test(\u0027Returns questions without correct field\u0027, function() {",
+                                                                                    "  var json = pm.response.json();",
+                                                                                    "  pm.expect(json.success).to.be.true;",
+                                                                                    "  pm.expect(json.data).to.be.an(\u0027array\u0027);",
+                                                                                    "  if (json.data.length \u003e 0) {",
+                                                                                    "    pm.expect(json.data[0]).to.not.have.property(\u0027correct\u0027);",
+                                                                                    "  }",
+                                                                                    "});"
+                                                                                ]
+                                                                   }
+                                                    }
+                                                ]
+                                  },
+                                  {
+                                      "name":  "Get Questions by Major",
+                                      "request":  {
+                                                      "method":  "GET",
+                                                      "url":  {
+                                                                  "raw":  "{{base_url}}/assessment/questions/RPL",
+                                                                  "path":  [
+                                                                               "assessment",
+                                                                               "questions",
+                                                                               "RPL"
+                                                                           ]
+                                                              }
+                                                  },
+                                      "event":  [
+                                                    {
+                                                        "listen":  "test",
+                                                        "script":  {
+                                                                       "exec":  [
+                                                                                    "pm.test(\u0027Status is 200\u0027, function() { pm.response.to.have.status(200); });",
+                                                                                    "pm.test(\u0027Returns 100 questions for RPL\u0027, function() {",
+                                                                                    "  var json = pm.response.json();",
+                                                                                    "  pm.expect(json.meta.total).to.equal(100);",
+                                                                                    "  pm.expect(json.meta.major).to.equal(\u0027RPL\u0027);",
+                                                                                    "});"
+                                                                                ]
+                                                                   }
+                                                    }
+                                                ]
+                                  },
+                                  {
+                                      "name":  "Submit Assessment (100 answers)",
+                                      "request":  {
+                                                      "method":  "POST",
+                                                      "header":  [
+                                                                     {
+                                                                         "key":  "Content-Type",
+                                                                         "value":  "application/json"
+                                                                     },
+                                                                     {
+                                                                         "key":  "Authorization",
+                                                                         "value":  "Bearer {{token}}"
+                                                                     }
+                                                                 ],
+                                                      "url":  {
+                                                                  "raw":  "{{base_url}}/assessment/submit",
+                                                                  "path":  [
+                                                                               "assessment",
+                                                                               "submit"
+                                                                           ]
+                                                              },
+                                                      "body":  {
+                                                                   "mode":  "raw",
+                                                                   "raw":  "{\"answers\":{\"78\":0,\"10\":0,\"63\":0,\"30\":0,\"87\":0,\"49\":0,\"62\":0,\"22\":0,\"13\":0,\"47\":0,\"71\":0,\"77\":0,\"73\":0,\"91\":0,\"3\":0,\"8\":0,\"12\":0,\"65\":0,\"40\":0,\"14\":0,\"26\":0,\"17\":0,\"28\":0,\"99\":0,\"76\":0,\"36\":0,\"4\":0,\"50\":0,\"45\":0,\"60\":0,\"38\":0,\"83\":0,\"85\":0,\"96\":0,\"82\":0,\"23\":0,\"51\":0,\"92\":0,\"20\":0,\"59\":0,\"86\":0,\"69\":0,\"54\":0,\"66\":0,\"57\":0,\"43\":0,\"95\":0,\"80\":0,\"35\":0,\"41\":0,\"5\":0,\"34\":0,\"6\":0,\"53\":0,\"2\":0,\"44\":0,\"98\":0,\"72\":0,\"11\":0,\"70\":0,\"68\":0,\"1\":0,\"58\":0,\"55\":0,\"33\":0,\"88\":0,\"67\":0,\"27\":0,\"16\":0,\"64\":0,\"24\":0,\"19\":0,\"29\":0,\"61\":0,\"94\":0,\"97\":0,\"9\":0,\"74\":0,\"37\":0,\"7\":0,\"52\":0,\"81\":0,\"39\":0,\"48\":0,\"93\":0,\"90\":0,\"21\":0,\"56\":0,\"46\":0,\"75\":0,\"79\":0,\"84\":0,\"32\":0,\"89\":0,\"31\":0,\"15\":0,\"25\":0,\"18\":0,\"42\":0,\"100\":0},\"major\":\"RPL\"}"
+                                                               }
+                                                  },
+                                      "event":  [
+                                                    {
+                                                        "listen":  "test",
+                                                        "script":  {
+                                                                       "exec":  [
+                                                                                    "pm.test(\u0027Status is 200\u0027, function() { pm.response.to.have.status(200); });",
+                                                                                    "pm.test(\u0027Assessment submitted\u0027, function() {",
+                                                                                    "  var json = pm.response.json();",
+                                                                                    "  pm.expect(json.success).to.be.true;",
+                                                                                    "  pm.expect(json.data.score).to.exist;",
+                                                                                    "  pm.expect(json.data.total).to.equal(100);",
+                                                                                    "  pm.expect(json.data.level).to.exist;",
+                                                                                    "});"
+                                                                                ]
+                                                                   }
+                                                    }
+                                                ]
+                                  },
+                                  {
+                                      "name":  "Get Assessment Results",
+                                      "request":  {
+                                                      "method":  "GET",
+                                                      "header":  [
+                                                                     {
+                                                                         "key":  "Authorization",
+                                                                         "value":  "Bearer {{token}}"
+                                                                     }
+                                                                 ],
+                                                      "url":  {
+                                                                  "raw":  "{{base_url}}/assessment/results",
+                                                                  "path":  [
+                                                                               "assessment",
+                                                                               "results"
+                                                                           ]
+                                                              }
+                                                  },
+                                      "event":  [
+                                                    {
+                                                        "listen":  "test",
+                                                        "script":  {
+                                                                       "exec":  [
+                                                                                    "pm.test(\u0027Status is 200\u0027, function() { pm.response.to.have.status(200); });",
+                                                                                    "pm.test(\u0027Returns results array\u0027, function() {",
+                                                                                    "  var json = pm.response.json();",
+                                                                                    "  pm.expect(json.success).to.be.true;",
+                                                                                    "  pm.expect(json.data).to.be.an(\u0027array\u0027);",
+                                                                                    "});"
+                                                                                ]
+                                                                   }
+                                                    }
+                                                ]
+                                  }
+                              ]
+                 },
+                 {
+                     "name":  "Materi",
+                     "item":  [
+                                  {
+                                      "name":  "List Materi by Major",
+                                      "request":  {
+                                                      "method":  "GET",
+                                                      "url":  {
+                                                                  "raw":  "{{base_url}}/materi/majors/RPL",
+                                                                  "path":  [
+                                                                               "materi",
+                                                                               "majors",
+                                                                               "RPL"
+                                                                           ]
+                                                              }
+                                                  },
+                                      "event":  [
+                                                    {
+                                                        "listen":  "test",
+                                                        "script":  {
+                                                                       "exec":  [
+                                                                                    "pm.test(\u0027Status is 200\u0027, function() { pm.response.to.have.status(200); });",
+                                                                                    "pm.test(\u0027Returns materi list\u0027, function() {",
+                                                                                    "  var json = pm.response.json();",
+                                                                                    "  pm.expect(json.success).to.be.true;",
+                                                                                    "  pm.expect(json.data).to.be.an(\u0027array\u0027);",
+                                                                                    "});"
+                                                                                ]
+                                                                   }
+                                                    }
+                                                ]
+                                  },
+                                  {
+                                      "name":  "Get Materi Questions",
+                                      "request":  {
+                                                      "method":  "GET",
+                                                      "header":  [
+                                                                     {
+                                                                         "key":  "Authorization",
+                                                                         "value":  "Bearer {{token}}"
+                                                                     }
+                                                                 ],
+                                                      "url":  {
+                                                                  "raw":  "{{base_url}}/materi/{{materiId}}/questions",
+                                                                  "path":  [
+                                                                               "materi",
+                                                                               "{{materiId}}",
+                                                                               "questions"
+                                                                           ]
+                                                              }
+                                                  },
+                                      "event":  [
+                                                    {
+                                                        "listen":  "test",
+                                                        "script":  {
+                                                                       "exec":  [
+                                                                                    "pm.test(\u0027Status is 200\u0027, function() { pm.response.to.have.status(200); });",
+                                                                                    "pm.test(\u0027Returns 20 questions\u0027, function() {",
+                                                                                    "  var json = pm.response.json();",
+                                                                                    "  pm.expect(json.success).to.be.true;",
+                                                                                    "  pm.expect(json.meta.total).to.equal(20);",
+                                                                                    "});"
+                                                                                ]
+                                                                   }
+                                                    }
+                                                ]
+                                  },
+                                  {
+                                      "name":  "Submit Materi Answers (20 answers)",
+                                      "request":  {
+                                                      "method":  "POST",
+                                                      "header":  [
+                                                                     {
+                                                                         "key":  "Content-Type",
+                                                                         "value":  "application/json"
+                                                                     },
+                                                                     {
+                                                                         "key":  "Authorization",
+                                                                         "value":  "Bearer {{token}}"
+                                                                     }
+                                                                 ],
+                                                      "url":  {
+                                                                  "raw":  "{{base_url}}/materi/{{materiId}}/submit",
+                                                                  "path":  [
+                                                                               "materi",
+                                                                               "{{materiId}}",
+                                                                               "submit"
+                                                                           ]
+                                                              },
+                                                      "body":  {
+                                                                   "mode":  "raw",
+                                                                   "raw":  "{\"answers\":{\"16\":0,\"3\":0,\"5\":0,\"18\":0,\"12\":0,\"10\":0,\"2\":0,\"8\":0,\"17\":0,\"11\":0,\"1\":0,\"9\":0,\"14\":0,\"7\":0,\"15\":0,\"20\":0,\"6\":0,\"4\":0,\"19\":0,\"13\":0}}"
+                                                               }
+                                                  },
+                                      "event":  [
+                                                    {
+                                                        "listen":  "test",
+                                                        "script":  {
+                                                                       "exec":  [
+                                                                                    "pm.test(\u0027Status is 200\u0027, function() { pm.response.to.have.status(200); });",
+                                                                                    "pm.test(\u0027Materi submitted\u0027, function() {",
+                                                                                    "  var json = pm.response.json();",
+                                                                                    "  pm.expect(json.success).to.be.true;",
+                                                                                    "  pm.expect(json.data.score).to.exist;",
+                                                                                    "  pm.expect(json.data.total).to.equal(20);",
+                                                                                    "  pm.expect(json.data.passed).to.be.a(\u0027boolean\u0027);",
+                                                                                    "});"
+                                                                                ]
+                                                                   }
+                                                    }
+                                                ]
+                                  }
+                              ]
+                 },
+                 {
+                     "name":  "Certificates",
+                     "item":  [
+                                  {
+                                      "name":  "List Certificates",
+                                      "request":  {
+                                                      "method":  "GET",
+                                                      "header":  [
+                                                                     {
+                                                                         "key":  "Authorization",
+                                                                         "value":  "Bearer {{token}}"
+                                                                     }
+                                                                 ],
+                                                      "url":  {
+                                                                  "raw":  "{{base_url}}/certificates",
+                                                                  "path":  [
+                                                                               "certificates"
+                                                                           ]
+                                                              }
+                                                  },
+                                      "event":  [
+                                                    {
+                                                        "listen":  "test",
+                                                        "script":  {
+                                                                       "exec":  [
+                                                                                    "pm.test(\u0027Status is 200\u0027, function() { pm.response.to.have.status(200); });",
+                                                                                    "pm.test(\u0027Returns certificates\u0027, function() {",
+                                                                                    "  var json = pm.response.json();",
+                                                                                    "  pm.expect(json.success).to.be.true;",
+                                                                                    "  pm.expect(json.data).to.be.an(\u0027array\u0027);",
+                                                                                    "});"
+                                                                                ]
+                                                                   }
+                                                    }
+                                                ]
+                                  },
+                                  {
+                                      "name":  "Get Certificate by Materi ID",
+                                      "request":  {
+                                                      "method":  "GET",
+                                                      "header":  [
+                                                                     {
+                                                                         "key":  "Authorization",
+                                                                         "value":  "Bearer {{token}}"
+                                                                     }
+                                                                 ],
+                                                      "url":  {
+                                                                  "raw":  "{{base_url}}/certificates/{{materiId}}",
+                                                                  "path":  [
+                                                                               "certificates",
+                                                                               "{{materiId}}"
+                                                                           ]
+                                                              }
+                                                  },
+                                      "event":  [
+                                                    {
+                                                        "listen":  "test",
+                                                        "script":  {
+                                                                       "exec":  [
+                                                                                    "pm.test(\u0027Status is 200 or 404\u0027, function() {",
+                                                                                    "  pm.expect(pm.response.code).to.be.oneOf([200, 404]);",
+                                                                                    "});",
+                                                                                    "pm.test(\u0027Certificate data returned\u0027, function() {",
+                                                                                    "  if (pm.response.code === 200) {",
+                                                                                    "    var json = pm.response.json();",
+                                                                                    "    pm.expect(json.success).to.be.true;",
+                                                                                    "  }",
+                                                                                    "});"
+                                                                                ]
+                                                                   }
+                                                    }
+                                                ]
+                                  }
+                              ]
+                 },
+                 {
+                     "name":  "Roadmap",
+                     "item":  [
+                                  {
+                                      "name":  "Get Roadmap",
+                                      "request":  {
+                                                      "method":  "GET",
+                                                      "header":  [
+                                                                     {
+                                                                         "key":  "Authorization",
+                                                                         "value":  "Bearer {{token}}"
+                                                                     }
+                                                                 ],
+                                                      "url":  {
+                                                                  "raw":  "{{base_url}}/roadmap",
+                                                                  "path":  [
+                                                                               "roadmap"
+                                                                           ]
+                                                              }
+                                                  },
+                                      "event":  [
+                                                    {
+                                                        "listen":  "test",
+                                                        "script":  {
+                                                                       "exec":  [
+                                                                                    "pm.test(\u0027Status is 200\u0027, function() { pm.response.to.have.status(200); });",
+                                                                                    "pm.test(\u0027Returns roadmap milestones\u0027, function() {",
+                                                                                    "  var json = pm.response.json();",
+                                                                                    "  pm.expect(json.success).to.be.true;",
+                                                                                    "  pm.expect(json.data.milestones).to.be.an(\u0027array\u0027);",
+                                                                                    "});"
+                                                                                ]
+                                                                   }
+                                                    }
+                                                ]
+                                  },
+                                  {
+                                      "name":  "Get Roadmap Progress",
+                                      "request":  {
+                                                      "method":  "GET",
+                                                      "header":  [
+                                                                     {
+                                                                         "key":  "Authorization",
+                                                                         "value":  "Bearer {{token}}"
+                                                                     }
+                                                                 ],
+                                                      "url":  {
+                                                                  "raw":  "{{base_url}}/roadmap/progress",
+                                                                  "path":  [
+                                                                               "roadmap",
+                                                                               "progress"
+                                                                           ]
+                                                              }
+                                                  },
+                                      "event":  [
+                                                    {
+                                                        "listen":  "test",
+                                                        "script":  {
+                                                                       "exec":  [
+                                                                                    "pm.test(\u0027Status is 200\u0027, function() { pm.response.to.have.status(200); });",
+                                                                                    "pm.test(\u0027Returns progress data\u0027, function() {",
+                                                                                    "  var json = pm.response.json();",
+                                                                                    "  pm.expect(json.success).to.be.true;",
+                                                                                    "});"
+                                                                                ]
+                                                                   }
+                                                    }
+                                                ]
+                                  },
+                                  {
+                                      "name":  "Update Roadmap Progress",
+                                      "request":  {
+                                                      "method":  "POST",
+                                                      "header":  [
+                                                                     {
+                                                                         "key":  "Content-Type",
+                                                                         "value":  "application/json"
+                                                                     },
+                                                                     {
+                                                                         "key":  "Authorization",
+                                                                         "value":  "Bearer {{token}}"
+                                                                     }
+                                                                 ],
+                                                      "url":  {
+                                                                  "raw":  "{{base_url}}/roadmap/progress",
+                                                                  "path":  [
+                                                                               "roadmap",
+                                                                               "progress"
+                                                                           ]
+                                                              },
+                                                      "body":  {
+                                                                   "mode":  "raw",
+                                                                   "raw":  "{\n  \"milestone_id\": \"ms-rpl-01\",\n  \"status\": \"in_progress\",\n  \"resources_viewed\": [\"https://example.com/guide\"]\n}"
+                                                               }
+                                                  },
+                                      "event":  [
+                                                    {
+                                                        "listen":  "test",
+                                                        "script":  {
+                                                                       "exec":  [
+                                                                                    "pm.test(\u0027Status is 200\u0027, function() { pm.response.to.have.status(200); });",
+                                                                                    "pm.test(\u0027Progress updated\u0027, function() {",
+                                                                                    "  var json = pm.response.json();",
+                                                                                    "  pm.expect(json.success).to.be.true;",
+                                                                                    "});"
+                                                                                ]
+                                                                   }
+                                                    }
+                                                ]
+                                  }
+                              ]
+                 },
+                 {
+                     "name":  "Portfolio",
+                     "item":  [
+                                  {
+                                      "name":  "Save Portfolio Project",
+                                      "request":  {
+                                                      "method":  "POST",
+                                                      "header":  [
+                                                                     {
+                                                                         "key":  "Content-Type",
+                                                                         "value":  "application/json"
+                                                                     },
+                                                                     {
+                                                                         "key":  "Authorization",
+                                                                         "value":  "Bearer {{token}}"
+                                                                     }
+                                                                 ],
+                                                      "url":  {
+                                                                  "raw":  "{{base_url}}/portfolios",
+                                                                  "path":  [
+                                                                               "portfolios"
+                                                                           ]
+                                                              },
+                                                      "body":  {
+                                                                   "mode":  "raw",
+                                                                   "raw":  "{\n  \"title\": \"My Portfolio Website\",\n  \"description\": \"Personal portfolio built with React\",\n  \"skills\": [\"HTML/CSS\", \"JavaScript\", \"React\"],\n  \"projectUrl\": \"https://example.com/portfolio\"\n}"
+                                                               }
+                                                  },
+                                      "event":  [
+                                                    {
+                                                        "listen":  "test",
+                                                        "script":  {
+                                                                       "exec":  [
+                                                                                    "pm.test(\u0027Status is 200\u0027, function() { pm.response.to.have.status(200); });",
+                                                                                    "pm.test(\u0027Project saved\u0027, function() {",
+                                                                                    "  var json = pm.response.json();",
+                                                                                    "  pm.expect(json.success).to.be.true;",
+                                                                                    "});"
+                                                                                ]
+                                                                   }
+                                                    }
+                                                ]
+                                  },
+                                  {
+                                      "name":  "Get Portfolio Projects (Auth)",
+                                      "request":  {
+                                                      "method":  "GET",
+                                                      "header":  [
+                                                                     {
+                                                                         "key":  "Authorization",
+                                                                         "value":  "Bearer {{token}}"
+                                                                     }
+                                                                 ],
+                                                      "url":  {
+                                                                  "raw":  "{{base_url}}/portfolios/budi@student.smk.id/projects",
+                                                                  "path":  [
+                                                                               "portfolios",
+                                                                               "budi@student.smk.id",
+                                                                               "projects"
+                                                                           ]
+                                                              }
+                                                  },
+                                      "event":  [
+                                                    {
+                                                        "listen":  "test",
+                                                        "script":  {
+                                                                       "exec":  [
+                                                                                    "pm.test(\u0027Status is 200\u0027, function() { pm.response.to.have.status(200); });",
+                                                                                    "pm.test(\u0027Returns projects\u0027, function() {",
+                                                                                    "  var json = pm.response.json();",
+                                                                                    "  pm.expect(json.success).to.be.true;",
+                                                                                    "  pm.expect(json.data).to.be.an(\u0027array\u0027);",
+                                                                                    "});"
+                                                                                ]
+                                                                   }
+                                                    }
+                                                ]
+                                  },
+                                  {
+                                      "name":  "Get Public Portfolio (Slug)",
+                                      "request":  {
+                                                      "method":  "GET",
+                                                      "url":  {
+                                                                  "raw":  "{{base_url}}/portfolios/public/{{slug}}",
+                                                                  "path":  [
+                                                                               "portfolios",
+                                                                               "public",
+                                                                               "{{slug}}"
+                                                                           ]
+                                                              }
+                                                  },
+                                      "event":  [
+                                                    {
+                                                        "listen":  "test",
+                                                        "script":  {
+                                                                       "exec":  [
+                                                                                    "pm.test(\u0027Status is 200\u0027, function() { pm.response.to.have.status(200); });",
+                                                                                    "pm.test(\u0027Public portfolio returned\u0027, function() {",
+                                                                                    "  var json = pm.response.json();",
+                                                                                    "  pm.expect(json.success).to.be.true;",
+                                                                                    "  pm.expect(json.data.user).to.exist;",
+                                                                                    "  pm.expect(json.data.projects).to.be.an(\u0027array\u0027);",
+                                                                                    "});"
+                                                                                ]
+                                                                   }
+                                                    }
+                                                ]
+                                  }
+                              ]
+                 },
+                 {
+                     "name":  "Industry",
+                     "item":  [
+                                  {
+                                      "name":  "Get Industry Profile",
+                                      "request":  {
+                                                      "method":  "GET",
+                                                      "header":  [
+                                                                     {
+                                                                         "key":  "Authorization",
+                                                                         "value":  "Bearer {{industry_token}}"
+                                                                     }
+                                                                 ],
+                                                      "url":  {
+                                                                  "raw":  "{{base_url}}/industries/me",
+                                                                  "path":  [
+                                                                               "industries",
+                                                                               "me"
+                                                                           ]
+                                                              }
+                                                  },
+                                      "event":  [
+                                                    {
+                                                        "listen":  "test",
+                                                        "script":  {
+                                                                       "exec":  [
+                                                                                    "pm.test(\u0027Status is 200\u0027, function() { pm.response.to.have.status(200); });",
+                                                                                    "pm.test(\u0027Industry profile returned\u0027, function() {",
+                                                                                    "  var json = pm.response.json();",
+                                                                                    "  pm.expect(json.success).to.be.true;",
+                                                                                    "  pm.expect(json.data.company).to.exist;",
+                                                                                    "});"
+                                                                                ]
+                                                                   }
+                                                    }
+                                                ]
+                                  },
+                                  {
+                                      "name":  "Update Industry Profile (PUT)",
+                                      "request":  {
+                                                      "method":  "PUT",
+                                                      "header":  [
+                                                                     {
+                                                                         "key":  "Content-Type",
+                                                                         "value":  "application/json"
+                                                                     },
+                                                                     {
+                                                                         "key":  "Authorization",
+                                                                         "value":  "Bearer {{industry_token}}"
+                                                                     }
+                                                                 ],
+                                                      "url":  {
+                                                                  "raw":  "{{base_url}}/industries/profile",
+                                                                  "path":  [
+                                                                               "industries",
+                                                                               "profile"
+                                                                           ]
+                                                              },
+                                                      "body":  {
+                                                                   "mode":  "raw",
+                                                                   "raw":  "{\\n  \"company\": \"TechCorp\",\\n  \"industry\": \"Teknologi Informasi\",\\n  \"description\": \"Tech Company\",\\n  \"website\": \"https://techcorp.com\"\\n}"
+                                                               }
+                                                  },
+                                      "event":  [
+                                                    {
+                                                        "listen":  "test",
+                                                        "script":  {
+                                                                       "exec":  [
+                                                                                    "pm.test(\u0027Status is 200\u0027, function() { pm.response.to.have.status(200); });",
+                                                                                    "pm.test(\u0027Profile updated\u0027, function() {",
+                                                                                    "  var json = pm.response.json();",
+                                                                                    "  pm.expect(json.success).to.be.true;",
+                                                                                    "});"
+                                                                                ]
+                                                                   }
+                                                    }
+                                                ]
+                                  },
+                                  {
+                                      "name":  "Update Industry Profile (PATCH)",
+                                      "request":  {
+                                                      "method":  "PATCH",
+                                                      "header":  [
+                                                                     {
+                                                                         "key":  "Content-Type",
+                                                                         "value":  "application/json"
+                                                                     },
+                                                                     {
+                                                                         "key":  "Authorization",
+                                                                         "value":  "Bearer {{industry_token}}"
+                                                                     }
+                                                                 ],
+                                                      "url":  {
+                                                                  "raw":  "{{base_url}}/industries/profile",
+                                                                  "path":  [
+                                                                               "industries",
+                                                                               "profile"
+                                                                           ]
+                                                              },
+                                                      "body":  {
+                                                                   "mode":  "raw",
+                                                                   "raw":  "{\\n  \"company\": \"TechCorp Indonesia\",\\n  \"industry\": \"Teknologi Informasi\",\\n  \"website\": \"https://techcorp.com\",\\n  \"description\": \"Perusahaan teknologi\"\\n}"
+                                                               }
+                                                  },
+                                      "event":  [
+                                                    {
+                                                        "listen":  "test",
+                                                        "script":  {
+                                                                       "exec":  [
+                                                                                    "pm.test(\u0027Status is 200\u0027, function() { pm.response.to.have.status(200); });",
+                                                                                    "pm.test(\u0027Profile patched\u0027, function() {",
+                                                                                    "  var json = pm.response.json();",
+                                                                                    "  pm.expect(json.success).to.be.true;",
+                                                                                    "});"
+                                                                                ]
+                                                                   }
+                                                    }
+                                                ]
+                                  },
+                                  {
+                                      "name":  "Get Candidates",
+                                      "request":  {
+                                                      "method":  "GET",
+                                                      "header":  [
+                                                                     {
+                                                                         "key":  "Authorization",
+                                                                         "value":  "Bearer {{industry_token}}"
+                                                                     }
+                                                                 ],
+                                                      "url":  {
+                                                                  "raw":  "{{base_url}}/industries/candidates",
+                                                                  "path":  [
+                                                                               "industries",
+                                                                               "candidates"
+                                                                           ]
+                                                              }
+                                                  },
+                                      "event":  [
+                                                    {
+                                                        "listen":  "test",
+                                                        "script":  {
+                                                                       "exec":  [
+                                                                                    "pm.test(\u0027Status is 200\u0027, function() { pm.response.to.have.status(200); });",
+                                                                                    "pm.test(\u0027Returns candidates\u0027, function() {",
+                                                                                    "  var json = pm.response.json();",
+                                                                                    "  pm.expect(json.success).to.be.true;",
+                                                                                    "  pm.expect(json.data.candidates).to.be.an(\u0027array\u0027);",
+                                                                                    "});"
+                                                                                ]
+                                                                   }
+                                                    }
+                                                ]
+                                  },
+                                  {
+                                      "name":  "Get Candidates with Skill Filter",
+                                      "request":  {
+                                                      "method":  "GET",
+                                                      "header":  [
+                                                                     {
+                                                                         "key":  "Authorization",
+                                                                         "value":  "Bearer {{industry_token}}"
+                                                                     }
+                                                                 ],
+                                                      "url":  {
+                                                                  "raw":  "{{base_url}}/industries/candidates?skills=HTML/CSS,JavaScript",
+                                                                  "path":  [
+                                                                               "industries",
+                                                                               "candidates"
+                                                                           ],
+                                                                  "query":  [
+                                                                                {
+                                                                                    "key":  "skills",
+                                                                                    "value":  "HTML/CSS,JavaScript"
+                                                                                }
+                                                                            ]
+                                                              }
+                                                  },
+                                      "event":  [
+                                                    {
+                                                        "listen":  "test",
+                                                        "script":  {
+                                                                       "exec":  [
+                                                                                    "pm.test(\u0027Status is 200\u0027, function() { pm.response.to.have.status(200); });",
+                                                                                    "pm.test(\u0027Filtered candidates returned\u0027, function() {",
+                                                                                    "  var json = pm.response.json();",
+                                                                                    "  pm.expect(json.success).to.be.true;",
+                                                                                    "});"
+                                                                                ]
+                                                                   }
+                                                    }
+                                                ]
+                                  },
+                                  {
+                                      "name":  "Create Job",
+                                      "request":  {
+                                                      "method":  "POST",
+                                                      "header":  [
+                                                                     {
+                                                                         "key":  "Content-Type",
+                                                                         "value":  "application/json"
+                                                                     },
+                                                                     {
+                                                                         "key":  "Authorization",
+                                                                         "value":  "Bearer {{industry_token}}"
+                                                                     }
+                                                                 ],
+                                                      "url":  {
+                                                                  "raw":  "{{base_url}}/industries/jobs",
+                                                                  "path":  [
+                                                                               "industries",
+                                                                               "jobs"
+                                                                           ]
+                                                              },
+                                                      "body":  {
+                                                                   "mode":  "raw",
+                                                                   "raw":  "{\\n  \"title\": \"Frontend Developer\",\\n  \"description\": \"Mengembangkan UI website perusahaan\",\\n  \"location\": \"Jakarta Selatan\",\\n  \"type\": \"fulltime\",\\n  \"salary_min\": 5000000,\\n  \"salary_max\": 10000000,\\n  \"skills\": [\"JavaScript\", \"React\"]\\n}"
+                                                               }
+                                                  },
+                                      "event":  [
+                                                    {
+                                                        "listen":  "test",
+                                                        "script":  {
+                                                                       "exec":  [
+                                                                                    "pm.test(\u0027Status is 200\u0027, function() { pm.response.to.have.status(200); });",
+                                                                                    "pm.test(\u0027Job created\u0027, function() {",
+                                                                                    "  var json = pm.response.json();",
+                                                                                    "  pm.expect(json.success).to.be.true;",
+                                                                                    "  pm.expect(json.data.id).to.exist;",
+                                                                                    "  pm.collectionVariables.set(\u0027jobId\u0027, json.data.id);",
+                                                                                    "});"
+                                                                                ]
+                                                                   }
+                                                    }
+                                                ]
+                                  },
+                                  {
+                                      "name":  "List My Jobs",
+                                      "request":  {
+                                                      "method":  "GET",
+                                                      "header":  [
+                                                                     {
+                                                                         "key":  "Authorization",
+                                                                         "value":  "Bearer {{industry_token}}"
+                                                                     }
+                                                                 ],
+                                                      "url":  {
+                                                                  "raw":  "{{base_url}}/industries/jobs/mine",
+                                                                  "path":  [
+                                                                               "industries",
+                                                                               "jobs",
+                                                                               "mine"
+                                                                           ]
+                                                              }
+                                                  },
+                                      "event":  [
+                                                    {
+                                                        "listen":  "test",
+                                                        "script":  {
+                                                                       "exec":  [
+                                                                                    "pm.test(\u0027Status is 200\u0027, function() { pm.response.to.have.status(200); });",
+                                                                                    "pm.test(\u0027Returns my jobs\u0027, function() {",
+                                                                                    "  var json = pm.response.json();",
+                                                                                    "  pm.expect(json.success).to.be.true;",
+                                                                                    "  pm.expect(json.data).to.be.an(\u0027array\u0027);",
+                                                                                    "});"
+                                                                                ]
+                                                                   }
+                                                    }
+                                                ]
+                                  },
+                                  {
+                                      "name":  "Update Job",
+                                      "request":  {
+                                                      "method":  "PUT",
+                                                      "header":  [
+                                                                     {
+                                                                         "key":  "Content-Type",
+                                                                         "value":  "application/json"
+                                                                     },
+                                                                     {
+                                                                         "key":  "Authorization",
+                                                                         "value":  "Bearer {{industry_token}}"
+                                                                     }
+                                                                 ],
+                                                      "url":  {
+                                                                  "raw":  "{{base_url}}/industries/jobs/{{jobId}}",
+                                                                  "path":  [
+                                                                               "industries",
+                                                                               "jobs",
+                                                                               "{{jobId}}"
+                                                                           ]
+                                                              },
+                                                      "body":  {
+                                                                   "mode":  "raw",
+                                                                   "raw":  "{\\n  \"title\": \"Senior Developer\",\\n  \"description\": \"Update deskripsi\",\\n  \"location\": \"Jakarta\",\\n  \"type\": \"fulltime\",\\n  \"salary_min\": 8000000,\\n  \"salary_max\": 15000000,\\n  \"skills\": [\"JavaScript\", \"React\", \"Node.js\"]\\n}"
+                                                               }
+                                                  },
+                                      "event":  [
+                                                    {
+                                                        "listen":  "test",
+                                                        "script":  {
+                                                                       "exec":  [
+                                                                                    "pm.test(\u0027Status is 200\u0027, function() { pm.response.to.have.status(200); });",
+                                                                                    "pm.test(\u0027Job updated\u0027, function() {",
+                                                                                    "  var json = pm.response.json();",
+                                                                                    "  pm.expect(json.success).to.be.true;",
+                                                                                    "});"
+                                                                                ]
+                                                                   }
+                                                    }
+                                                ]
+                                  },
+                                  {
+                                      "name":  "Delete Job",
+                                      "request":  {
+                                                      "method":  "DELETE",
+                                                      "header":  [
+                                                                     {
+                                                                         "key":  "Authorization",
+                                                                         "value":  "Bearer {{industry_token}}"
+                                                                     }
+                                                                 ],
+                                                      "url":  {
+                                                                  "raw":  "{{base_url}}/industries/jobs/{{jobId}}",
+                                                                  "path":  [
+                                                                               "industries",
+                                                                               "jobs",
+                                                                               "{{jobId}}"
+                                                                           ]
+                                                              }
+                                                  },
+                                      "event":  [
+                                                    {
+                                                        "listen":  "test",
+                                                        "script":  {
+                                                                       "exec":  [
+                                                                                    "pm.test(\u0027Status is 200\u0027, function() { pm.response.to.have.status(200); });",
+                                                                                    "pm.test(\u0027Job deleted\u0027, function() {",
+                                                                                    "  var json = pm.response.json();",
+                                                                                    "  pm.expect(json.success).to.be.true;",
+                                                                                    "});"
+                                                                                ]
+                                                                   }
+                                                    }
+                                                ]
+                                  }
+                              ]
+                 },
+                 {
+                     "name":  "Jobs",
+                     "item":  [
+                                  {
+                                      "name":  "List All Jobs (Public)",
+                                      "request":  {
+                                                      "method":  "GET",
+                                                      "url":  {
+                                                                  "raw":  "{{base_url}}/jobs",
+                                                                  "path":  [
+                                                                               "jobs"
+                                                                           ]
+                                                              }
+                                                  },
+                                      "event":  [
+                                                    {
+                                                        "listen":  "test",
+                                                        "script":  {
+                                                                       "exec":  [
+                                                                                    "pm.test(\u0027Status is 200\u0027, function() { pm.response.to.have.status(200); });",
+                                                                                    "pm.test(\u0027Returns jobs list\u0027, function() {",
+                                                                                    "  var json = pm.response.json();",
+                                                                                    "  pm.expect(json.success).to.be.true;",
+                                                                                    "  pm.expect(json.data).to.be.an(\u0027array\u0027);",
+                                                                                    "});"
+                                                                                ]
+                                                                   }
+                                                    }
+                                                ]
+                                  },
+                                  {
+                                      "name":  "List Jobs by Type",
+                                      "request":  {
+                                                      "method":  "GET",
+                                                      "url":  {
+                                                                  "raw":  "{{base_url}}/jobs?type=magang",
+                                                                  "path":  [
+                                                                               "jobs"
+                                                                           ],
+                                                                  "query":  [
+                                                                                {
+                                                                                    "key":  "type",
+                                                                                    "value":  "magang"
+                                                                                }
+                                                                            ]
+                                                              }
+                                                  },
+                                      "event":  [
+                                                    {
+                                                        "listen":  "test",
+                                                        "script":  {
+                                                                       "exec":  [
+                                                                                    "pm.test(\u0027Status is 200\u0027, function() { pm.response.to.have.status(200); });",
+                                                                                    "pm.test(\u0027Returns filtered jobs\u0027, function() {",
+                                                                                    "  var json = pm.response.json();",
+                                                                                    "  pm.expect(json.success).to.be.true;",
+                                                                                    "});"
+                                                                                ]
+                                                                   }
+                                                    }
+                                                ]
+                                  },
+                                  {
+                                      "name":  "Get Job Detail",
+                                      "request":  {
+                                                      "method":  "GET",
+                                                      "url":  {
+                                                                  "raw":  "{{base_url}}/jobs/{{jobId}}",
+                                                                  "path":  [
+                                                                               "jobs",
+                                                                               "{{jobId}}"
+                                                                           ]
+                                                              }
+                                                  },
+                                      "event":  [
+                                                    {
+                                                        "listen":  "test",
+                                                        "script":  {
+                                                                       "exec":  [
+                                                                                    "pm.test(\u0027Status is 200\u0027, function() { pm.response.to.have.status(200); });",
+                                                                                    "pm.test(\u0027Job detail returned\u0027, function() {",
+                                                                                    "  var json = pm.response.json();",
+                                                                                    "  pm.expect(json.success).to.be.true;",
+                                                                                    "  pm.expect(json.data.title).to.exist;",
+                                                                                    "});"
+                                                                                ]
+                                                                   }
+                                                    }
+                                                ]
+                                  },
+                                  {
+                                      "name":  "Create Job (via Jobs endpoint)",
+                                      "request":  {
+                                                      "method":  "POST",
+                                                      "header":  [
+                                                                     {
+                                                                         "key":  "Content-Type",
+                                                                         "value":  "application/json"
+                                                                     },
+                                                                     {
+                                                                         "key":  "Authorization",
+                                                                         "value":  "Bearer {{industry_token}}"
+                                                                     }
+                                                                 ],
+                                                      "url":  {
+                                                                  "raw":  "{{base_url}}/jobs",
+                                                                  "path":  [
+                                                                               "jobs"
+                                                                           ]
+                                                              },
+                                                      "body":  {
+                                                                   "mode":  "raw",
+                                                                   "raw":  "{\\n  \"title\": \"Backend Developer\",\\n  \"description\": \"Mengembangkan API\",\\n  \"location\": \"Bandung\",\\n  \"type\": \"magang\",\\n  \"industry_id\": 1,\\n  \"skills\": [\"PHP\", \"Laravel\"]\\n}"
+                                                               }
+                                                  },
+                                      "event":  [
+                                                    {
+                                                        "listen":  "test",
+                                                        "script":  {
+                                                                       "exec":  [
+                                                                                    "pm.test(\u0027Status is 200\u0027, function() { pm.response.to.have.status(200); });",
+                                                                                    "pm.test(\u0027Job created\u0027, function() {",
+                                                                                    "  var json = pm.response.json();",
+                                                                                    "  pm.expect(json.success).to.be.true;",
+                                                                                    "  pm.expect(json.data.id).to.exist;",
+                                                                                    "});"
+                                                                                ]
+                                                                   }
+                                                    }
+                                                ]
+                                  },
+                                  {
+                                      "name":  "List My Jobs (via Jobs endpoint)",
+                                      "request":  {
+                                                      "method":  "GET",
+                                                      "header":  [
+                                                                     {
+                                                                         "key":  "Authorization",
+                                                                         "value":  "Bearer {{industry_token}}"
+                                                                     }
+                                                                 ],
+                                                      "url":  {
+                                                                  "raw":  "{{base_url}}/jobs/mine",
+                                                                  "path":  [
+                                                                               "jobs",
+                                                                               "mine"
+                                                                           ]
+                                                              }
+                                                  },
+                                      "event":  [
+                                                    {
+                                                        "listen":  "test",
+                                                        "script":  {
+                                                                       "exec":  [
+                                                                                    "pm.test(\u0027Status is 200\u0027, function() { pm.response.to.have.status(200); });",
+                                                                                    "pm.test(\u0027Returns my jobs\u0027, function() {",
+                                                                                    "  var json = pm.response.json();",
+                                                                                    "  pm.expect(json.success).to.be.true;",
+                                                                                    "  pm.expect(json.data).to.be.an(\u0027array\u0027);",
+                                                                                    "});"
+                                                                                ]
+                                                                   }
+                                                    }
+                                                ]
+                                  }
+                              ]
+                 },
+                 {
+                     "name":  "Notifications",
+                     "item":  [
+                                  {
+                                      "name":  "List Notifications",
+                                      "request":  {
+                                                      "method":  "GET",
+                                                      "header":  [
+                                                                     {
+                                                                         "key":  "Authorization",
+                                                                         "value":  "Bearer {{token}}"
+                                                                     }
+                                                                 ],
+                                                      "url":  {
+                                                                  "raw":  "{{base_url}}/notifications",
+                                                                  "path":  [
+                                                                               "notifications"
+                                                                           ]
+                                                              }
+                                                  },
+                                      "event":  [
+                                                    {
+                                                        "listen":  "test",
+                                                        "script":  {
+                                                                       "exec":  [
+                                                                                    "pm.test(\u0027Status is 200\u0027, function() { pm.response.to.have.status(200); });",
+                                                                                    "pm.test(\u0027Returns notifications\u0027, function() {",
+                                                                                    "  var json = pm.response.json();",
+                                                                                    "  pm.expect(json.success).to.be.true;",
+                                                                                    "  pm.expect(json.data).to.be.an(\u0027array\u0027);",
+                                                                                    "});"
+                                                                                ]
+                                                                   }
+                                                    }
+                                                ]
+                                  },
+                                  {
+                                      "name":  "Get Unread Count",
+                                      "request":  {
+                                                      "method":  "GET",
+                                                      "header":  [
+                                                                     {
+                                                                         "key":  "Authorization",
+                                                                         "value":  "Bearer {{token}}"
+                                                                     }
+                                                                 ],
+                                                      "url":  {
+                                                                  "raw":  "{{base_url}}/notifications/unread-count",
+                                                                  "path":  [
+                                                                               "notifications",
+                                                                               "unread-count"
+                                                                           ]
+                                                              }
+                                                  },
+                                      "event":  [
+                                                    {
+                                                        "listen":  "test",
+                                                        "script":  {
+                                                                       "exec":  [
+                                                                                    "pm.test(\u0027Status is 200\u0027, function() { pm.response.to.have.status(200); });",
+                                                                                    "pm.test(\u0027Returns count\u0027, function() {",
+                                                                                    "  var json = pm.response.json();",
+                                                                                    "  pm.expect(json.success).to.be.true;",
+                                                                                    "  pm.expect(json.data.count).to.be.a(\u0027number\u0027);",
+                                                                                    "});"
+                                                                                ]
+                                                                   }
+                                                    }
+                                                ]
+                                  },
+                                  {
+                                      "name":  "Mark Notification Read",
+                                      "request":  {
+                                                      "method":  "POST",
+                                                      "header":  [
+                                                                     {
+                                                                         "key":  "Authorization",
+                                                                         "value":  "Bearer {{token}}"
+                                                                     }
+                                                                 ],
+                                                      "url":  {
+                                                                  "raw":  "{{base_url}}/notifications/{{notificationId}}/read",
+                                                                  "path":  [
+                                                                               "notifications",
+                                                                               "{{notificationId}}",
+                                                                               "read"
+                                                                           ]
+                                                              }
+                                                  },
+                                      "event":  [
+                                                    {
+                                                        "listen":  "test",
+                                                        "script":  {
+                                                                       "exec":  [
+                                                                                    "pm.test(\u0027Status is 200\u0027, function() { pm.response.to.have.status(200); });",
+                                                                                    "pm.test(\u0027Notification marked\u0027, function() {",
+                                                                                    "  var json = pm.response.json();",
+                                                                                    "  pm.expect(json.success).to.be.true;",
+                                                                                    "});"
+                                                                                ]
+                                                                   }
+                                                    }
+                                                ]
+                                  },
+                                  {
+                                      "name":  "Mark All Read",
+                                      "request":  {
+                                                      "method":  "POST",
+                                                      "header":  [
+                                                                     {
+                                                                         "key":  "Authorization",
+                                                                         "value":  "Bearer {{token}}"
+                                                                     }
+                                                                 ],
+                                                      "url":  {
+                                                                  "raw":  "{{base_url}}/notifications/read-all",
+                                                                  "path":  [
+                                                                               "notifications",
+                                                                               "read-all"
+                                                                           ]
+                                                              }
+                                                  },
+                                      "event":  [
+                                                    {
+                                                        "listen":  "test",
+                                                        "script":  {
+                                                                       "exec":  [
+                                                                                    "pm.test(\u0027Status is 200\u0027, function() { pm.response.to.have.status(200); });",
+                                                                                    "pm.test(\u0027All marked read\u0027, function() {",
+                                                                                    "  var json = pm.response.json();",
+                                                                                    "  pm.expect(json.success).to.be.true;",
+                                                                                    "});"
+                                                                                ]
+                                                                   }
+                                                    }
+                                                ]
+                                  }
+                              ]
+                 }
+             ]
+}

@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useState, useEffect } from "react";
 import {
@@ -9,6 +9,8 @@ import {
   AlertTriangle,
   CheckCircle2,
   XCircle,
+  Lock,
+  BadgeCheck,
 } from "lucide-react";
 import Card from "../../components/ui/card";
 import Badge from "../../components/ui/badge";
@@ -17,7 +19,8 @@ import { SkeletonDashboard } from "../../components/ui/skeleton";
 import dynamic from "next/dynamic";
 import Link from "next/link";
 import DashboardHeader from "../../components/layout/dashboardheader";
-import { getCurrentStudent } from "../../lib/mock-data";
+import { useAuth } from "../../lib/auth-context";
+import { useCardStatus } from "../../components/student-card-gate";
 import { loadCareerMatches, generateCareerMatches, saveCareerMatches } from "../../lib/career-match";
 import { getMatchBg, getReadinessTier } from "../../lib/utils";
 import { getQuizResult } from "../../lib/major-roadmap";
@@ -26,34 +29,68 @@ import type { CareerMatch } from "../../lib/type";
 const SkillRadar = dynamic(() => import("../../components/charts/skillradar"), { ssr: false });
 
 export default function CareerMatchPage() {
+  const { user } = useAuth();
   const [mounted, setMounted] = useState(false);
   const [selectedCareer, setSelectedCareer] = useState<CareerMatch | null>(null);
   const [careerMatches, setCareerMatches] = useState<CareerMatch[]>([]);
+  const [hardSkills, setHardSkills] = useState<{ id: string; name: string; category: "hard"; level: number }[]>([]);
   useEffect(() => { setMounted(true); }, []);
 
-  const student = mounted ? getCurrentStudent() : null;
-
   useEffect(() => {
-    if (!mounted) return;
+    if (!mounted || !user) return;
     const saved = loadCareerMatches();
-    let matches = saved && saved.length > 0 ? saved : student?.careerMatches || [];
-    if (matches.length > 0 && matches.some((m) => !m.skillGaps || m.skillGaps.length === 0) && student) {
-      const qr = getQuizResult();
-      if (qr) {
-        matches = generateCareerMatches(student.profile.major, qr);
-        saveCareerMatches(matches);
-      }
+    const qr = getQuizResult();
+    const major = user.student?.major || "";
+    let matches = saved && saved.length > 0 ? saved : [];
+    if (qr && matches.length > 0 && matches.some((m) => !m.skillGaps || m.skillGaps.length === 0)) {
+      matches = generateCareerMatches(major, qr);
+      saveCareerMatches(matches);
     }
     setCareerMatches(matches);
     if (matches.length > 0 && !selectedCareer) {
       setSelectedCareer(matches[0]);
     }
-  }, [mounted]);
+    if (qr) {
+      const skills: { id: string; name: string; category: "hard"; level: number }[] = Object.entries(qr.skillScores).map(([name, data]) => ({
+        id: `skill-${name}`,
+        name,
+        category: "hard" as const,
+        level: data.total > 0 ? Math.round((data.correct / data.total) * 5) : 0,
+      }));
+      setHardSkills(skills.slice(0, 8));
+    }
+  }, [mounted, user]);
 
-  if (!mounted || !student) return <div className="p-6 lg:pl-72"><SkeletonDashboard /></div>;
+  const { approved } = useCardStatus();
+
+  if (!mounted || !user) return <div className="p-6"><SkeletonDashboard /></div>;
+
+  if (!approved) {
+    return (
+      <div>
+        <DashboardHeader title="Know Your Path" subtitle="Temukan kecocokan karier berdasarkan skill kamu" />
+        <Card className="max-w-xl mx-auto text-center py-16">
+          <div className="w-16 h-16 rounded-2xl bg-amber-100 dark:bg-amber-900/30 flex items-center justify-center mx-auto mb-5">
+            <Lock className="w-8 h-8 text-amber-600 dark:text-amber-400" />
+          </div>
+          <h2 className="text-lg font-bold text-foreground mb-2">Career Match Terkunci</h2>
+          <p className="text-sm text-muted mb-6 max-w-sm mx-auto">
+            Selesaikan Verifikasi Kartu Pelajar agar bisa melihat kecocokan karier dan skill gap analysis.
+          </p>
+          <Link
+            href="/student/profile"
+            className="inline-flex items-center gap-2 px-6 py-2.5 bg-primary text-white font-medium rounded-xl hover:bg-primary-dark transition-colors"
+          >
+            <BadgeCheck className="w-4 h-4" />
+            Ke Profil & Upload Kartu
+          </Link>
+        </Card>
+      </div>
+    );
+  }
 
   const activeCareer = selectedCareer || careerMatches[0];
-  if (!activeCareer) return <div className="p-6 lg:pl-72"><SkeletonDashboard /></div>;
+  if (!activeCareer) return <div className="p-6"><SkeletonDashboard /></div>;
 
   const readinessTier = getReadinessTier(activeCareer.readinessScore || 0);
 
@@ -100,7 +137,7 @@ export default function CareerMatchPage() {
         {/* Detail Panel */}
         <div className="lg:col-span-2 space-y-6">
           {/* Career Header */}
-          <Card className="bg-gradient-to-br from-primary/5 to-secondary/5 border-primary/20">
+          <Card className="bg-primary/5 border-primary/20">
             <div className="flex items-start justify-between">
               <div>
                 <Badge variant="primary" className="mb-2">{activeCareer.category}</Badge>
@@ -120,8 +157,8 @@ export default function CareerMatchPage() {
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <Card>
               <div className="flex items-center gap-3 mb-3">
-                <div className="w-10 h-10 rounded-lg bg-purple-100 dark:bg-purple-900/50 flex items-center justify-center">
-                  <Target className="w-5 h-5 text-purple-600 dark:text-purple-400" />
+                <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center">
+                  <Target className="w-5 h-5 text-primary" />
                 </div>
                 <div>
                   <h3 className="font-semibold text-foreground text-sm">Career Match</h3>
@@ -267,7 +304,7 @@ export default function CareerMatchPage() {
           {/* Skill Radar */}
           <Card>
             <SkillRadar
-              skills={student.hardSkills.slice(0, 8)}
+              skills={hardSkills}
               title="Profil Skill Kamu"
             />
           </Card>
@@ -281,7 +318,7 @@ export default function CareerMatchPage() {
               <BookOpen className="w-4 h-4" />
               Lihat Rekomendasi Belajar
             </Link>
-            {student.profile.grade === "XII" && (
+            {user.student?.grade === "XII" && (
               <Link
                 href="/student/jobs"
                 className="flex items-center justify-center gap-2 px-6 py-3 border border-border text-foreground font-medium rounded-xl hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"

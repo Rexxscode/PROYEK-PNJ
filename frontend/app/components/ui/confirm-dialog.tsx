@@ -10,6 +10,7 @@ interface ConfirmDialogProps {
   confirmLabel?: string;
   cancelLabel?: string;
   variant?: "danger" | "warning" | "primary";
+  isSubmitting?: boolean;
   onConfirm: () => void;
   onCancel: () => void;
 }
@@ -27,6 +28,7 @@ export default function ConfirmDialog({
   confirmLabel = "Konfirmasi",
   cancelLabel = "Batal",
   variant = "primary",
+  isSubmitting = false,
   onConfirm,
   onCancel,
 }: ConfirmDialogProps) {
@@ -58,9 +60,10 @@ export default function ConfirmDialog({
           </button>
           <button
             onClick={onConfirm}
-            className={`flex-1 py-2.5 text-white text-sm font-medium rounded-xl transition-colors ${variantStyles[variant]}`}
+            disabled={isSubmitting}
+            className={`flex-1 py-2.5 text-white text-sm font-medium rounded-xl transition-colors disabled:opacity-50 disabled:cursor-not-allowed ${variantStyles[variant]}`}
           >
-            {confirmLabel}
+            {isSubmitting ? "Memproses..." : confirmLabel}
           </button>
         </div>
       </div>

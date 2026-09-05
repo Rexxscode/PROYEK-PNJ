@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
@@ -11,46 +11,84 @@ import {
   Play,
   Eye,
 } from "lucide-react";
+import { Lock, BadgeCheck } from "lucide-react";
 import Card from "../../components/ui/card";
 import Badge from "../../components/ui/badge";
 import ProgressBar from "../../components/ui/progressbar";
 import { SkeletonDashboard } from "../../components/ui/skeleton";
 import DashboardHeader from "../../components/layout/dashboardheader";
-import { MAJORS, materiList } from "../../lib/materi-catalog";
-import { getQuizForMateri } from "../../lib/materi-quiz";
-import { getCurrentStudent } from "../../lib/mock-data";
-import { getCertificateResults } from "../../lib/certificates";
-import type { CertificateResult } from "../../lib/certificates";
+import { useCardStatus } from "../../components/student-card-gate";
+import { MAJORS, materiList, QUESTIONS_PER_MATERI } from "../../lib/materi-catalog";
+import { useAuth } from "../../lib/auth-context";
+import { api, BACKEND_ENDPOINTS } from "../../lib/api";
 
 type MateriStatus = {
-  result?: CertificateResult;
+  result?: { materiId: string; studentName: string; major: string; score: number; total: number; passed: boolean; date: string };
   status: "not-started" | "in-progress" | "passed";
 };
 
+interface CertificateResult {
+  materiId: string;
+  studentName: string;
+  major: string;
+  score: number;
+  total: number;
+  passed: boolean;
+  date: string;
+}
+
 export default function SertifikatPage() {
+  const { user } = useAuth();
+  const { approved } = useCardStatus();
   const [mounted, setMounted] = useState(false);
   const [statusMap, setStatusMap] = useState<Record<string, MateriStatus>>({});
 
   useEffect(() => {
     setMounted(true);
-    const student = getCurrentStudent();
-    if (!student) return;
-    const results = getCertificateResults(student.profile.email);
-    const map: Record<string, MateriStatus> = {};
-    materiList.forEach((m) => {
-      const r = results[m.id];
-      map[m.id] = r
-        ? { result: r, status: r.passed ? "passed" : "in-progress" }
-        : { status: "not-started" };
-    });
-    setStatusMap(map);
-  }, []);
+    if (!user) return;
+    api.get<{ data: Record<string, CertificateResult> }>(BACKEND_ENDPOINTS.certificates.list)
+      .then((res) => {
+        const results = res.data || {};
+        const map: Record<string, MateriStatus> = {};
+        materiList.forEach((m) => {
+          const r = results[m.id];
+          map[m.id] = r
+            ? { result: r, status: r.passed ? "passed" : "in-progress" }
+            : { status: "not-started" };
+        });
+        setStatusMap(map);
+      })
+      .catch(() => {});
+  }, [user]);
 
-  if (!mounted) return <div className="p-6 lg:pl-72"><SkeletonDashboard /></div>;
+  if (!mounted || !user) return <div className="p-6"><SkeletonDashboard /></div>;
 
-  const student = getCurrentStudent();
-  const studentGrade = student?.profile.grade || "";
-  const studentMajor = MAJORS.find((m) => m.name === student?.profile.major) ?? MAJORS[0];
+  if (!approved) {
+    return (
+      <div>
+        <DashboardHeader title="Sertifikat Materi" subtitle="Kerjakan tes setiap materi, lulus minimal 80% (16 benar) dan dapatkan sertifikat" />
+        <Card className="max-w-xl mx-auto text-center py-16">
+          <div className="w-16 h-16 rounded-2xl bg-amber-100 dark:bg-amber-900/30 flex items-center justify-center mx-auto mb-5">
+            <Lock className="w-8 h-8 text-amber-600 dark:text-amber-400" />
+          </div>
+          <h2 className="text-lg font-bold text-foreground mb-2">Sertifikat Terkunci</h2>
+          <p className="text-sm text-muted mb-6 max-w-sm mx-auto">
+            Selesaikan Verifikasi Kartu Pelajar agar bisa mengikuti tes materi dan mendapatkan sertifikat.
+          </p>
+          <Link
+            href="/student/profile"
+            className="inline-flex items-center gap-2 px-6 py-2.5 bg-primary text-white font-medium rounded-xl hover:bg-primary-dark transition-colors"
+          >
+            <BadgeCheck className="w-4 h-4" />
+            Ke Profil & Upload Kartu
+          </Link>
+        </Card>
+      </div>
+    );
+  }
+
+  const studentGrade = user.student?.grade || "";
+  const studentMajor = MAJORS.find((m) => m.name === user.student?.major) ?? MAJORS[0];
   const majorEntries = [studentMajor];
   const majorMateri = materiList.filter((m) => m.major === studentMajor.name && m.grade === studentGrade);
 
@@ -67,7 +105,7 @@ export default function SertifikatPage() {
 
       {/* Ringkasan */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8">
-        <Card className="bg-gradient-to-br from-primary/5 to-secondary/5 border-primary/20">
+        <Card className="bg-primary/5 border-primary/20">
           <div className="flex items-center gap-4">
             <div className="w-12 h-12 rounded-xl bg-primary/10 text-primary flex items-center justify-center">
               <BookOpen className="w-6 h-6" />
@@ -105,7 +143,7 @@ export default function SertifikatPage() {
         return (
           <div key={major.name} className="mb-8">
             <div className="flex items-center gap-3 mb-4">
-              <span className="px-3 py-1 rounded-lg bg-gradient-to-r from-primary to-secondary text-white text-xs font-bold uppercase tracking-wider">
+              <span className="px-3 py-1 rounded-lg bg-primary text-white text-xs font-bold uppercase tracking-wider">
                 {major.short}
               </span>
               <h3 className="text-lg font-bold text-foreground">{major.name}</h3>
@@ -113,9 +151,9 @@ export default function SertifikatPage() {
             </div>
             <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4">
               {items.map((materi) => {
-                const st = statusMap[materi.id];
+                const st = statusMap[materi.id] ?? { status: "not-started" as const };
                 const { result } = st;
-                const qCount = getQuizForMateri(materi.id)?.length ?? 20;
+                const qCount = QUESTIONS_PER_MATERI;
                 return (
                   <Card key={materi.id} className="flex flex-col">
                     <div className="flex items-start justify-between mb-3">

@@ -1,30 +1,26 @@
-"use client";
+﻿"use client";
 
 import { useState, useEffect } from "react";
 import { useSearchParams } from "next/navigation";
-import { ClipboardCheck, ChevronRight, ChevronLeft, CheckCircle2, Brain } from "lucide-react";
+import { ClipboardCheck, ChevronRight, ChevronLeft, CheckCircle2, Brain, Lock, BadgeCheck } from "lucide-react";
 import Link from "next/link";
 import dynamic from "next/dynamic";
 import Card from "../../components/ui/card";
 import Badge from "../../components/ui/badge";
 import { SkeletonDashboard } from "../../components/ui/skeleton";
 import DashboardHeader from "../../components/layout/dashboardheader";
-import { getCurrentStudent } from "../../lib/mock-data";
+import { useAuth } from "../../lib/auth-context";
+import { useCardStatus } from "../../components/student-card-gate";
+import { api, BACKEND_ENDPOINTS } from "../../lib/api";
 import { addNotification } from "../../lib/notifications";
-import { getQuizForMajor, gradeQuiz, type QuizQuestion, type QuizResult } from "../../lib/major-quiz";
+import { gradeQuiz, type QuizQuestion, type QuizResult } from "../../lib/major-quiz";
 import { generateCareerMatches, saveCareerMatches } from "../../lib/career-match";
 import type { Skill } from "../../lib/type";
-import { MAJORS } from "../../lib/materi-catalog";
 
 const SkillRadar = dynamic(() => import("../../components/charts/skillradar"), { ssr: false });
 
 const totalSteps = 3;
 const stepLabels = ["Selamat Datang", "Tes Jurusan", "Hasil"];
-
-const MAJOR_TABS = [
-  { label: "Semua", key: "all" },
-  ...MAJORS.map((m) => ({ label: m.short, key: m.short.toLowerCase() })),
-];
 
 const difficultyColor: Record<string, "success" | "primary" | "warning" | "danger"> = {
   basic: "success",
@@ -62,6 +58,8 @@ function getLevelColor(level: number): "danger" | "warning" | "default" | "prima
 }
 
 export default function AssessmentPage() {
+  const { user } = useAuth();
+  const { approved } = useCardStatus();
   const searchParams = useSearchParams();
   const isRetake = searchParams.get("retake") === "true";
   const [mounted, setMounted] = useState(false);
@@ -70,12 +68,14 @@ export default function AssessmentPage() {
   const [quizAnswers, setQuizAnswers] = useState<Record<string, number>>({});
   const [quizCurrent, setQuizCurrent] = useState(0);
   const [quizResult, setQuizResult] = useState<QuizResult | null>(null);
-  const [quizBucket, setQuizBucket] = useState<Record<string, QuizQuestion[]>>({});
-  const [allQuestions, setAllQuestions] = useState<QuizQuestion[]>([]);
-  const [selectedTab, setSelectedTab] = useState("all");
+  const [quizQuestions, setQuizQuestions] = useState<QuizQuestion[]>([]);
+  const [loadError, setLoadError] = useState<string | null>(null);
   const [resultSkills, setResultSkills] = useState<Skill[]>([]);
 
   useEffect(() => { setMounted(true); }, []);
+
+  const major = user?.student?.major || "";
+  const majorName = user?.student?.major_name || "";
 
   useEffect(() => {
     if (!mounted) return;
@@ -83,50 +83,56 @@ export default function AssessmentPage() {
   }, [mounted, isRetake]);
 
   useEffect(() => {
-    if (!mounted) return;
-    const student = getCurrentStudent();
-    if (!student) return;
-    const bucket: Record<string, QuizQuestion[]> = {};
-    let all: QuizQuestion[] = [];
-    MAJORS.forEach((m) => {
-      const qs = getQuizForMajor(m.name) || [];
-      bucket[m.short.toLowerCase()] = qs;
-      all = all.concat(qs);
-    });
-    setQuizBucket(bucket);
-    setAllQuestions(all);
-    const ownShort = MAJORS.find((m) => m.name === student.profile.major)?.short;
-    setSelectedTab(ownShort ? ownShort.toLowerCase() : "all");
-  }, [mounted]);
+    if (!mounted || !user || !major) return;
+    let cancelled = false;
+    const load = async () => {
+      try {
+        const res = await api.get<{ success: boolean; data: QuizQuestion[] }>(
+          BACKEND_ENDPOINTS.assessment.questions(major),
+        );
+        if (cancelled) return;
+        if (res.success && res.data.length > 0) {
+          setQuizQuestions(res.data.map((q) => ({ ...q, id: String(q.id) })));
+          setLoadError(null);
+        } else {
+          setQuizQuestions([]);
+          setLoadError("Belum ada soal untuk jurusanmu.");
+        }
+      } catch {
+        if (!cancelled) setLoadError("Gagal memuat soal. Periksa koneksi atau coba lagi.");
+      }
+    };
+    load();
+    return () => { cancelled = true; };
+  }, [mounted, user, major]);
 
-  if (!mounted) return <div className="p-6 lg:pl-72"><SkeletonDashboard /></div>;
-  const student = getCurrentStudent();
-  if (!student) return <div className="p-6 lg:pl-72"><SkeletonDashboard /></div>;
-  const { profile: currentUser } = student;
-  const quizQuestions = selectedTab === "all" ? allQuestions : quizBucket[selectedTab] || [];
+  if (!mounted || !user) return <div className="p-6"><SkeletonDashboard /></div>;
+  const currentUser = { name: user.name, email: user.email, major: user.student?.major || "", grade: user.student?.grade || "" };
   const quizProgress = quizQuestions.filter((q) => quizAnswers[q.id] !== undefined).length;
   const quizComplete = quizQuestions.length > 0 && quizQuestions.every((q) => quizAnswers[q.id] !== undefined);
-  const quizLoaded = allQuestions.length > 0;
-  const quizTitle = selectedTab === "all" ? "Semua Jurusan" : (MAJOR_TABS.find((t) => t.key === selectedTab)?.label || selectedTab);
+  const quizLoaded = quizQuestions.length > 0;
 
   const handleQuizAnswer = (questionId: string, optionIndex: number) => {
     setQuizAnswers((prev) => ({ ...prev, [questionId]: optionIndex }));
   };
 
-  const switchTab = (key: string) => {
-    if (key === selectedTab) return;
-    setSelectedTab(key);
-    setQuizCurrent(0);
-  };
-
-  const goToStep = (step: number) => {
+  const goToStep = async (step: number) => {
     if (step === 3) {
       const result = gradeQuiz(quizAnswers, quizQuestions);
       setQuizResult(result);
       localStorage.setItem("major_quiz_result", JSON.stringify(result));
       localStorage.setItem("major_quiz_answers", JSON.stringify(quizAnswers));
 
-      const careerMatches = generateCareerMatches(currentUser.major, result);
+      try {
+        await api.post(BACKEND_ENDPOINTS.assessment.submit, {
+          major: currentUser.major,
+          answers: quizAnswers,
+        });
+      } catch {
+        // Result is still shown based on local grading; submission retried on next attempt.
+      }
+
+      const careerMatches = generateCareerMatches(majorName, result);
       saveCareerMatches(careerMatches);
 
       const skills: Skill[] = Object.entries(result.skillScores).map(([skillName, data]) => ({
@@ -146,6 +152,30 @@ export default function AssessmentPage() {
     }
     setCurrentStep(step);
   };
+
+  if (!approved) {
+    return (
+      <div>
+        <DashboardHeader title="Know Yourself" subtitle="Asesmen kemampuan skill kamu" />
+        <Card className="max-w-xl mx-auto text-center py-16">
+          <div className="w-16 h-16 rounded-2xl bg-amber-100 dark:bg-amber-900/30 flex items-center justify-center mx-auto mb-5">
+            <Lock className="w-8 h-8 text-amber-600 dark:text-amber-400" />
+          </div>
+          <h2 className="text-lg font-bold text-foreground mb-2">Asesmen Terkunci</h2>
+          <p className="text-sm text-muted mb-6 max-w-sm mx-auto">
+            Selesaikan Kartu Pelajar agar bisa mengikuti asesmen dan melihat hasil level skill serta rekomendasi karier.
+          </p>
+          <Link
+            href="/student/profile"
+            className="inline-flex items-center gap-2 px-6 py-2.5 bg-primary text-white font-medium rounded-xl hover:bg-primary-dark transition-colors"
+          >
+            <BadgeCheck className="w-4 h-4" />
+            Ke Profil & Upload Kartu
+          </Link>
+        </Card>
+      </div>
+    );
+  }
 
   return (
     <div>
@@ -194,15 +224,15 @@ export default function AssessmentPage() {
           </p>
           <div className="flex flex-col sm:flex-row gap-3 justify-center items-center mb-4">
             <div className="bg-amber-50 dark:bg-amber-900/30 rounded-lg px-4 py-2 text-center">
-              <p className="text-sm font-medium text-amber-700 dark:text-amber-300">100 Soal Tes Jurusan</p>
-              <p className="text-xs text-amber-600 dark:text-amber-400">{currentUser.major}</p>
+              <p className="text-sm font-medium text-amber-700 dark:text-amber-300">{quizLoaded ? `${quizQuestions.length} Soal Tes Jurusan` : "Tes Jurusan"}</p>
+              <p className="text-xs text-amber-600 dark:text-amber-400">{majorName || currentUser.major}</p>
             </div>
             <div className="bg-blue-50 dark:bg-blue-900/30 rounded-lg px-4 py-2 text-center">
               <p className="text-sm font-medium text-blue-700 dark:text-blue-300">10 Soal per Hard Skill</p>
             </div>
           </div>
           <p className="text-xs text-muted text-center mb-8">
-            Gunakan tab jurusan (RPL, DKV, TKJ, Transmisi) untuk menampilkan soal per bidang, atau pilih {"Semua"} untuk seluruh bank soal (400 soal).
+            Jawab seluruh soal bank tes jurusanmu. Hasil menentukan level hard skill dan rekomendasi karier.
           </p>
           <button
             onClick={() => goToStep(2)}
@@ -214,31 +244,34 @@ export default function AssessmentPage() {
       )}
 
       {/* Step 2: Major Quiz */}
-      {currentStep === 2 && quizLoaded && (
+      {currentStep === 2 && (
         <div className="animate-fade-in">
+          {loadError && (
+            <Card className="text-center py-14">
+              <Brain className="w-10 h-10 text-muted mx-auto mb-3" />
+              <p className="font-medium text-foreground">Soal tidak dapat dimuat</p>
+              <p className="text-sm text-muted mt-1 mb-4">{loadError}</p>
+              <button
+                onClick={() => { setCurrentStep(1); setLoadError(null); }}
+                className="px-5 py-2 bg-primary text-white text-sm rounded-xl hover:bg-primary-dark"
+              >
+                Kembali
+              </button>
+            </Card>
+          )}
+          {!loadError && !quizLoaded && (
+            <div className="flex justify-center py-16">
+              <div className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin" />
+            </div>
+          )}
+          {!loadError && quizLoaded && (
+          <div>
           <div className="flex flex-wrap items-center justify-between gap-3 mb-6">
             <div>
               <h2 className="text-lg font-semibold text-foreground">Tes Pengetahuan Jurusan</h2>
-              <p className="text-sm text-muted">{quizTitle} — {quizQuestions.length} soal dari dasar hingga ahli</p>
+              <p className="text-sm text-muted">{majorName || currentUser.major} — {quizQuestions.length} soal dari dasar hingga ahli</p>
             </div>
             <Badge variant="primary">{quizProgress}/{quizQuestions.length} soal</Badge>
-          </div>
-
-          {/* Major filter tabs */}
-          <div className="flex flex-wrap gap-2 mb-4">
-            {MAJOR_TABS.map((t) => (
-              <button
-                key={t.key}
-                onClick={() => switchTab(t.key)}
-                className={`px-4 py-2 rounded-xl text-sm font-medium transition-colors ${
-                  selectedTab === t.key
-                    ? "bg-primary text-white shadow"
-                    : "bg-card border border-border text-muted hover:text-foreground"
-                }`}
-              >
-                {t.label}
-              </button>
-            ))}
           </div>
 
           {/* Skill nav pills */}
@@ -330,12 +363,14 @@ export default function AssessmentPage() {
             </div>
           </div>
         </div>
+          )}
+        </div>
       )}
 
       {/* Step 3: Results */}
       {currentStep === 3 && (resultSkills.length > 0 || quizResult) && (
         <div className="animate-fade-in">
-          <Card className="mb-6 bg-gradient-to-r from-emerald-50 to-teal-50 dark:from-emerald-900/20 dark:to-teal-900/20 border-emerald-200 dark:border-emerald-800">
+          <Card className="mb-6 bg-primary/5 border-primary/20">
             <div className="flex items-center gap-3">
               <CheckCircle2 className="w-8 h-8 text-emerald-600 dark:text-emerald-400" />
               <div>

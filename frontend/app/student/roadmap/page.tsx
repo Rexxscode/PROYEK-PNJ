@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useState, useEffect } from "react";
 import {
@@ -9,13 +9,16 @@ import {
   BookOpen,
   AlertTriangle,
   XCircle,
+  Lock,
+  BadgeCheck,
 } from "lucide-react";
 import Link from "next/link";
 import Card from "../../components/ui/card";
 import Badge from "../../components/ui/badge";
 import { SkeletonDashboard } from "../../components/ui/skeleton";
 import DashboardHeader from "../../components/layout/dashboardheader";
-import { getCurrentStudent } from "../../lib/mock-data";
+import { useAuth } from "../../lib/auth-context";
+import { useCardStatus } from "../../components/student-card-gate";
 import { cn } from "../../lib/utils";
 import { type QuizResult } from "../../lib/major-quiz";
 import {
@@ -36,11 +39,12 @@ const levelConfig: Record<string, { label: string; color: string }> = {
 const resourceTypeLabel: Record<string, { label: string; color: string }> = {
   article: { label: "Artikel", color: "bg-blue-100 dark:bg-blue-900/50 text-blue-600 dark:text-blue-400" },
   video: { label: "Video", color: "bg-red-100 dark:bg-red-900/50 text-red-600 dark:text-red-400" },
-  course: { label: "Kursus", color: "bg-purple-100 dark:bg-purple-900/50 text-purple-600 dark:text-purple-400" },
+  course: { label: "Kursus", color: "bg-primary/10 text-primary" },
   practice: { label: "Praktik", color: "bg-emerald-100 dark:bg-emerald-900/50 text-emerald-600 dark:text-emerald-400" },
 };
 
 export default function RoadmapPage() {
+  const { user } = useAuth();
   const [mounted, setMounted] = useState(false);
   const [milestones, setMilestones] = useState<RoadmapMilestone[]>([]);
   const [quizResult, setQuizResult] = useState<QuizResult | null>(null);
@@ -51,19 +55,18 @@ export default function RoadmapPage() {
   useEffect(() => { setMounted(true); }, []);
 
   useEffect(() => {
-    if (!mounted) return;
-    const student = getCurrentStudent();
-    if (!student) return;
+    if (!mounted || !user) return;
 
     const qr = getQuizResult();
     setQuizResult(qr);
 
-    const roadmap = getRoadmapForScore(student.profile.major, qr?.score || 0);
+    const major = user.student?.major || "";
+    const roadmap = getRoadmapForScore(major, qr?.score || 0);
     setMilestones(roadmap);
 
-    const matches = loadCareerMatches() || student.careerMatches;
+    const matches = loadCareerMatches() || [];
     if (qr && matches.length > 0 && matches.some((m) => !m.skillGaps || m.skillGaps.length === 0)) {
-      const fresh = generateCareerMatches(student.profile.major, qr);
+      const fresh = generateCareerMatches(major, qr);
       saveCareerMatches(fresh);
       setCareerMatches(fresh);
       if (fresh.length > 0) setSelectedCareer(fresh[0]);
@@ -71,11 +74,35 @@ export default function RoadmapPage() {
       setCareerMatches(matches);
       if (matches.length > 0) setSelectedCareer(matches[0]);
     }
-  }, [mounted]);
+  }, [mounted, user]);
 
-  if (!mounted) return <div className="p-6 lg:pl-72"><SkeletonDashboard /></div>;
-  const student = getCurrentStudent();
-  if (!student) return <div className="p-6 lg:pl-72"><SkeletonDashboard /></div>;
+  const { approved } = useCardStatus();
+
+  if (!mounted || !user) return <div className="p-6"><SkeletonDashboard /></div>;
+
+  if (!approved) {
+    return (
+      <div>
+        <DashboardHeader title="Learning Recommendation" subtitle="Rekomendasi belajar berdasarkan skill gap kamu" />
+        <Card className="max-w-xl mx-auto text-center py-16">
+          <div className="w-16 h-16 rounded-2xl bg-amber-100 dark:bg-amber-900/30 flex items-center justify-center mx-auto mb-5">
+            <Lock className="w-8 h-8 text-amber-600 dark:text-amber-400" />
+          </div>
+          <h2 className="text-lg font-bold text-foreground mb-2">Learning Recommendation Terkunci</h2>
+          <p className="text-sm text-muted mb-6 max-w-sm mx-auto">
+            Selesaikan Verifikasi Kartu Pelajar agar bisa mengakses rekomendasi belajar dan skill gap analysis.
+          </p>
+          <Link
+            href="/student/profile"
+            className="inline-flex items-center gap-2 px-6 py-2.5 bg-primary text-white font-medium rounded-xl hover:bg-primary-dark transition-colors"
+          >
+            <BadgeCheck className="w-4 h-4" />
+            Ke Profil & Upload Kartu
+          </Link>
+        </Card>
+      </div>
+    );
+  }
 
   const gapSkillNames = (selectedCareer?.skillGaps || []).map((g) => g.name.toLowerCase());
   const unlockedMilestones = gapSkillNames.length > 0
@@ -114,7 +141,7 @@ export default function RoadmapPage() {
 
       {/* Quiz Result Summary */}
       {quizResult && (
-        <Card className="mb-6 bg-gradient-to-r from-primary/5 to-secondary/5 border-primary/20">
+        <Card className="mb-6 bg-primary/5 border-primary/20">
           <div className="flex items-center gap-3 mb-3">
             <BarChart3 className="w-5 h-5 text-primary" />
             <h3 className="font-semibold text-foreground">Hasil Tes Jurusan</h3>
@@ -197,7 +224,7 @@ export default function RoadmapPage() {
                   <div className="grid grid-cols-2 gap-3">
                     <div className="p-3 bg-gray-50 dark:bg-gray-700/50 rounded-lg text-center">
                       <p className="text-xs text-muted mb-1">Career Match</p>
-                      <p className="text-lg font-bold text-purple-600 dark:text-purple-400">{selectedCareer.matchPercentage}%</p>
+                      <p className="text-lg font-bold text-primary">{selectedCareer.matchPercentage}%</p>
                     </div>
                     <div className="p-3 bg-gray-50 dark:bg-gray-700/50 rounded-lg text-center">
                       <p className="text-xs text-muted mb-1">Readiness</p>

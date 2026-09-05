@@ -6,8 +6,19 @@ import Link from "next/link";
 import Card from "../../components/ui/card";
 import Badge from "../../components/ui/badge";
 import DashboardHeader from "../../components/layout/dashboardheader";
-import { getStudentCandidates } from "../../lib/mock-data";
+import { api, BACKEND_ENDPOINTS } from "../../lib/api";
 import { getMatchBg, getInitials } from "../../lib/utils";
+
+interface Candidate {
+  name: string;
+  email: string;
+  major: string;
+  grade: string;
+  score: number;
+  skills: string[];
+  topCareer: string;
+  hasPublicPortfolio: boolean;
+}
 
 const readinessFilters = [
   { key: "all", label: "Semua" },
@@ -31,12 +42,25 @@ export default function CandidatesPage() {
   const [search, setSearch] = useState("");
   const [selectedSkills, setSelectedSkills] = useState<string[]>([]);
   const [readinessFilter, setReadinessFilter] = useState<string>("all");
+  const [candidates, setCandidates] = useState<Candidate[]>([]);
 
-  const candidates = useMemo(() => getStudentCandidates(), []);
+  useEffect(() => {
+    const fetchCandidates = async () => {
+      try {
+        const response = await api.get<{ data: Candidate[] }>(BACKEND_ENDPOINTS.industries.candidates);
+        setCandidates(Array.isArray(response.data) ? response.data : []);
+      } catch (error) {
+        console.error("Failed to fetch candidates:", error);
+      }
+    };
+    fetchCandidates();
+  }, []);
+
+  const candidateList = Array.isArray(candidates) ? candidates : [];
 
   const allSkillFilters = useMemo(
-    () => [...new Set(candidates.flatMap((c) => c.skills))].sort(),
-    [candidates]
+    () => [...new Set(candidateList.flatMap((c) => c.skills || []))].sort(),
+    [candidateList]
   );
 
   useEffect(() => {
@@ -142,7 +166,7 @@ export default function CandidatesPage() {
           .map((candidate) => (
             <Card key={candidate.name} hover>
               <div className="flex items-center gap-3 mb-4">
-                <div className="w-12 h-12 rounded-full bg-gradient-to-br from-primary to-secondary flex items-center justify-center">
+                <div className="w-12 h-12 rounded-full bg-primary flex items-center justify-center">
                   <span className="text-sm font-bold text-white">{getInitials(candidate.name)}</span>
                 </div>
                 <div>
