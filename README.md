@@ -37,7 +37,7 @@
 |------|-------|--------|
 | **Sofian Bahtiar** | Frontend Developer | [@Sayayyan](https://github.com/Sayayyan) |
 | **Muhamad Adzka Lainufa** | Full Stack Developer | [@Rexxscode](https://github.com/Rexxscode) |
-| **Fauzan Aji Wibisono** | Backend Developer | [@username3](https://github.com/[username3]) |
+| **[Nama Lengkap 3]** | [Peran] | [@username3](https://github.com/[username3]) |
 
 ---
 
@@ -99,14 +99,26 @@ Pendekatan ini unik karena industri **tidak hanya menerima lamaran**, tetapi jug
 ### Screenshot Aplikasi
 
 <div align="center">
-  <img src="[URL_SCREENSHOT_1]" alt="Homepage" width="800"/>
+  <img src="docs/screenshots/homepage.png" alt="Homepage" width="800"/>
   <p><em>Homepage - Tampilan utama aplikasi</em></p>
 
-  <img src="[URL_SCREENSHOT_2]" alt="Dashboard" width="800"/>
+  <img src="docs/screenshots/dashboard.png" alt="Dashboard" width="800"/>
   <p><em>Dashboard - Panel kontrol pengguna</em></p>
 
-  <img src="[URL_SCREENSHOT_3]" alt="Feature" width="800"/>
-  <p><em>[Nama Fitur] - [Deskripsi screenshot]</em></p>
+  <img src="docs/screenshots/career-match.png" alt="Career Match" width="800"/>
+  <p><em>Know Your Path - Rekomendasi karier & skill gap</em></p>
+
+  <img src="docs/screenshots/jobs.png" alt="Jobs" width="800"/>
+  <p><em>Smart Job Board - Lowongan yang cocok dengan skill siswa</em></p>
+
+  <img src="docs/screenshots/admin.png" alt="Admin" width="800"/>
+  <p><em>Admin - Panel data siswa & verifikasi kartu pelajar</em></p>
+
+  <img src="docs/screenshots/post-job.png" alt="Post Job" width="800"/>
+  <p><em>Industry - Membuat lowongan kerja</em></p>
+
+  <img src="docs/screenshots/kandidat.png" alt="Kandidat" width="800"/>
+  <p><em>Industry - Melihat kandidat beserta readiness score</em></p>
 </div>
 
 ### Video Demo
@@ -214,7 +226,7 @@ Monitoring   : [Sentry / LogRocket / dll]
                                          └────────────┘
 ```
 
-> **Status integrasi:** Frontend sepenuhnya terhubung ke backend Laravel (`/api/v1`) untuk semua alur inti: autentikasi, tes jurusan & asesmen, kuis materi & sertifikat, kartu pelajar, portofolio publik, notifikasi antar-role, statistik admin, dan pengelolaan soal/admin/industri/registrasi. Kontrak tipe & endpoint terpusat di `frontend/app/lib/api-contract.ts`.
+> **Status integrasi:** Frontend berjalan penuh di atas lapisan data `app/lib` (mock/localStorage). Kontrak API backend sudah didefinisikan di `app/lib/api-contract.ts` dan siap diimplementasikan oleh tim Backend (Laravel).
 
 ### Database Schema (Target)
 
@@ -307,8 +319,8 @@ php artisan serve               # Server berjalan di http://localhost:8000
 Buat file `.env.local` di folder `frontend`:
 
 ```env
-# URL API backend (tanpa trailing /api — kontrak sudah menyertakan /api/v1)
-NEXT_PUBLIC_API_URL=http://localhost:8000
+# URL API backend
+NEXT_PUBLIC_API_URL=http://localhost:8000/api
 ```
 
 ---
@@ -431,7 +443,7 @@ const response = await fetch('/api/v1/auth/login', {
 
 📖 **[Dokumentasi API Lengkap](./backend/routes/api.php)** _(implementasi backend)_
 
-> **Catatan:** Definisi endpoint & tipe data terpusat di **`frontend/app/lib/api-contract.ts`**, dengan lapisan `api.ts` (JSON) dan `apiUpload.ts` (multipart untuk upload avatar/kartu).
+> **Catatan:** Saat ini aplikasi berjalan pada lapisan data mock (`app/lib/mock-data.ts`). Definisi endpoint & tipe data lengkap ada di **`frontend/app/lib/api-contract.ts`**.
 
 ---
 
@@ -448,28 +460,9 @@ npm run lint
 # Build produksi
 npm run build
 
-# Backend feature/unit tests (Laravel PHPUnit)
-cd backend
-composer test          # atau: php artisan test
-
 # E2E (28 skenario lintas role: siswa, admin, industry)
 $env:NODE_PATH="D:\...\frontend\node_modules"; node e2e.js
 ```
-
-### Cakupan Testing
-
-Selain E2E lintas role, backend menjalankan **PHPUnit (feature tests)** yang memvalidasi kontrak API:
-
-```
-Auth & role guard            : test login/logout/me, akses per role
-Assessment                   : soal per jurusan, submit, perhitungan skor server-side,
-                               validasi jawaban, penyimpanan hasil, jawaban parsial
-Admin integration            : daftar admin/industry/students, statistik, readiness,
-                               soal asesmen & materi (admin), notifikasi, persetujuan
-                               kartu, persetujuan industry, guard access
-```
-
-> Jalankan `cd backend && php artisan test` — seluruh suite hijau (25 tests / 225 assertions).
 
 ### Cakupan E2E
 
