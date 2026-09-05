@@ -37,7 +37,7 @@
 |------|-------|--------|
 | **Sofian Bahtiar** | Frontend Developer | [@Sayayyan](https://github.com/Sayayyan) |
 | **Muhamad Adzka Lainufar** | Full Stack Developer | [@Rexxscode](https://github.com/Rexxscode) |
-| **Fauzan Aji Wibisono** | Backend Developer | @morganaji17-gif(https://github.com/morganaji17-gif) |
+| **Fauzan Aji Wibisono** | Backend Developer | [@morganaji17-gif](https://github.com/morganaji17-gif) |
 
 ---
 
