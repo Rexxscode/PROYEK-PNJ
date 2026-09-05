@@ -99,14 +99,26 @@ Pendekatan ini unik karena industri **tidak hanya menerima lamaran**, tetapi jug
 ### Screenshot Aplikasi
 
 <div align="center">
-  <img src="[URL_SCREENSHOT_1]" alt="Homepage" width="800"/>
+  <img src="docs/screenshots/homepage.png" alt="Homepage" width="800"/>
   <p><em>Homepage - Tampilan utama aplikasi</em></p>
 
-  <img src="[URL_SCREENSHOT_2]" alt="Dashboard" width="800"/>
+  <img src="docs/screenshots/dashboard.png" alt="Dashboard" width="800"/>
   <p><em>Dashboard - Panel kontrol pengguna</em></p>
 
-  <img src="[URL_SCREENSHOT_3]" alt="Feature" width="800"/>
-  <p><em>[Nama Fitur] - [Deskripsi screenshot]</em></p>
+  <img src="docs/screenshots/career-match.png" alt="Career Match" width="800"/>
+  <p><em>Know Your Path - Rekomendasi karier & skill gap</em></p>
+
+  <img src="docs/screenshots/jobs.png" alt="Jobs" width="800"/>
+  <p><em>Smart Job Board - Lowongan yang cocok dengan skill siswa</em></p>
+
+  <img src="docs/screenshots/admin.png" alt="Admin" width="800"/>
+  <p><em>Admin - Panel data siswa & verifikasi kartu pelajar</em></p>
+
+  <img src="docs/screenshots/post-job.png" alt="Post Job" width="800"/>
+  <p><em>Industry - Membuat lowongan kerja</em></p>
+
+  <img src="docs/screenshots/kandidat.png" alt="Kandidat" width="800"/>
+  <p><em>Industry - Melihat kandidat beserta readiness score</em></p>
 </div>
 
 ### Video Demo

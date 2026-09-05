@@ -388,6 +388,16 @@ export const majorRoadmapMap: Record<string, MajorRoadmap> = {
   },
 };
 
+const shortCodeToMajorName: Record<string, string> = {
+  RPL: "Rekayasa Perangkat Lunak",
+  DKV: "Desain Komunikasi Visual",
+  TJKT: "Teknik Jaringan, Komputer, dan Telekomunikasi",
+};
+
+function normalizeMajorKey(major: string): string {
+  return shortCodeToMajorName[major] || major;
+}
+
 export function getScoreLevel(score: number): { level: number; label: string; trackLabel: string } {
   if (score <= 20) return { level: 1, label: "Belum", trackLabel: "Fundamental Track" };
   if (score <= 40) return { level: 2, label: "Dasar", trackLabel: "Fundamental Track" };
@@ -397,7 +407,7 @@ export function getScoreLevel(score: number): { level: number; label: string; tr
 }
 
 export function getRoadmapForScore(major: string, score: number): RoadmapMilestone[] {
-  const roadmap = majorRoadmapMap[major] || rplRoadmap;
+  const roadmap = majorRoadmapMap[normalizeMajorKey(major)] || rplRoadmap;
   const all = [...roadmap.fundamental, ...roadmap.intermediate, ...roadmap.advanced];
   const total = all.length;
 
@@ -408,13 +418,59 @@ export function getRoadmapForScore(major: string, score: number): RoadmapMilesto
   });
 }
 
+function currentStudentEmail(): string {
+  if (typeof window === "undefined") return "";
+  return localStorage.getItem("studentEmail") || "";
+}
+
 export function getQuizResult(): QuizResult | null {
   if (typeof window === "undefined") return null;
   try {
-    const stored = JSON.parse(localStorage.getItem("major_quiz_result") || "null");
+    const email = currentStudentEmail();
+    const key = email ? `major_quiz_result_${email}` : "major_quiz_result";
+    const stored = JSON.parse(localStorage.getItem(key) || "null");
     if (stored && stored.skillScores) return stored as QuizResult;
   } catch {}
   return null;
+}
+
+export function saveQuizResult(result: QuizResult): void {
+  if (typeof window === "undefined") return;
+  const email = currentStudentEmail();
+  const key = email ? `major_quiz_result_${email}` : "major_quiz_result";
+  localStorage.setItem(key, JSON.stringify(result));
+}
+
+export function getQuizAnswers(): Record<string, number> {
+  if (typeof window === "undefined") return {};
+  try {
+    const email = currentStudentEmail();
+    const key = email ? `major_quiz_answers_${email}` : "major_quiz_answers";
+    return JSON.parse(localStorage.getItem(key) || "{}");
+  } catch {
+    return {};
+  }
+}
+
+export function saveQuizAnswers(answers: Record<string, number>): void {
+  if (typeof window === "undefined") return;
+  const email = currentStudentEmail();
+  const key = email ? `major_quiz_answers_${email}` : "major_quiz_answers";
+  localStorage.setItem(key, JSON.stringify(answers));
+}
+
+export function clearAssessmentData(email?: string): void {
+  if (typeof window === "undefined") return;
+  const e = email || currentStudentEmail();
+  if (e) {
+    localStorage.removeItem(`major_quiz_result_${e}`);
+    localStorage.removeItem(`major_quiz_answers_${e}`);
+    localStorage.removeItem(`career_matches_${e}`);
+    localStorage.removeItem(`${ROADMAP_PROGRESS_KEY}_${e}`);
+    localStorage.removeItem(`${RESOURCES_VIEWED_KEY}_${e}`);
+  }
+  localStorage.removeItem("major_quiz_result");
+  localStorage.removeItem("major_quiz_answers");
 }
 
 const ROADMAP_PROGRESS_KEY = "roadmap_progress";
@@ -422,13 +478,17 @@ const RESOURCES_VIEWED_KEY = "roadmap_resources_viewed";
 
 export function loadRoadmapProgress(studentEmail?: string): Record<string, number> {
   if (typeof window === "undefined") return {};
-  const key = studentEmail ? `${ROADMAP_PROGRESS_KEY}_${studentEmail}` : ROADMAP_PROGRESS_KEY;
+  const key = (studentEmail || currentStudentEmail())
+    ? `${ROADMAP_PROGRESS_KEY}_${studentEmail || currentStudentEmail()}`
+    : ROADMAP_PROGRESS_KEY;
   try { return JSON.parse(localStorage.getItem(key) || "{}"); } catch { return {}; }
 }
 
 export function saveRoadmapProgress(progress: Record<string, number>, studentEmail?: string): void {
   if (typeof window === "undefined") return;
-  const key = studentEmail ? `${ROADMAP_PROGRESS_KEY}_${studentEmail}` : ROADMAP_PROGRESS_KEY;
+  const key = (studentEmail || currentStudentEmail())
+    ? `${ROADMAP_PROGRESS_KEY}_${studentEmail || currentStudentEmail()}`
+    : ROADMAP_PROGRESS_KEY;
   localStorage.setItem(key, JSON.stringify(progress));
 }
 

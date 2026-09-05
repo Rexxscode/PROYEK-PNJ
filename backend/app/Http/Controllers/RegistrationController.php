@@ -6,7 +6,9 @@ use App\Services\RegistrationService;
 use App\Services\NotificationService;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Validation\ValidationException;
 
 class RegistrationController extends Controller
 {
@@ -27,15 +29,27 @@ class RegistrationController extends Controller
 
     public function approve(string $email): JsonResponse
     {
-        $data = $this->registration->approveCard($email);
+        try {
+            $data = DB::transaction(function () use ($email) {
+                $data = $this->registration->approveCard($email);
 
-        $this->notifications->create([
-            'target_email' => $email,
-            'role' => 'student',
-            'title' => 'Kartu Pelajar Disetujui',
-            'message' => 'Kartu pelajarmu telah disetujui. Semua fitur siswa kini terbuka.',
-            'type' => 'card_approval',
-        ], 0);
+                $this->notifications->create([
+                    'target_email' => $email,
+                    'role' => 'student',
+                    'title' => 'Kartu Pelajar Disetujui',
+                    'message' => 'Kartu pelajarmu telah disetujui. Semua fitur siswa kini terbuka.',
+                    'type' => 'card_approval',
+                ], 0);
+
+                return $data;
+            });
+        } catch (ValidationException $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Validation failed',
+                'errors' => $e->errors(),
+            ], 422);
+        }
 
         return response()->json([
             'success' => true,
@@ -46,15 +60,27 @@ class RegistrationController extends Controller
 
     public function reject(string $email): JsonResponse
     {
-        $data = $this->registration->rejectCard($email);
+        try {
+            $data = DB::transaction(function () use ($email) {
+                $data = $this->registration->rejectCard($email);
 
-        $this->notifications->create([
-            'target_email' => $email,
-            'role' => 'student',
-            'title' => 'Kartu Pelajar Ditolak',
-            'message' => 'Kartu pelajarmu ditolak saat verifikasi. Silakan unggah ulang.',
-            'type' => 'card_approval',
-        ], 0);
+                $this->notifications->create([
+                    'target_email' => $email,
+                    'role' => 'student',
+                    'title' => 'Kartu Pelajar Ditolak',
+                    'message' => 'Kartu pelajarmu ditolak saat verifikasi. Silakan unggah ulang.',
+                    'type' => 'card_approval',
+                ], 0);
+
+                return $data;
+            });
+        } catch (ValidationException $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Validation failed',
+                'errors' => $e->errors(),
+            ], 422);
+        }
 
         return response()->json([
             'success' => true,

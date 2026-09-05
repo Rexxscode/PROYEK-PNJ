@@ -15,6 +15,7 @@ import { api, BACKEND_ENDPOINTS } from "../../lib/api";
 import { addNotification } from "../../lib/notifications";
 import { gradeQuiz, type QuizQuestion, type QuizResult } from "../../lib/major-quiz";
 import { generateCareerMatches, saveCareerMatches } from "../../lib/career-match";
+import { saveQuizResult, saveQuizAnswers } from "../../lib/major-roadmap";
 import type { Skill } from "../../lib/type";
 
 const SkillRadar = dynamic(() => import("../../components/charts/skillradar"), { ssr: false });
@@ -120,8 +121,8 @@ export default function AssessmentPage() {
     if (step === 3) {
       const result = gradeQuiz(quizAnswers, quizQuestions);
       setQuizResult(result);
-      localStorage.setItem("major_quiz_result", JSON.stringify(result));
-      localStorage.setItem("major_quiz_answers", JSON.stringify(quizAnswers));
+      saveQuizResult(result);
+      saveQuizAnswers(quizAnswers);
 
       try {
         await api.post(BACKEND_ENDPOINTS.assessment.submit, {

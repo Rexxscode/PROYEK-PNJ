@@ -4848,7 +4848,7 @@ function invalidateAssessment() {
   const stale: string[] = [];
   for (let i = 0; i < window.localStorage.length; i++) {
     const key = window.localStorage.key(i);
-    if (key && key.startsWith("career_matches_")) stale.push(key);
+    if (key && (key.startsWith("career_matches_") || key.startsWith("major_quiz_result_") || key.startsWith("major_quiz_answers_"))) stale.push(key);
   }
   stale.forEach((key) => window.localStorage.removeItem(key));
 }

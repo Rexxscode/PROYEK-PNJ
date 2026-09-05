@@ -47,6 +47,16 @@ const careerMap: Record<string, CareerDefinition[]> = {
   "Teknik Jaringan, Komputer, dan Telekomunikasi": [...tkjCareers, ...transmisiCareers],
 };
 
+const shortCodeToMajorName: Record<string, string> = {
+  RPL: "Rekayasa Perangkat Lunak",
+  DKV: "Desain Komunikasi Visual",
+  TJKT: "Teknik Jaringan, Komputer, dan Telekomunikasi",
+};
+
+function normalizeMajorKey(major: string): string {
+  return shortCodeToMajorName[major] || major;
+}
+
 function skillNameToScore(skillScores: Record<string, { correct: number; total: number }>): Record<string, number> {
   const result: Record<string, number> = {};
   for (const [skill, scores] of Object.entries(skillScores)) {
@@ -64,7 +74,8 @@ function levelFromScore(ratio: number): number {
 }
 
 export function generateCareerMatches(major: string, quizResult: QuizResult): CareerMatch[] {
-  const careers = careerMap[major] || rplCareers;
+  const normalizedMajor = normalizeMajorKey(major);
+  const careers = careerMap[normalizedMajor] || rplCareers;
   const skillRatios = skillNameToScore(quizResult.skillScores);
 
   const matches: CareerMatch[] = careers.map((career) => {

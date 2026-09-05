@@ -11,6 +11,7 @@ import {
   XCircle,
   Lock,
   BadgeCheck,
+  ClipboardCheck,
 } from "lucide-react";
 import Card from "../../components/ui/card";
 import Badge from "../../components/ui/badge";
@@ -90,7 +91,33 @@ export default function CareerMatchPage() {
   }
 
   const activeCareer = selectedCareer || careerMatches[0];
-  if (!activeCareer) return <div className="p-6"><SkeletonDashboard /></div>;
+  if (!activeCareer) {
+    return (
+      <div>
+        <DashboardHeader
+          title="Know Your Path"
+          subtitle="Temukan kecocokan karier berdasarkan skill kamu"
+        />
+        <Card className="max-w-xl mx-auto text-center py-16">
+          <div className="w-16 h-16 rounded-2xl bg-amber-100 dark:bg-amber-900/30 flex items-center justify-center mx-auto mb-5">
+            <ClipboardCheck className="w-8 h-8 text-amber-600 dark:text-amber-400" />
+          </div>
+          <h2 className="text-lg font-bold text-foreground mb-2">Isi Tes Know Yourself Dulu!</h2>
+          <p className="text-sm text-muted mb-6 max-w-sm mx-auto">
+            Sebelum melihat rekomendasi karier dan skill gap, kamu harus mengikuti tes jurusan
+            terlebih dahulu. Hasil tes akan menentukan kecocokan karier yang sesuai untukmu.
+          </p>
+          <Link
+            href="/student/assessment"
+            className="inline-flex items-center gap-2 px-6 py-2.5 bg-primary text-white font-medium rounded-xl hover:bg-primary-dark transition-colors"
+          >
+            <ArrowRight className="w-4 h-4" />
+            Mulai Tes Sekarang
+          </Link>
+        </Card>
+      </div>
+    );
+  }
 
   const readinessTier = getReadinessTier(activeCareer.readinessScore || 0);
 

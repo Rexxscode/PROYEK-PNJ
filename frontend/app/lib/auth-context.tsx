@@ -85,6 +85,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     try {
       const res = await api.get<MeResponse>(BACKEND_ENDPOINTS.auth.me);
       setUser(res.data.user);
+      try {
+        if (res.data.user.role === "student") {
+          localStorage.setItem("studentEmail", res.data.user.email);
+        }
+      } catch {}
     } catch {
       removeToken();
       setUser(null);
@@ -104,6 +109,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     });
     setToken(res.data.token);
     setUser(res.data.user);
+    try {
+      if (res.data.user.role === "student") {
+        localStorage.setItem("studentEmail", res.data.user.email);
+      }
+    } catch {}
     return res.data.user;
   }, []);
 
@@ -111,6 +121,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const res = await api.post<LoginResponse>(BACKEND_ENDPOINTS.auth.register, data);
     setToken(res.data.token);
     setUser(res.data.user);
+    try {
+      if (res.data.user.role === "student") {
+        localStorage.setItem("studentEmail", res.data.user.email);
+      }
+    } catch {}
     return res.data.user;
   }, []);
 
@@ -123,9 +138,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     removeToken();
     setUser(null);
     try {
+      localStorage.removeItem("studentEmail");
       localStorage.removeItem("profilePhoto");
       localStorage.removeItem("loggedUserRole");
-      localStorage.removeItem("studentEmail");
       localStorage.removeItem("loggedUserName");
       localStorage.removeItem("loggedUserCompany");
     } catch {}

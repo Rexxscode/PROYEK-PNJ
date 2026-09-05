@@ -25,7 +25,7 @@ export default function CardVerificationPage() {
   const [rows, setRows] = useState<CardRow[]>([]);
   const [search, setSearch] = useState("");
   const [loading, setLoading] = useState(true);
-  const [busyEmail, setBusyEmail] = useState<string | null>(null);
+  const [busy, setBusy] = useState<{ email: string; kind: "approve" | "reject" } | null>(null);
   const [preview, setPreview] = useState<{ name: string; img: string } | null>(null);
 
   const refresh = async () => {
@@ -68,7 +68,8 @@ export default function CardVerificationPage() {
   });
 
   const runAction = async (email: string, kind: "approve" | "reject") => {
-    setBusyEmail(email);
+    if (busy !== null) return;
+    setBusy({ email, kind });
     try {
       await api.post(BACKEND_ENDPOINTS.registrations[kind](email));
       await refresh();
@@ -94,7 +95,7 @@ export default function CardVerificationPage() {
     } catch (err) {
       if (err instanceof Error) toast(err.message, "warning");
     } finally {
-      setBusyEmail(null);
+      setBusy(null);
     }
   };
 
@@ -184,18 +185,20 @@ export default function CardVerificationPage() {
                     {pending && (
                       <div className="flex gap-2 ml-auto sm:ml-0 flex-wrap">
                         <button
+                          type="button"
                           onClick={() => runAction(p.email, "approve")}
-                          disabled={busyEmail === p.email}
+                          disabled={busy?.email === p.email && busy.kind === "approve"}
                           className="flex items-center gap-1.5 px-4 py-2 rounded-xl text-sm font-medium bg-emerald-600 text-white hover:bg-emerald-700 transition-colors disabled:opacity-60"
                         >
-                          {busyEmail === p.email ? <Loader2 className="w-4 h-4 animate-spin" /> : <Check className="w-4 h-4" />} Setujui
+                          {busy?.email === p.email && busy.kind === "approve" ? <Loader2 className="w-4 h-4 animate-spin" /> : <Check className="w-4 h-4" />} Setujui
                         </button>
                         <button
+                          type="button"
                           onClick={() => runAction(p.email, "reject")}
-                          disabled={busyEmail === p.email}
+                          disabled={busy?.email === p.email && busy.kind === "reject"}
                           className="flex items-center gap-1.5 px-4 py-2 rounded-xl text-sm font-medium bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400 hover:bg-red-200 dark:hover:bg-red-900/50 transition-colors disabled:opacity-60"
                         >
-                          {busyEmail === p.email ? <Loader2 className="w-4 h-4 animate-spin" /> : <X className="w-4 h-4" />} Tolak
+                          {busy?.email === p.email && busy.kind === "reject" ? <Loader2 className="w-4 h-4 animate-spin" /> : <X className="w-4 h-4" />} Tolak
                         </button>
                       </div>
                     )}
