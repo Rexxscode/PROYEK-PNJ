@@ -136,7 +136,7 @@ Pendekatan ini unik karena industri **tidak hanya menerima lamaran**, tetapi jug
 
 ### Video Demo
 
-📹 **[Link Video Demo](https://[URL_VIDEO])** _(opsional)_
+📹 **[Link Video Demo](https://youtu.be/tYUK7YbYOJ8?si=xm2GlskFlm1aMKAC)** _(opsional)_
 
 ---
 
