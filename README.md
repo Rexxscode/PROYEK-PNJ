@@ -5,6 +5,8 @@
 
 <img src="https://raw.githubusercontent.com/Rexxscode/PROYEK-PNJ/main/frontend/public/logo-skillmatch-baru.png" alt="SkillMatch Logo" width="200"/>
 
+<br>
+
 [![Live Demo](https://img.shields.io/badge/🚀_Live_Demo-Visit_Site-success?style=for-the-badge)](https://skillmatch.rexxscode.com)
 [![API](https://img.shields.io/badge/⚙️_API-SkillMatch_API-6a57d5?style=for-the-badge)](https://api-skillmatch.rexxscode.com)
 [![API Docs](https://img.shields.io/badge/📖_Swagger-API_Docs-85EA2D?style=for-the-badge)](https://api-skillmatch.rexxscode.com/api/docs/)
