@@ -425,9 +425,10 @@ function currentStudentEmail(): string {
 
 export function getQuizResult(): QuizResult | null {
   if (typeof window === "undefined") return null;
+  const email = currentStudentEmail();
+  if (!email) return null;
   try {
-    const email = currentStudentEmail();
-    const key = email ? `major_quiz_result_${email}` : "major_quiz_result";
+    const key = `major_quiz_result_${email}`;
     const stored = JSON.parse(localStorage.getItem(key) || "null");
     if (stored && stored.skillScores) return stored as QuizResult;
   } catch {}
@@ -437,16 +438,16 @@ export function getQuizResult(): QuizResult | null {
 export function saveQuizResult(result: QuizResult): void {
   if (typeof window === "undefined") return;
   const email = currentStudentEmail();
-  const key = email ? `major_quiz_result_${email}` : "major_quiz_result";
-  localStorage.setItem(key, JSON.stringify(result));
+  if (!email) return;
+  localStorage.setItem(`major_quiz_result_${email}`, JSON.stringify(result));
 }
 
 export function getQuizAnswers(): Record<string, number> {
   if (typeof window === "undefined") return {};
+  const email = currentStudentEmail();
+  if (!email) return {};
   try {
-    const email = currentStudentEmail();
-    const key = email ? `major_quiz_answers_${email}` : "major_quiz_answers";
-    return JSON.parse(localStorage.getItem(key) || "{}");
+    return JSON.parse(localStorage.getItem(`major_quiz_answers_${email}`) || "{}");
   } catch {
     return {};
   }
@@ -455,8 +456,8 @@ export function getQuizAnswers(): Record<string, number> {
 export function saveQuizAnswers(answers: Record<string, number>): void {
   if (typeof window === "undefined") return;
   const email = currentStudentEmail();
-  const key = email ? `major_quiz_answers_${email}` : "major_quiz_answers";
-  localStorage.setItem(key, JSON.stringify(answers));
+  if (!email) return;
+  localStorage.setItem(`major_quiz_answers_${email}`, JSON.stringify(answers));
 }
 
 export function clearAssessmentData(email?: string): void {
@@ -471,6 +472,9 @@ export function clearAssessmentData(email?: string): void {
   }
   localStorage.removeItem("major_quiz_result");
   localStorage.removeItem("major_quiz_answers");
+  localStorage.removeItem("career_matches");
+  localStorage.removeItem(ROADMAP_PROGRESS_KEY);
+  localStorage.removeItem(RESOURCES_VIEWED_KEY);
 }
 
 const ROADMAP_PROGRESS_KEY = "roadmap_progress";
@@ -478,18 +482,16 @@ const RESOURCES_VIEWED_KEY = "roadmap_resources_viewed";
 
 export function loadRoadmapProgress(studentEmail?: string): Record<string, number> {
   if (typeof window === "undefined") return {};
-  const key = (studentEmail || currentStudentEmail())
-    ? `${ROADMAP_PROGRESS_KEY}_${studentEmail || currentStudentEmail()}`
-    : ROADMAP_PROGRESS_KEY;
-  try { return JSON.parse(localStorage.getItem(key) || "{}"); } catch { return {}; }
+  const email = studentEmail || currentStudentEmail();
+  if (!email) return {};
+  try { return JSON.parse(localStorage.getItem(`${ROADMAP_PROGRESS_KEY}_${email}`) || "{}"); } catch { return {}; }
 }
 
 export function saveRoadmapProgress(progress: Record<string, number>, studentEmail?: string): void {
   if (typeof window === "undefined") return;
-  const key = (studentEmail || currentStudentEmail())
-    ? `${ROADMAP_PROGRESS_KEY}_${studentEmail || currentStudentEmail()}`
-    : ROADMAP_PROGRESS_KEY;
-  localStorage.setItem(key, JSON.stringify(progress));
+  const email = studentEmail || currentStudentEmail();
+  if (!email) return;
+  localStorage.setItem(`${ROADMAP_PROGRESS_KEY}_${email}`, JSON.stringify(progress));
 }
 
 export function loadViewedResources(studentEmail: string): Record<string, string[]> {

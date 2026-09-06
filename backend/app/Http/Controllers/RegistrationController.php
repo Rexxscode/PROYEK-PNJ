@@ -29,7 +29,7 @@ class RegistrationController extends Controller
 
     public function approve(string $email): JsonResponse
     {
-        try {
+try {
             $data = DB::transaction(function () use ($email) {
                 $data = $this->registration->approveCard($email);
 
@@ -60,7 +60,7 @@ class RegistrationController extends Controller
 
     public function reject(string $email): JsonResponse
     {
-        try {
+try {
             $data = DB::transaction(function () use ($email) {
                 $data = $this->registration->rejectCard($email);
 

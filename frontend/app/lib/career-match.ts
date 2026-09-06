@@ -131,7 +131,8 @@ function getUserEmail(): string {
 export function loadCareerMatches(): CareerMatch[] | null {
   if (typeof window === "undefined") return null;
   const email = getUserEmail();
-  const key = email ? `career_matches_${email}` : "career_matches";
+  if (!email) return null;
+  const key = `career_matches_${email}`;
   try {
     const stored = localStorage.getItem(key);
     if (stored) return JSON.parse(stored) as CareerMatch[];
@@ -142,6 +143,6 @@ export function loadCareerMatches(): CareerMatch[] | null {
 export function saveCareerMatches(matches: CareerMatch[]): void {
   if (typeof window === "undefined") return;
   const email = getUserEmail();
-  const key = email ? `career_matches_${email}` : "career_matches";
-  localStorage.setItem(key, JSON.stringify(matches));
+  if (!email) return;
+  localStorage.setItem(`career_matches_${email}`, JSON.stringify(matches));
 }

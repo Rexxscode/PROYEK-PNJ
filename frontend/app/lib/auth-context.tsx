@@ -138,11 +138,41 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     removeToken();
     setUser(null);
     try {
+      const email = localStorage.getItem("studentEmail");
       localStorage.removeItem("studentEmail");
       localStorage.removeItem("profilePhoto");
       localStorage.removeItem("loggedUserRole");
       localStorage.removeItem("loggedUserName");
       localStorage.removeItem("loggedUserCompany");
+      if (email) {
+        const { clearAssessmentData } = await import("./major-roadmap");
+        clearAssessmentData(email);
+        localStorage.removeItem(`portfolio_projects_${email.toLowerCase()}`);
+      }
+      const variants = email ? [email, email.toLowerCase()] : [];
+      const keysToClear: string[] = [];
+      for (let i = 0; i < localStorage.length; i++) {
+        const key = localStorage.key(i);
+        if (
+          key &&
+          (key === "career_matches" ||
+            key === "major_quiz_result" ||
+            key === "major_quiz_answers" ||
+            key === "roadmap_progress" ||
+            key === "roadmap_resources_viewed" ||
+            variants.some(
+              (v) =>
+                key.startsWith(`career_matches_${v}`) ||
+                key.startsWith(`major_quiz_result_${v}`) ||
+                key.startsWith(`major_quiz_answers_${v}`) ||
+                key.startsWith(`roadmap_progress_${v}`) ||
+                key.startsWith(`roadmap_resources_viewed_${v}`),
+            ))
+        ) {
+          keysToClear.push(key);
+        }
+      }
+      keysToClear.forEach((key) => localStorage.removeItem(key));
     } catch {}
   }, []);
 

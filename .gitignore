@@ -29,6 +29,9 @@ auth.json
 /backend/storage/framework/sessions/*
 /backend/storage/framework/views/*
 /backend/storage/logs/*
+/.next
+/.cache
+/frontend/frontend
 /frontend/.next
 /frontend/out
 /frontend/build

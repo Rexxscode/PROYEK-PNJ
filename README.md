@@ -36,8 +36,8 @@
 | Nama | Peran | GitHub |
 |------|-------|--------|
 | **Sofian Bahtiar** | Frontend Developer | [@Sayayyan](https://github.com/Sayayyan) |
-| **Muhamad Adzka Lainufa** | Full Stack Developer | [@Rexxscode](https://github.com/Rexxscode) |
-| **[Nama Lengkap 3]** | [Peran] | [@username3](https://github.com/[username3]) |
+| **Muhamad Adzka Lainufar** | Full Stack Developer | [@Rexxscode](https://github.com/Rexxscode) |
+| **Fauzan Aji Wibisono** | Backend Developer | [@morganaji17-gif](https://github.com/morganaji17-gif) |
 
 ---
 

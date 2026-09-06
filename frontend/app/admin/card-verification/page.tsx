@@ -25,7 +25,7 @@ export default function CardVerificationPage() {
   const [rows, setRows] = useState<CardRow[]>([]);
   const [search, setSearch] = useState("");
   const [loading, setLoading] = useState(true);
-  const [busy, setBusy] = useState<{ email: string; kind: "approve" | "reject" } | null>(null);
+const [busy, setBusy] = useState<{ email: string; kind: "approve" | "reject" } | null>(null);
   const [preview, setPreview] = useState<{ name: string; img: string } | null>(null);
 
   const refresh = async () => {
@@ -68,7 +68,7 @@ export default function CardVerificationPage() {
   });
 
   const runAction = async (email: string, kind: "approve" | "reject") => {
-    if (busy !== null) return;
+if (busy !== null) return;
     setBusy({ email, kind });
     try {
       await api.post(BACKEND_ENDPOINTS.registrations[kind](email));
