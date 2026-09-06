@@ -56,7 +56,7 @@ php artisan storage:link
 php artisan serve
 ```
 
-Server berjalan di `http://localhost:8000`.
+Server berjalan di `http://127.0.0.1:8000`.
 
 ## Struktur Proyek
 
@@ -298,11 +298,11 @@ php artisan test --filter=AssessmentFeatureTest
 Dokumentasi tersedia dalam dua format:
 
 1. **Static OpenAPI YAML** (`docs/openapi.yaml`)
-   - Akses via: `http://localhost:8000/api/docs`
-   - Download: `http://localhost:8000/api/docs/openapi.yaml`
+   - Akses via: `http://127.0.0.1:8000/api/docs`
+   - Download: `http://127.0.0.1:8000/api/docs/openapi.yaml`
 
 2. **L5-Swagger Auto-generated** (`app/Swagger/`)
-   - Akses via: `http://localhost:8000/api/documentation`
+   - Akses via: `http://127.0.0.1:8000/api/documentation`
    - Regenerate: `php artisan l5-swagger:generate`
 
 ## License

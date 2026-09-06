@@ -240,7 +240,7 @@ export default function Sidebar({ role, currentPath, isCollapsed = false, onTogg
           </button>
         </div>
 
-        <nav className="flex-1 py-4 px-3 space-y-1 overflow-y-auto">
+        <nav className="flex-1 min-h-0 py-4 px-3 space-y-1 overflow-y-auto">
           {items.map((item) => {
             const isActive = currentPath === item.href;
             const isJobsLocked = role === "student" && item.href === "/student/jobs" && grade !== "XII";
@@ -256,7 +256,7 @@ export default function Sidebar({ role, currentPath, isCollapsed = false, onTogg
                 )}
               >
                 <item.icon className={cn("w-5 h-5 flex-shrink-0", isActive && "text-primary")} />
-                <span className="flex-1">{item.label}</span>
+                <span className="flex-1 min-w-0">{item.label}</span>
                 {isJobsLocked && (
                   <span className="flex items-center gap-1 text-[10px] font-medium px-1.5 py-0.5 rounded-full bg-amber-100 dark:bg-amber-900/40 text-amber-700 dark:text-amber-400 whitespace-nowrap">
                     <Lock className="w-2.5 h-2.5" />
@@ -268,7 +268,7 @@ export default function Sidebar({ role, currentPath, isCollapsed = false, onTogg
           })}
         </nav>
 
-        <div className="p-3 border-t border-border">
+        <div className="p-3 border-t border-border shrink-0">
           <div className="flex items-center gap-3 p-2 rounded-lg bg-gray-50 dark:bg-gray-800">
             <div className="w-9 h-9 rounded-full bg-primary flex items-center justify-center flex-shrink-0 overflow-hidden">
               {profilePhoto ? (

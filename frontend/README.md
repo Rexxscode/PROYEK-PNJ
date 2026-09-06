@@ -18,7 +18,7 @@ Frontend web application untuk platform **SkillMatch**, dibangun dengan **Next.j
 
 - Node.js >= 18
 - npm / yarn / pnpm
-- Backend SkillMatch berjalan di `http://localhost:8000`
+- Backend SkillMatch berjalan di `http://127.0.0.1:8000`
 
 ## Instalasi
 
@@ -31,7 +31,7 @@ cd SKILLBRIDGE/frontend
 npm install
 
 # Buat .env.local
-echo "NEXT_PUBLIC_API_URL=http://localhost:8000" > .env.local
+echo "NEXT_PUBLIC_API_URL=http://127.0.0.1:8000" > .env.local
 
 # Jalankan development server
 npm run dev
@@ -184,7 +184,7 @@ Tiga React Context:
 
 | Variable | Default | Deskripsi |
 |---|---|---|
-| `NEXT_PUBLIC_API_URL` | `http://localhost:8000` | Backend API base URL |
+| `NEXT_PUBLIC_API_URL` | `http://127.0.0.1:8000` | Backend API base URL |
 | `NEXT_PUBLIC_APP_URL` | `http://localhost:3000` | Frontend base URL (SEO, sitemap) |
 
 ## Koneksi ke Backend
@@ -193,7 +193,7 @@ Frontend menghubungi backend via REST API:
 
 ```typescript
 // app/lib/api.ts
-const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
+const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://127.0.0.1:8000";
 ```
 
 Semua request menggunakan Bearer token dari localStorage (`auth_token`). 401 response otomatis redirect ke login.
