@@ -3,7 +3,11 @@
 # SkillMatch
 ### Career Readiness Platform untuk Siswa SMK
 
-[![Live Demo](https://img.shields.io/badge/🚀_Live_Demo-Visit_Site-success?style=for-the-badge)](https://[URL_DEMO])
+[![Live Demo](https://img.shields.io/badge/🚀_Live_Demo-Visit_Site-success?style=for-the-badge)](https://skillmatch.rexxscode.com)
+[![API](https://img.shields.io/badge/⚙️_API-SkillMatch_API-6a57d5?style=for-the-badge)](https://api-skillmatch.rexxscode.com)
+[![API Docs](https://img.shields.io/badge/📖_Swagger-API_Docs-85EA2D?style=for-the-badge)](https://api-skillmatch.rexxscode.com/api/docs/)
+[![API Repo](https://img.shields.io/badge/GitHub-Skillmatch_API-181717?style=for-the-badge&logo=github)](https://github.com/Kalaigram/Skillmatch-API)
+[![Web App Repo](https://img.shields.io/badge/GitHub-Skillmatch_WebApp-181717?style=for-the-badge&logo=github)](https://github.com/Kalaigram/Skillmatch-Web-App)
 [![GitHub](https://img.shields.io/badge/GitHub-Repository-181717?style=for-the-badge&logo=github)](https://github.com/Rexxscode/PROYEK-PNJ)
 [![License](https://img.shields.io/badge/License-MIT-blue?style=for-the-badge)](LICENSE)
 
@@ -94,7 +98,11 @@ Pendekatan ini unik karena industri **tidak hanya menerima lamaran**, tetapi jug
 
 ### Live Demo
 
-🔗 **[Kunjungi Website](https://[URL_DEMO])**
+| Platform | Link |
+|---|---|
+| 🌐 Website | https://skillmatch.rexxscode.com |
+| ⚙️ API | https://api-skillmatch.rexxscode.com |
+| 📖 Swagger API Docs | https://api-skillmatch.rexxscode.com/api/docs/ |
 
 ### Screenshot Aplikasi
 
@@ -151,8 +159,8 @@ Auth         : Session / JWT (rencana) + verifikasi berlapis admin
 
 #### DevOps & Tools
 ```
-Deployment   : [Vercel / Netlify / Railway / dll]
-CI/CD        : [GitHub Actions / Vercel / dll]
+Deployment   : Tencent Cloud (CVM / COS / CDN)
+CI/CD        : GitHub Actions
 Testing      : puppeteer-core (E2E, 28 kasus) + ESLint 9 + TypeScript
 Monitoring   : [Sentry / LogRocket / dll]
 ```
@@ -320,7 +328,7 @@ Buat file `.env.local` di folder `frontend`:
 
 ```env
 # URL API backend
-NEXT_PUBLIC_API_URL=http://localhost:8000/api
+NEXT_PUBLIC_API_URL=http://127.0.0.1:8000/
 ```
 
 ---
@@ -377,54 +385,147 @@ cd frontend && npm run lint
 ### Base URL
 
 ```
-Development: http://localhost:3000/api        (proxy frontend)
-Backend:     http://localhost:8000/api/v1     (Laravel)
-Production:  https://[domain]/api/v1
+Development: http://127.0.0.1:8000/api/v1            (Laravel local)
+Production:  https://api-skillmatch.rexxscode.com/api/v1   (API production)
+Web App:     https://skillmatch.rexxscode.com
+Swagger UI:  https://api-skillmatch.rexxscode.com/api/docs/
 ```
 
-### Endpoints (Kontrak)
+### Endpoints (sinkron dengan Dokumentasi Swagger)
 
-#### Authentication
+Seluruh endpoint diawali `/api`. Contoh lengkap & skema request/response ada di **[Swagger UI](https://api-skillmatch.rexxscode.com/api/docs/)** atau `backend/docs/openapi.yaml`.
+
+#### Autentikasi
 
 ```http
-POST /api/v1/auth/login
-POST /api/v1/auth/logout
-GET  /api/v1/auth/me
+POST   /api/v1/auth/login                         # Login pengguna
+POST   /api/v1/auth/register                      # Registrasi pengguna baru (student/industry)
+POST   /api/v1/auth/logout                        # Keluar sesi (revoke token)
+GET    /api/v1/auth/me                            # Profil pengguna saat ini
+POST   /api/v1/auth/change-password               # Ubah kata sandi
+POST   /api/v1/auth/forgot-password               # Lupa kata sandi
+POST   /api/v1/auth/reset-password                # Atur ulang kata sandi
 ```
 
-#### Students & Registrations
+#### Jurusan (Majors)
 
 ```http
-GET    /api/v1/students                     # Daftar siswa
-GET    /api/v1/students/:slug               # Profil publik siswa
-PUT    /api/v1/students/:email/grade        # Update kelas (admin)
-GET    /api/v1/registrations/students       # Persetujuan akun (admin)
-POST   /api/v1/registrations/students/:email/approve
-POST   /api/v1/registrations/students/:email/reject
-POST   /api/v1/registrations/students/card  # Upload kartu pelajar
+GET    /api/v1/majors                             # Daftar jurusan (admin)
+GET    /api/v1/majors/{major}/materi              # Mata pelajaran per jurusan (admin)
 ```
 
-#### Assessment & Quiz
+#### Asesmen
 
 ```http
-GET    /api/v1/assessment/questions?major=      # Soal asesmen
-POST   /api/v1/assessment/submit
-GET    /api/v1/materi/:materiId/questions       # Kuis materi
-POST   /api/v1/materi/:materiId/submit
-GET    /api/v1/certificates                     # Sertifikat siswa
-GET    /api/v1/certificates/:materiId
+GET    /api/v1/assessment/questions/{major?}      # Daftar soal asesmen (filter jurusan opsional)
+GET    /api/v1/assessment/questions/admin/{major?}# Soal asesmen versi admin (dengan kunci jawaban)
+POST   /api/v1/assessment/submit                  # Kirim jawaban asesmen (student)
+GET    /api/v1/assessment/results                 # Hasil asesmen pengguna (student)
+PUT    /api/v1/assessment/questions               # Perbarui soal asesmen (admin)
+POST   /api/v1/assessment/questions/reset         # Reset soal asesmen (admin)
 ```
 
-#### Jobs & Portfolios & Notifications
+#### Materi
 
 ```http
-GET    /api/v1/jobs                 # Semua lowongan
-GET    /api/v1/jobs/mine            # Lowongan milik industry
-POST   /api/v1/jobs                 # Post lowongan
-GET    /api/v1/portfolios/public/:slug
-POST   /api/v1/portfolios           # Simpan proyek portfolio
-GET    /api/v1/notifications
-POST   /api/v1/notifications/:id/read
+GET    /api/v1/materi/majors/{major}              # Daftar materi per jurusan
+GET    /api/v1/materi/{materiId}/questions        # Soal quiz per materi (student)
+POST   /api/v1/materi/{materiId}/submit           # Kirim jawaban quiz materi (student)
+GET    /api/v1/materi/{materiId}/questions/admin  # Soal materi versi admin
+PUT    /api/v1/materi/{materiId}/questions        # Perbarui soal materi (admin)
+POST   /api/v1/materi/{materiId}/questions/reset  # Reset soal materi (admin)
+```
+
+#### Sertifikat
+
+```http
+GET    /api/v1/certificates                       # Daftar sertifikat siswa (student)
+GET    /api/v1/certificates/{materiId}            # Detail sertifikat per materi (student)
+```
+
+#### Roadmap
+
+```http
+GET    /api/v1/roadmap                            # Roadmap kesiapan kerja (student)
+GET    /api/v1/roadmap/progress                   # Progres milestone (student)
+POST   /api/v1/roadmap/progress                   # Perbarui progres milestone (student)
+```
+
+#### Portofolio
+
+```http
+GET    /api/v1/portfolios/{email}/projects        # Proyek siswa (student)
+POST   /api/v1/portfolios                         # Simpan proyek portofolio (student)
+GET    /api/v1/portfolios/public/{slug}           # Portofolio publik
+```
+
+#### Industri
+
+```http
+GET    /api/v1/industries/me                      # Profil perusahaan (industry)
+GET    /api/v1/industries/profile                 # Profil perusahaan (industry)
+PUT    /api/v1/industries/profile                 # Perbarui profil perusahaan (industry)
+PATCH  /api/v1/industries/profile                 # Perbarui profil parsial (industry)
+GET    /api/v1/industries/candidates              # Daftar kandidat siswa (industry)
+```
+
+#### Lowongan Kerja
+
+```http
+GET    /api/v1/jobs                               # Daftar lowongan (publik)
+GET    /api/v1/jobs/mine                          # Lowongan milik perusahaan (industry)
+GET    /api/v1/jobs/{id}                          # Detail lowongan
+POST   /api/v1/jobs                               # Buat lowongan kerja (industry)
+PUT    /api/v1/jobs/{id}                          # Perbarui lowongan (industry)
+DELETE /api/v1/jobs/{id}                          # Hapus lowongan (industry)
+POST   /api/v1/jobs/{id}/apply                    # Lamar sebuah lowongan (student)
+GET    /api/v1/jobs/applications/mine             # Lamaran saya (student)
+GET    /api/v1/jobs/{id}/applications             # Daftar pelamar lowongan (industry)
+PUT    /api/v1/jobs/{id}/applications/{applicationId}/status  # Perbarui status lamaran (industry)
+```
+
+#### Notifikasi
+
+```http
+GET    /api/v1/notifications                      # Daftar notifikasi
+POST   /api/v1/notifications                      # Buat notifikasi
+GET    /api/v1/notifications/unread-count         # Jumlah notifikasi belum dibaca
+POST   /api/v1/notifications/{id}/read            # Tandai notifikasi sudah dibaca
+POST   /api/v1/notifications/read-all             # Tandai semua notifikasi sudah dibaca
+```
+
+#### Admin
+
+```http
+GET    /api/v1/admins                             # Daftar admin (admin)
+POST   /api/v1/admins                             # Buat akun admin (admin)
+GET    /api/v1/industries                         # Daftar perusahaan untuk dikelola (admin)
+POST   /api/v1/industries/{email}/approval        # Setujui/tolak perusahaan (admin)
+```
+
+#### Registrasi Kartu
+
+```http
+GET    /api/v1/registrations/students             # Daftar siswa untuk verifikasi kartu (admin)
+POST   /api/v1/registrations/students/{email}/approve  # Setujui kartu siswa (admin)
+POST   /api/v1/registrations/students/{email}/reject   # Tolak kartu siswa (admin)
+POST   /api/v1/registrations/students/card        # Unggah kartu pelajar (student)
+```
+
+#### Manajemen Siswa
+
+```http
+GET    /api/v1/students                           # Daftar siswa (paginasi + pencarian)
+GET    /api/v1/students/{slug}                    # Detail siswa
+PUT    /api/v1/students/{email}/grade             # Perbarui tingkat/kelas siswa (admin)
+POST   /api/v1/students/avatar                    # Unggah avatar siswa (student)
+```
+
+#### Statistik
+
+```http
+GET    /api/v1/admin/statistics                   # Statistik dashboard (admin)
+GET    /api/v1/admin/statistics/readiness         # Distribusi kesiapan kerja (admin)
 ```
 
 ### Example Request
@@ -441,9 +542,9 @@ const response = await fetch('/api/v1/auth/login', {
 });
 ```
 
-📖 **[Dokumentasi API Lengkap](./backend/routes/api.php)** _(implementasi backend)_
+📖 **[Swagger API Docs](https://api-skillmatch.rexxscode.com/api/docs/)** · **[Spesifikasi OpenAPI](./backend/docs/openapi.yaml)** · **[routes/api.php](./backend/routes/api.php)**
 
-> **Catatan:** Saat ini aplikasi berjalan pada lapisan data mock (`app/lib/mock-data.ts`). Definisi endpoint & tipe data lengkap ada di **`frontend/app/lib/api-contract.ts`**.
+> **Catatan:** Daftar endpoint di atas terambil dari dokumentasi **Swagger** resmi (`backend/docs/openapi.yaml`) dan sinkron dengan implementasi `backend/routes/api.php`.
 
 ---
 

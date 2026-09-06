@@ -154,11 +154,14 @@ Semua endpoint diawali `/api/v1/`.
 
 | Method | Endpoint | Deskripsi |
 |---|---|---|
-| GET | `/v1/materi/majors/{major}` | Daftar materi per jurusan |
-| GET | `/v1/materi/{id}/questions` | Kuis materi |
-| POST | `/v1/materi/{id}/submit` | Submit kuis materi |
-| GET | `/v1/certificates` | Daftar sertifikat |
-| GET | `/v1/certificates/{materiId}` | Detail sertifikat |
+| GET | `/v1/materi/majors/{major}` | Daftar materi per jurusan (publik) |
+| GET | `/v1/materi/{id}/questions` | Kuis materi (student) |
+| POST | `/v1/materi/{id}/submit` | Submit kuis materi (student) |
+| GET | `/v1/materi/{id}/questions/admin` | Soal kuis materi (admin) |
+| PUT | `/v1/materi/{id}/questions` | Update soal kuis materi (admin) |
+| POST | `/v1/materi/{id}/questions/reset` | Reset soal kuis materi (admin) |
+| GET | `/v1/certificates` | Daftar sertifikat (student) |
+| GET | `/v1/certificates/{materiId}` | Detail sertifikat (student) |
 
 ### Roadmap
 
@@ -183,8 +186,9 @@ Semua endpoint diawali `/api/v1/`.
 | GET | `/v1/jobs` | Daftar lowongan (publik) |
 | GET | `/v1/jobs/{id}` | Detail lowongan |
 | POST | `/v1/jobs` | Buat lowongan (industry) |
-| PUT | `/v1/jobs/{id}` | Update lowongan |
-| DELETE | `/v1/jobs/{id}` | Hapus lowongan |
+| GET | `/v1/jobs/mine` | Lowongan saya (industry) |
+| PUT | `/v1/jobs/{id}` | Update lowongan (industry) |
+| DELETE | `/v1/jobs/{id}` | Hapus lowongan (industry) |
 | POST | `/v1/jobs/{id}/apply` | Lamar pekerjaan (student) |
 | GET | `/v1/jobs/applications/mine` | Lamaran saya (student) |
 | GET | `/v1/jobs/{id}/applications` | Pelamar (industry) |
@@ -198,10 +202,24 @@ Semua endpoint diawali `/api/v1/`.
 | POST | `/v1/admins` | Buat admin |
 | GET | `/v1/industries` | Daftar industri (admin) |
 | POST | `/v1/industries/{email}/approval` | Setujui/tolak industri |
-| GET | `/v1/industries/me` | Profil industri |
-| GET | `/v1/industries/candidates` | Cari kandidat |
-| GET | `/v1/admin/statistics` | Statistik dashboard |
-| GET | `/v1/admin/statistics/readiness` | Distribusi kesiapan |
+| GET | `/v1/industries/me` | Profil industri (industry) |
+| GET | `/v1/industries/profile` | Profil industri (industry) |
+| PUT | `/v1/industries/profile` | Update profil industri (industry) |
+| PATCH | `/v1/industries/profile` | Update profil industri, parsial (industry) |
+| GET | `/v1/industries/candidates` | Cari kandidat (industry) |
+| GET | `/v1/majors` | Daftar jurusan (admin) |
+| GET | `/v1/majors/{major}/materi` | Materi per jurusan (admin) |
+| GET | `/v1/admin/statistics` | Statistik dashboard (admin) |
+| GET | `/v1/admin/statistics/readiness` | Distribusi kesiapan (admin) |
+
+### Registrations (Verifikasi Kartu)
+
+| Method | Endpoint | Deskripsi |
+|---|---|---|
+| GET | `/v1/registrations/students` | Daftar siswa menunggu verifikasi kartu (admin) |
+| POST | `/v1/registrations/students/{email}/approve` | Setujui kartu siswa (admin) |
+| POST | `/v1/registrations/students/{email}/reject` | Tolak kartu siswa (admin) |
+| POST | `/v1/registrations/students/card` | Unggah kartu pelajar (student) |
 
 ### Notifications
 
@@ -209,6 +227,7 @@ Semua endpoint diawali `/api/v1/`.
 |---|---|---|
 | GET | `/v1/notifications` | Daftar notifikasi |
 | GET | `/v1/notifications/unread-count` | Jumlah belum dibaca |
+| POST | `/v1/notifications` | Buat notifikasi (internal) |
 | POST | `/v1/notifications/{id}/read` | Tandai sudah dibaca |
 | POST | `/v1/notifications/read-all` | Tandai semua sudah dibaca |
 
